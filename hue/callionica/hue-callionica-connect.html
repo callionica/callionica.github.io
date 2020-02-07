@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Hue Connect Bridges</title>
+    <link rel="stylesheet" href="hue-callionica.css">
+    <script type="module">
+        import { loadCurrentBridge, storeCurrentBridge, bridgeByIP, bridgeIPsByDiscovery, bridgesByDiscovery, loadConnection, storeConnection, testConnection, register } from "./hue-callionica-connect.js";
+
+        const currentBridge = loadCurrentBridge();
+
+        class UIBridge {
+            constructor(root, ip, id, name) {
+                this.root = root;
+                this.ip = ip;
+                this.id = id;
+
+                this.name_ = name || "Bridge";
+                this.status_ = "";
+
+                this.root.innerHTML = `<div id="${ip}" class="connection"><p><span class="bridgename">${this.name_}</span></p><p>ID: <span class="bridgeid">${id}</p><p>IP address: <span class="bridgeip">${ip}</span></p><p>Status: <span class="bridgestatus">Not connected</span></p></div>`;
+                //`<span class="bridgename">${this.name_}</span>: <span class="bridgeip">${ip}</span> <span class="bridgestatus"></span>`;
+
+                this.rootName = this.root.querySelector(".bridgename");
+                this.rootIP = this.root.querySelector(".bridgeip");
+                this.rootStatus = this.root.querySelector(".bridgestatus");
+            }
+
+            get name() {
+                return this.name_;
+            }
+
+            set name(value) {
+                this.name_ = value;
+                this.rootName.innerText = value;
+            }
+
+            get status() {
+                return this.status_;
+            }
+            
+            set status(value) {
+                this.status_ = value;
+                this.rootStatus.innerText = value;
+            }
+
+            connect(connection) {
+                let isDefault = false;
+                if (currentBridge) {
+                    isDefault = connection.bridge.id === currentBridge.id;
+                }
+                this.root.innerHTML = `<div id="${connection.bridge.id}" class="connection"><p><span class="bridgename">${connection.bridge.name}</span></p><p>ID: <span class="bridgeid">${connection.bridge.id}</p><p>IP address: <span class="bridgeip">${connection.bridge.ip}</span></p><!--<p>Token: <span class="token">${connection.token}</span></p>--><p>Status: <span class="bridgestatus"></span></p><p><button data-id="${connection.bridge.id}" data-op="set-default" ${isDefault ? "disabled" : ""}>Set as default</button></p></div>`;
+
+                this.rootName = this.root.querySelector(".bridgename");
+                this.rootIP = this.root.querySelector(".bridgeip");
+                this.rootStatus = this.root.querySelector(".bridgestatus");
+            }
+        }
+
+        class UIBridges {
+            constructor(root) {
+                this.root = root;
+                this.bridges = [];
+            }
+
+            getBridge(ip, id) {
+                if (id) {
+                    const idMatch = this.bridges.find(bridge => bridge.id === id);
+                    if (idMatch) {
+                        return idMatch;
+                    }
+                }
+                if (ip) {
+                    const ipMatch = this.bridges.find(bridge => bridge.ip === ip);
+                    if (ipMatch && ((id === undefined) || (ipMatch.id === undefined))) {
+                        return ipMatch;
+                    }
+                }
+            }
+
+            addBridge(ip, id, name) {
+                const existing = this.getBridge(ip, id);
+                if (existing) {
+                    return existing;
+                }
+
+                const bridgeRoot = this.root.ownerDocument.createElement("div");
+                bridgeRoot.id = id || ip;
+                this.root.appendChild(bridgeRoot);
+
+                const current = new UIBridge(bridgeRoot, ip, id, name);
+                this.bridges.push(current);
+
+                return current;
+            }
+        }
+
+        class BridgeConnector {
+            constructor() {
+                this.didManualIP = false;
+                this.ui = {
+                    bridges: new UIBridges(document.getElementById("bridges")),
+                    status: document.getElementById("status"),
+                    help: document.getElementById("help"),
+                };
+                this.tokens = {};
+                this.ips = [];
+                this.unavailable = [];
+                this.bridges = [];
+                this.unconnected = [];
+                this.connections = [];
+            }
+
+            addConnection(connection) {
+                this.connections.push(connection);
+                storeConnection(connection);
+
+                if (!loadCurrentBridge()) {
+                    storeCurrentBridge(connection.bridge);
+                }
+
+                const ip = connection.bridge.ip;
+                const id = connection.bridge.id;
+                const ui = this.ui.bridges.getBridge(ip, id);
+                ui.connect(connection);
+                ui.status = `Connected`;
+            }
+
+            addUnconnected(bridge) {
+                if (!this.didManualIP) {
+                    this.didManualIP = true;
+                    document.getElementById("manual-ip").value = bridge.ip;
+                }
+
+                if (this.unconnected.find(b => b.id === bridge.id)) {
+                    return;
+                }
+
+                this.unconnected.push(bridge);
+                const index = this.unconnected.length - 1;
+
+                const ui = this.ui.bridges.getBridge(bridge.ip, bridge.id).rootStatus;
+                ui.innerHTML = `<button class="connect" data-unconnected="${index}">Connect</button>`;
+            }
+
+            addIP(ip, id, name, token) {
+                if (token) {
+                    this.tokens[ip] = token;
+                }
+
+                if (this.ips.find(i => i === ip)) { // TODO
+                    return;
+                }
+
+                this.ui.bridges.addBridge(ip, id, name);
+
+                const isFirst = this.ips.length === 0;
+                this.ips.push(ip);
+                if (isFirst) {
+                    this.processIPs().then(x => console.log("IPs"));;
+                }
+            }
+
+            addUnavailable(ip) {
+                if (!this.didManualIP) {
+                    this.didManualIP = true;
+                    document.getElementById("manual-ip").value = ip;
+                }
+                this.unavailable.push(ip);
+
+                const ui = this.ui.bridges.getBridge(ip).rootStatus;
+                ui.innerHTML = `<a href="https://${ip}/api/unauthenticated/config">Check certificate</a>`;
+
+                this.ui.help.innerHTML = `
+                <h2>Check certificates</h2>
+                <p>Not all of the reported bridges were available.</p>
+                <p>A bridge may be unavailable if your browser does not trust the self-signed certificate of that bridge.</p>
+                <p>You can check the certificate and fix the problem by clicking <a href="https://${ip}/api/unauthenticated/config">Check certificate</a> for each bridge.</p>
+                <p>If you see an error page in the browser that says "Your connection is not private" or "This connection is not private", it means that your browser does not trust the Hue bridge's self-signed certificate.</p>
+                <p>When the browser does trust the Hue bridge's self-signed certificate, you'll see some data displayed instead of an error page.</p>
+
+                <b>To trust the certificate and fix the problem:</b>
+                <ol>
+                <li><p>Click <a href="https://${ip}/api/unauthenticated/config">Check certificate</a></p></li>
+                <li>
+                    <p>When the error page appears:</p>
+                    <p>In Chrome, click "<b>Advanced</b>", then "<b>Proceed to ${ip} (unsafe)</b>"</p>
+                    <p>In Safari, click "<b>visit this website</b>"</p>
+                    <p>Other browsers will allow you to trust the Hue bridge's self-signed certificate in a similar way.</p>
+                </li>
+                <li><p>Use your browser's back button to return to this page.</p></li>
+                </ol>
+                
+                <p>You will need to do this once only for each bridge that you want to use in this browser.</p>
+                <p>If you switch browsers, you will need to trust the self-signed certificate again in the new browser.</p>
+                `;
+            }
+
+            addBridge(bridge) {
+                const ui = this.ui.bridges.addBridge(bridge.ip, bridge.id);
+                ui.id = bridge.id;
+                ui.name = bridge.name;
+
+                const isFirst = this.bridges.length === 0;
+                this.bridges.push(bridge);
+                if (isFirst) {
+                    this.processBridges().then(x => console.log("Bridges"));
+                }
+            }
+
+            async processIP(ip) {
+                // this.ui.status.innerText = `Contacting bridge ${ip}...`;
+                try {
+                    const bridge = await bridgeByIP(ip);
+                    this.addBridge(bridge);
+                } catch (e) {
+                    this.addUnavailable(ip);
+                }
+            }
+
+            async processIPs() {
+                // this.ui.status.innerText = "Contacting bridges...";
+                let ip;
+                while (ip = this.ips.pop()) {
+                    this.processIP(ip).then(x => console.log("IP"));;
+                }
+            }
+
+            async processBridge(bridge) {
+                // this.ui.status.innerText = `Connecting to bridge ${bridge.name}...`;
+                const app = "Callionica";
+
+                async function test(connector, connection) {
+                    let working = await testConnection(connection);
+                    if (working) {
+                        connector.addConnection(connection);
+                        return connection;
+                    }
+                }
+
+                let connection = loadConnection(app, bridge);
+                if (connection) {
+                    // Bridge may have changed name or IP since last stored
+                    let currentConnection = { bridge, app, token: connection.token };
+                    if (await test(this, currentConnection)) {
+                        return;
+                    }
+                }
+
+                const token = this.tokens[bridge.ip];
+                if (token) {
+                    let currentConnection = { bridge, app, token };
+                    if (await test(this, currentConnection)) {
+                        return;
+                    }
+                }
+
+                this.addUnconnected(bridge);
+            }
+
+            async processBridges() {
+                // this.ui.status.innerText = "Connecting to bridges...";
+                let bridge;
+                while (bridge = this.bridges.pop()) {
+                    this.processBridge(bridge).then(x => console.log("Bridge"));;
+                }
+            }
+
+            async registerUnconnected(index) {
+                const app = "Callionica";
+                const bridge = this.unconnected[index];
+                console.log(bridge);
+
+                let connection;
+                try {
+                    connection = await register(bridge, app);
+                } catch (e) {
+                }
+
+                if (connection) {
+                    connector.addConnection(connection);
+                    return;
+                }
+
+                const doIt = confirm(`Press the button on top of the bridge "${bridge.name}" to connect`);
+                if (doIt) {
+                    try {
+                        connection = await register(bridge, app);
+                    } catch (e) {
+                    }
+
+                    if (connection) {
+                        connector.addConnection(connection);
+                        return;
+                    }
+                }
+            }
+        }
+
+        const connector = new BridgeConnector();
+
+        function onclick(evt) {
+            const src = evt.srcElement;
+            const id = evt.srcElement.id;
+
+            if (id === "manual-button") {
+                const ipInput = document.getElementById("manual-ip");
+                const ip = ipInput.value;
+
+                const tokenInput = document.getElementById("manual-token");
+                const token = tokenInput.value || undefined;
+
+                connector.addIP(ip, undefined, undefined, token);
+                return;
+            }
+
+            {const op = src.getAttribute("data-unconnected");
+            if (op) {
+                const index = parseInt(op, 10);
+                if ((0 <= index) && (index < connector.unconnected.length)) {
+                    connector.registerUnconnected(index).then(x => console.log(x));
+                }
+                return;
+            }}
+
+            const op = src.getAttribute("data-op");
+            if (op === "set-default") {
+                const id = src.getAttribute("data-id");
+                const connection = connector.connections.find(c => c.bridge.id === id);
+                if (connection) {
+                    storeCurrentBridge(connection.bridge);
+                    document.location = document.location;
+                }
+            }
+        }
+
+        async function main() {
+            document.onclick = onclick;
+
+            let bridges = await bridgeIPsByDiscovery();
+
+            connector.ui.status.innerText = "";
+
+            bridges.forEach(bridge => connector.addIP(bridge.ip, bridge.id, bridge.name));
+        }
+
+        main().then(x => console.log("Done"));
+    </script>
+</head>
+<body>
+    <h1>Hue Bridges › Connect</h1>
+    <p>Here you can see the Hue bridges on your network and connect to them.</p>
+    <hr/>
+    <h2>Hue Bridges</h2>
+    <div id="bridges"></div>
+    <div id="status">Looking for bridges...</div>
+    <!--<p><a href="hue-callionica-bridges.html">View all bridges...</a></p>-->
+    <hr/>
+    <div id="manual">
+        <h2>Advanced</h2>
+        <p>If you know your bridge's IP address, you can search for it:</p>
+        <p><label for="manual-ip">IP Address:</label> <input id="manual-ip" type="text" maxlength="40" placeholder="192.168.0.2" value="192.168.0.2"></p>
+        <p><label for="manual-token">Token:</label> <input id="manual-token" type="text" maxlength="128" placeholder="(Optional)" value=""></p>
+        <p></p><button id="manual-button">Search</button></p>
+    </div>
+    <hr/>
+    <div id="help"></div>
+    <div id="tips">
+        <h2>Tips</h2>
+        <p>If you haven't already, we recommend you set a static internal IP address for each of your bridges.</p>
+    </div>
+    <hr/>
+    
+</body>
+</html>

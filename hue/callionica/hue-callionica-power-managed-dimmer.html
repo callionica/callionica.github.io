@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Power Managed Dimmer by Callionica</title>
+    <link rel="stylesheet" href="hue-callionica.css">
+    <script type="module">
+        import { loadCurrentBridge, loadConnection } from "./hue-callionica-connect.js";
+        import { getAll, createPowerManagedDimmer } from "./hue-callionica.js";
+
+        function isConnected(component, item) {
+            return component.connections.some(cn => (cn.item === item));
+        }
+
+        function isConnectedItem(components, item) {
+            return components.some(c => isConnected(c, item));
+        }
+
+        function dimmerSelector(data) {
+            const pmds = Object.values(data.components).filter(c => c.metadata.name === "Power Managed Dimmer");
+            const dimmers = Object.values(data.sensors).filter(sensor => (sensor.productname === "Hue dimmer switch") && !isConnectedItem(pmds, sensor));
+            if (dimmers.length === 0) {
+                return `(None available)`;
+            }
+            return `<select>\n` + 
+                    dimmers.map(g => `<option value="${g.id}">${g.name}</option>`) +
+                    `</select>\n`;
+        }
+
+        function pmzSelector(data) {
+            const pmzs = Object.values(data.components).filter(c => c.metadata.name === "Power Managed Zone");
+            if (pmzs.length === 0) {
+                return `(None available)`;
+            }
+            return `<select>\n` + 
+                    pmzs.map(pmz => `<option value="${pmz.id}">${pmz.name}</option>`) +
+                    `</select>\n`;
+        }
+
+        function settings(data) {
+            const pmzE = document.getElementById("pmz").querySelector("select");
+            const pmz = data.components[pmzE.value];
+
+            const dimmerE = document.getElementById("hardware").querySelector("select");
+            const dimmer = data.sensors[dimmerE.value];
+
+            return { pmz, dimmer };
+        }
+
+        async function main() {
+            const bridge = loadCurrentBridge();
+            const connection = await loadConnection("Callionica", bridge);
+
+            const data = await getAll(connection);
+            const components = Object.values(data);
+
+            const html = `
+            <div><label>Dimmer:</label></div>
+            <div id="hardware">${dimmerSelector(data)}</div>
+            <div><label>Power Managed Zone:</label></div>
+            <div id="pmz">${pmzSelector(data)}</div>
+            <div><button class="create">Create</button></div>
+            `;
+            document.getElementById("data").innerHTML = html;
+
+            function onCreate(evt) {
+                const setts = settings(data);
+                console.log(setts);
+                const dimmer = setts.dimmer;
+                const pmz = setts.pmz;
+                createPowerManagedDimmer(connection, dimmer.name, dimmer.id, pmz).then(x => { console.log(x); alert("Power Managed Dimmer created"); });
+            }
+            [...document.querySelectorAll("button.create")].forEach(s => s.onclick = onCreate);
+        }
+
+        main().then(x => console.log("Initial"));
+        
+    </script>
+</head>
+<body>
+    <h1>Power Managed Dimmer by Callionica</h1>
+    <p>Here you can set up and install a new Power Managed Dimmer.</p>
+    <p>Before installing this component, we recommend clearing any existing settings from the Hue dimmer switch you intend to use.</p>
+    <hr/>
+    <h2>New Power Managed Dimmer Settings</h2>
+    <div id="data"></div>
+    <hr/>
+    <p>A Power Managed Dimmer is a Hue dimmer switch that has been configured to work with a <a href="hue-callionica-power-managed-zone.html">Power Managed Zone</a>. Choose the hardware Hue dimmer switch and the Power Managed Zone you want it to control and all the dimmer buttons will be mapped automatically for controlling the zone.</p>
+    <p>All actions using the dimmer (except the Off button) will turn on the Power Managed Zone or increase it to Full Power extending the timeout before the zone turns itself off. The On button will (A) Turn on the zone at Full Power if it's off (B) Increase the zone to Full Power if it's at Low Power (C) Switch the lights to the next scene in the scene list managed by the zone if the zone is at Full Power. Note that there is one scene list per zone (and one current scene in the list), not a separate scene list and current scene for each dimmer. Power management can be disabled (temporarily) by using the Off button when the lights are off: this will turn the lights on and keep them on until the zone automatically enables power management again after an extended period of time (configured by the zone). Using the Off button to turn off the lights also immediately re-enables power management.</p>
+    <p>Off button behaviour:</p>
+    <ol>
+        <li><p>Short press when zone is on: Turns zone off and enables power management.</p></li>
+        <li><p>Short press when zone is off: Turns zone on and disables power management.</p></li>
+        <li><p>Long press: Turns zone off and disables power management.</p></li>
+    </ol>
+    <p style="padding: 4pt; background-color: gray; color: whitesmoke;">Power Managed Dimmer is a Hue Component developed by Callionica. Hue Components run on the Hue bridge.</p>
+    <!--<h2>Instructions</h2>
+    <ol>
+    <li><p>Pick the room or zone</p></li>
+    <li><p>Set how long each power level should last</p></li>
+    <li><p>You can create 2 different configurations for the times</p></li>
+    <li><p>When you're ready, hit Create</p></li>
+    </ol>-->
+    
+</body>
+</html>

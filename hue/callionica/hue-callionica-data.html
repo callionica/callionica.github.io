@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Hue Data</title>
+    <script type="module">
+        import { hueToHtml } from "./hue-json-to-html.js";
+        import { loadCurrentBridge, loadConnection } from "./hue-callionica-connect.js";
+        import { getAllCategories } from "./hue-callionica.js";
+
+        const hub = new URLSearchParams(document.location.search).get("hub") || "10.0.1.186";
+
+        async function main() {
+            const bridge = loadCurrentBridge();
+            const connection = await loadConnection("Callionica", bridge);
+            const data = await getAllCategories(connection);
+            const html = hueToHtml(data);
+            document.getElementById("data").innerHTML = html;
+        }
+
+        main().then(x => console.log("Done"));
+    </script>
+</head>
+<body>
+    <pre id="data"></pre>
+</body>
+</html>
