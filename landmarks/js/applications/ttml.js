@@ -5,7 +5,7 @@
 // We make some simplifying assumptions about the input TTML:
 // 1. We can ignore XML namespaces and just use localName to recognize the interesting elements
 // 2. We can ignore region/animation/audio/language/metadata and only handle color (applied directly or through a style; and only text color, not background color)
-// 3. We can assume that colors are provided as named colors (that would be valid as CSS class names)
+// 3. We can assume that colors are provided as named colors that would be valid as CSS class names (or as one of a few hex colors which we map to names)
 // 4. We can ignore any style information applied on "body", "div", "region" elements and assume that all styles & colors are applied on "p" or "span" elements
 // 5. We can ignore "xml:space" attributes and treat content as "xml:space=default"
 // 6. We can assume that timing information is supplied in "begin" and "end" attributes on "p" elements (not "dur" attributes and not on other elements)
@@ -28,6 +28,7 @@
 import { BaseHandler } from "../landmarks-handler.js";
 import { LandmarksParser } from "../landmarks-parser.js";
 import { xml } from "../landmarks-policy-ml.js";
+import { encodeEntities } from "../landmarks-entities.js";
 function first(text, count = 1) {
     return text.substring(0, count);
 }
@@ -40,6 +41,7 @@ class LandmarksString {
         // it won't start with whitespace
         // if it contains \n, it's deliberate; \n shouldn't be merged or ignored
         // space at the end can be merged or ignored
+        // &<> are encoded
         this.text = "";
         this.trailingWhitespace = "";
         this.append(text);
@@ -59,6 +61,7 @@ class LandmarksString {
         if (text.length <= 0) {
             return;
         }
+        text = encodeEntities(text);
         const normalizedText = text.replace(/\s+/g, " ");
         // If new text starts with space 
         // & there's no existing trailing whitespace
@@ -82,12 +85,31 @@ class LandmarksString {
             this.trailingWhitespace = "\n";
         }
     }
-    // Use appendCloseTag if you want to add the close tag before any trailing whitespace
-    // Otherwise just use append
+    appendOpenTag(tag) {
+        this.text += this.trailingWhitespace + "<" + tag + ">";
+        this.trailingWhitespace = "";
+    }
+    // appendCloseTag adds the close tag before any trailing whitespace
     appendCloseTag(tag) {
         this.text += "</" + tag + ">";
         // If there was trailingWhitespace it's now after the tag
     }
+}
+function nameColor(color) {
+    const colors = {
+        "#FFFFFF": "white",
+        "#000000": "black",
+        "#FFFF00": "yellow",
+        "#00FFFF": "cyan",
+        "#FF0000": "red",
+        "#00FF00": "green",
+        "#0000FF": "blue",
+    };
+    const found = colors[color.toUpperCase()];
+    if (found) {
+        return found;
+    }
+    return color;
 }
 function webvttTime(time, framesPerSecond = 25) {
     const hms = /^((?<h>\d{1,2}):)?(?<m>\d{1,2}):(?<s>\d{1,2})([.](?<ms>\d{1,3}))?$/ig;
@@ -142,7 +164,7 @@ class TTML extends BaseHandler {
     Text(document, range) {
         const subtitle = this.current("p");
         if (subtitle && subtitle.content) {
-            const text = range.getText(document);
+            const text = range.getDecodedText(document);
             subtitle.content.append(text);
         }
     }
@@ -172,9 +194,11 @@ class TTML extends BaseHandler {
         const e = this.current();
         const qn = attribute.getQualifiedName(document);
         switch (qn.localName) {
+            case "color":
+                e[qn.localName] = nameColor(attribute.value.getText(document));
+                break;
             case "id":
             case "style":
-            case "color":
             case "begin":
             case "end":
                 e[qn.localName] = attribute.value.getText(document);
@@ -192,7 +216,7 @@ class TTML extends BaseHandler {
         if (e.localName === "span" && e.color) {
             const subtitle = this.current("p");
             if (subtitle && subtitle.content) {
-                subtitle.content.append(`<c.${e.color}>`);
+                subtitle.content.appendOpenTag(`c.${e.color}`);
             }
         }
         if (tag.isSelfClosing) {
