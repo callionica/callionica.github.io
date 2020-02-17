@@ -1,4 +1,4 @@
-// ALL RIGHTS RESERVED
+import { decodeEntities } from "./landmarks-entities.js";
 // The parsing code assumes that npos is a large positive integer
 export const npos = Number.MAX_SAFE_INTEGER;
 ;
@@ -40,6 +40,9 @@ export class LandmarksRange {
             return "";
         }
         return document.substring(this.start, this.end);
+    }
+    getDecodedText(document) {
+        return decodeEntities(this.getText(document));
     }
 }
 LandmarksRange.invalid = new LandmarksRange(npos, npos);
