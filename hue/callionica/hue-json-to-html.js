@@ -2,6 +2,34 @@
 
 export function hueToHtml(data) {
 
+    function sortConditions(conditions) {
+        return conditions.sort((a, b) => {
+            const aa = a.address.replace(/[/]lastupdated$/i, "/zzz-lastupdated");
+            const ba = b.address.replace(/[/]lastupdated$/i, "/zzz-lastupdated");
+            const n = aa.localeCompare(ba);
+            if (n !== 0) {
+                return n;
+            }
+
+            const ops = ["eq", "lt", "gt", "ddx", "stable", "not stable", "in", "not in", "dx"];
+            const ao = ops.findIndex(o => o === a.operator);
+            const bo = ops.findIndex(o => o === b.operator);
+            if (ao < bo) {
+                return -1;
+            }
+
+            if (ao > bo) {
+                return +1;
+            }
+
+            return 0;
+        });
+    }
+
+    for (const [key, rule] of Object.entries(data.rules)) {
+        sortConditions(rule.conditions);
+    }
+
     function hueJsonToHtml(value, stack, indent) {
         stack = stack || [];
         indent = indent || 0;
@@ -84,21 +112,35 @@ export function hueToHtml(data) {
             return `[\n${dent}` + value.map(v => hueJsonToHtml(v, stack, indent + 1)).join(`,\n${dent}`) + `\n${dent1}]`;
         }
 
-        const order = ["name", "type", "uniqueid", "lasttriggered"];
+        /* The order of properties within an object */
+        const order = [
+            "name", "type", "uniqueid", "lasttriggered",
+            "state", "capabilities",
+            "lights", "groups", "sensors", "rules", "schedules", "scenes", "resourcelinks", "config",
+            "productname", "modelid", "productid", "manufacturername",
+            "swconfigid", "swversion", "swupdate",
+            "conditions", "actions"
+        ];
 
         function getOrder(v) {
             const result = order.indexOf(v);
-            if (result >= 0) {
-                return result;
-            }
-            return order.length;
+            return result;
         }
 
         let result = ["{"];
         const entries = Object.entries(value).sort((lhs, rhs) => {
             const l = getOrder(lhs[0]);
             const r = getOrder(rhs[0]);
-            return l - r;
+            if (l >= 0 && r >= 0) {
+                return l - r;
+            }
+            if (l >= 0) {
+                return -1;
+            }
+            if (r >= 0) {
+                return 1;
+            }
+            return lhs[0].localeCompare(rhs[0], undefined, { numeric: true });
         });
         for (const [indexString, [name, value]] of Object.entries(entries)) {
             const index = parseInt(indexString, 10);
