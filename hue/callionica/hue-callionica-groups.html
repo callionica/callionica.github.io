@@ -21,7 +21,13 @@
             }
 
             if (connection === undefined) {
-                connection = await loadConnection("Callionica", bridge);
+                try {
+                    connection = await loadConnection("Callionica", bridge);
+                } catch (e) {
+                    console.log(bridge);
+                    document.querySelector("iframe").src = `https://${bridge.ip}/api/unauthenticated/config`;
+                    connection = await loadConnection("Callionica", bridge);
+                }
             }
 
             const d = document.getElementById("data");
@@ -191,5 +197,6 @@
     <h1>Rooms & Zones</h1>
     <hr/>
     <div id="data"></div>
+    <iframe src=""></iframe>
 </body>
 </html>
