@@ -7,6 +7,7 @@
     font-size: inherit;
 }
 body {
+    -webkit-text-size-adjust: 100%;
     font-size: 14pt;
     padding: 8pt;
 }
@@ -156,15 +157,27 @@ button {
 }
 
 .group {
+    -moz-user-select: none;
+    -webkit-user-select: none;
     cursor: pointer;
     position: relative;
     border-radius: 8pt;
-    padding: 8pt;
-    margin: 8pt;
+    padding: 0.25rem;
+    margin: 0.25rem;
     background-color: whitesmoke;
 }
 
-.group[data-type='Room']::before {
+.group button {
+    height: 4rem;
+    width: 4rem;
+}
+
+/*.group div:first-of-type {
+    display: flex;
+    justify-content: space-between;
+}*/
+
+/*.group[data-type='Room']::before {
     content: 'RM';
     color: hsla(253, 81%, 16%, 0.5);
     margin-right: 4em;
@@ -176,7 +189,7 @@ button {
     margin-right: 4em;
 }
 
-.group[data-power-level]::before {
+.group[data-power-level] .group-name::before {
     content: '⚡️';
     color: hsla(253, 81%, 16%, 0.5);
     margin-right: 4em;
@@ -187,13 +200,44 @@ button {
     color: hsla(253, 81%, 16%, 0.25);
     margin-right: 4em;
 }
+*/
 
-.group[data-unreachable='true']::before {
-    color: hsla(253, 81%, 16%, 0.25);
+.group[data-any-unreachable='true'] button {
+    color: whitesmoke;
 }
 
-.group[data-on='true'] {
+.group[data-turn-on='true'] button {
     background-color: antiquewhite;
+}
+
+.group[data-any-on='true'] {
+    background-color: antiquewhite;
+}
+
+.controls {
+    height: 0;
+    overflow: hidden;
+}
+
+.group[data-selected='true'] .controls {
+    height: 8rem;
+    overflow-x: scroll;
+    background-color: indigo;
+}
+
+.group div:first-of-type {
+    height: 4rem;
+}
+
+.group-name {
+    position: absolute;
+    height: 2rem;
+}
+
+.group-toggle {
+    position: absolute;
+    right: 0.5rem;
+    height: 2rem;
 }
 
 .metadata {
