@@ -23,9 +23,13 @@ body {
     -webkit-text-size-adjust: 100%;
     font-size: 14pt;
     padding: 8pt;
+}
+
+body[data-page='groups'] {
     background-color: rgb(var(--back-color));
     color: rgb(var(--text-color));
 }
+
 h1 {
     font-size: 18pt;
 }
@@ -195,10 +199,16 @@ button {
     border-style: solid;
     border-color: rgb(var(--ready-color));
     color: rgb(var(--ready-color));
+
+    /*box-shadow: 0.05rem 0.05rem 0.2rem 0 rgb(var(--back-color));*/
 }
 
 .group[data-power-level] button {
     border-radius: 0.75rem;
+}
+
+.group[data-power-management='0'] button {
+    border-radius: 0.75rem 0.25rem 0.75rem 0.25rem;
 }
 
 /*.group div:first-of-type {
@@ -257,6 +267,8 @@ button {
 .controls {
     height: 0;
     overflow: hidden;
+
+    transition: height 0.6s ease;
 }
 
 .group[data-selected='true'] .controls {

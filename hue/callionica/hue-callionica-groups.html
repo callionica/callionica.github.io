@@ -191,6 +191,14 @@
                 }
                 previous = e;
             }
+
+            if (params.has("group")) {
+                // Move unreachables to the end
+                const unreachable = d.querySelectorAll(".group[data-all-unreachable='true']");
+                for (const e of [...unreachable]) {
+                    d.appendChild(e);
+                }
+            }
         }
 
         async function main() {
@@ -285,18 +293,18 @@
                     return;
                 }
             };
-        }
 
-        // const oneSecond = 1.0 * 1000;
-        // window.setInterval(() => {
-        //     main().then(x => console.log("Update"));
-        // }, oneSecond);
+            const updateInterval = 2.0 * 1000;
+            window.setInterval(() => {
+                update().then(x => console.log("Update"));
+            }, updateInterval);
+        }
 
         main().then(x => console.log("Initial"));
         
     </script>
 </head>
-<body>
+<body data-page="groups">
     <h1>Rooms & Zones</h1>
     <hr/>
     <div id="data" data-select-group="true"></div>
