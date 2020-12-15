@@ -215,6 +215,9 @@
                         d.appendChild(e);
                     }
                 }
+                
+                delete document.body.dataset.showConnection;
+
             } catch (error) {
                 document.body.dataset.showConnection = true;
 
