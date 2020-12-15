@@ -232,7 +232,7 @@
             const bridge = loadCurrentBridge();
             const connection = await loadConnection("Callionica", bridge);
             const data = await getAll(connection);
-            const components = Object.values(data.components);
+            let components = Object.values(data.components);
             const d = document.getElementById("data");
 
             if (components.length === 0) {
@@ -241,7 +241,7 @@
 
             components.sort(sortBy(g => g.name + "." + g.description));
 
-            paramsSort(components);
+            components = paramsSort(components);
 
             const componentElements = components.map(component => createComponentElement(connection, component, data));
             

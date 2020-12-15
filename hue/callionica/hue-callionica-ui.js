@@ -1,6 +1,6 @@
 
 export function paramsSort(items) {
-    const params = new URLSearchParams(document.location.search);
+    const params = new URLSearchParams("include=bedroom%20a"); //document.location.search);
 
     function getList(name) {
         const p = params.get(name);
@@ -36,4 +36,6 @@ export function paramsSort(items) {
 
         items = [...x.filter(x => x), ...y];
     }
+
+    return items;
 }
