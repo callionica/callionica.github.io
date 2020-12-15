@@ -241,7 +241,8 @@
 
             components.sort(sortBy(g => g.name + "." + g.description));
 
-            components = paramsSort(components);
+            const params = new URLSearchParams(document.location.search);
+            components = paramsSort(params, components);
 
             const componentElements = components.map(component => createComponentElement(connection, component, data));
             

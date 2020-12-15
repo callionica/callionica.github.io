@@ -36,7 +36,9 @@
 
                 groups.sort(sortBy(g => g.name));
 
-                groups = paramsSort(groups);
+                const params = new URLSearchParams(document.location.search);
+                groups = paramsSort(params, groups);
+
                 // const params = new URLSearchParams(document.location.search);
 
                 // function getList(name) {

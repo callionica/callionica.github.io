@@ -1,7 +1,5 @@
 
-export function paramsSort(items) {
-    const params = new URLSearchParams("include=bedroom%20a"); //document.location.search);
-
+export function paramsSort(params, items) {
     function getList(name) {
         const p = params.get(name);
         return p?.split(",").map(x => x.trim().toLowerCase());
