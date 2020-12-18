@@ -20,7 +20,7 @@ export class ActionHandler {
         document.addEventListener("mouseup", (e) => this.up_(e));
 
         document.addEventListener("touchstart", (e) => this.down_(e));
-        document.addEventListener("touchend", (e) => this.up_(e));
+        document.addEventListener("touchend", (e) => { this.up_(e); e.preventDefault(); });
     }
 
     down_(e) {
