@@ -87,9 +87,6 @@ export class ActionHandler {
 
         clearInterval(this.repeater);
 
-        // console.log(clientX, clientY);
-        // console.log(this.clientX, this.clientY);
-
         const limit = 4;
         if ((Math.abs(clientX - this.clientX) > limit) || (Math.abs(clientY - this.clientY) > limit)) {
             return;
