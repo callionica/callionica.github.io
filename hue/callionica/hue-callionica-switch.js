@@ -20,7 +20,8 @@ export class ActionHandler {
         document.addEventListener("mouseup", (e) => this.up_(e));
 
         document.addEventListener("touchstart", (e) => this.down_(e));
-        document.addEventListener("touchend", (e) => { this.up_(e); e.preventDefault(); });
+        document.addEventListener("touchend", (e) => { this.up_(e); });
+        document.addEventListener("touchcancel", (e) => { this.clear(); });
     }
 
     down_(e) {
@@ -68,9 +69,13 @@ export class ActionHandler {
         clearInterval(this.repeater);
 
         if (this.actionElement !== undefined) {
-            this.up(this.actionElement, this.action);
-            this.actionElement = undefined;
-            this.action = undefined;
+            const actionElement = getActionElement(e.srcElement);
+            if (actionElement === this.actionElement) {
+                e.preventDefault();
+                this.up(this.actionElement, this.action);
+                this.actionElement = undefined;
+                this.action = undefined;
+            }
         }
     }
 
