@@ -25,12 +25,20 @@ export class ActionHandler {
     }
 
     down_(e) {
-        if ((e.buttons !== undefined) && e.buttons !== 1) {
-            return;
+        if ((e.buttons !== undefined)) {
+            if (e.buttons !== 1) {
+                return;
+            }
+            this.clientX = e.clientX;
+            this.clientY = e.clientY;
         }
 
-        if ((e.touches !== undefined) && e.touches.length !== 1) {
-            return;
+        if ((e.touches !== undefined)) {
+            if (e.touches.length !== 1) {
+                return;
+            }
+            this.clientX = e.touches[0].clientX;
+            this.clientY = e.touches[0].clientY;
         }
 
         clearInterval(this.repeater);
@@ -58,15 +66,34 @@ export class ActionHandler {
     }
 
     up_(e) {
-        if ((e.buttons !== undefined) && e.buttons !== 0) {
-            return;
+        let clientX;
+        let clientY;
+
+        if ((e.buttons !== undefined)) {
+            if (e.buttons !== 0) {
+                return;
+            }
+            clientX = e.clientX;
+            clientY = e.clientY;
         }
 
-        if ((e.touches !== undefined) && e.touches.length !== 0) {
-            return;
+        if ((e.touches !== undefined)) {
+            if (e.touches.length !== 0) {
+                return;
+            }
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
         }
 
         clearInterval(this.repeater);
+
+        console.log(clientX, clientY);
+        console.log(this.clientX, this.clientY);
+
+        const limit = 4;
+        if ((Math.abs(clientX - this.clientX) > limit) || (Math.abs(clientY - this.clientY) > limit)) {
+            return;
+        }
 
         if (this.actionElement !== undefined) {
             const actionElement = getActionElement(e.srcElement);
