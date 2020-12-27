@@ -5,7 +5,8 @@
     --text-color: 204,204,204;
     
     --lit-color: 240,213,78;
-    --low-color: 164,139,14;
+    /*--low-color: 164,139,14;*/
+    --low-color: 160,220,251;
     --ready-color: 160,220,251;
     --unlit-color: var(--back-color);
 }
@@ -236,6 +237,11 @@ button {
 .group[data-turn-on='true'] button[data-action='toggle']::before {
     /* content: 'ON'; */
     content: 'OFF';
+}
+
+.group[data-power-level='1'] button[data-action='toggle']::before {
+    /* content: 'ON'; */
+    content: 'LOW';
 }
 
 .group button[data-action='toggleManagement']::before {
