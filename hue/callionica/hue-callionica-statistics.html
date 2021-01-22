@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="hue-callionica.css">
     <script type="module">
         import { loadCurrentBridge, loadConnection } from "./hue-callionica-connect.js";
-        import { getAll, getCapabilities } from "./hue-callionica.js";
+        import { sortBy, getAll, getCapabilities, getSensorTriggeredRules } from "./hue-callionica.js";
 
         async function main() {
             const bridge = loadCurrentBridge();
@@ -33,7 +33,8 @@
                 ["Passwords", () => Object.values(data.config.whitelist).length],
             ];
 
-            const html = `<p>Name: ${connection.bridge.name}</p>` 
+            const html = `<h1>${connection.bridge.name}</h1>
+            <h2>Statistics</h2>` 
             + counts.map(count => `<p>${count[0]}: ${count[1]()}${count[2] ? " of " + count[2] : ""}</p>`).join("\n");
             document.getElementById("statistics").innerHTML = html;
         }
@@ -45,7 +46,6 @@
     <h1>Hue Statistics</h1>
     <p>Here you can see statistics for the current bridge.</p>
     <hr/>
-    <h2>Statistics</h2>
     <div id="statistics"></div>
 </body>
 </html>

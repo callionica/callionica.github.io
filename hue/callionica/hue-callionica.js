@@ -193,6 +193,14 @@ export async function setSensorValue(connection, id, value) {
     return put(address, body);
 }
 
+// buttonevent is not modifiable
+// export async function setSensorButtonEvent(connection, id, value) {
+//     const store = "buttonevent";
+//     const address = Address(connection, `sensors/${id}/state`);
+//     const body = `{ "${store}": ${value} }`;
+//     return put(address, body);
+// }
+
 export async function setGroupOn(connection, id, value) {
     const address = Address(connection, `groups/${id}/action`);
     const body = { on: value };
@@ -1766,16 +1774,16 @@ const componentSensors = [
             { value: SC_LOW_POWER, name: "Lights > Low power", description: "Turn on the lights using the low power version of the current scene" },
             { value: SC_OFF, name: "Lights > Off", description: "Turn off the lights" },
 
-            { value: BTN_ON + BTN_initial_press, name: "Button > On > Down", description: "Press the button" },
+            { value: BTN_ON + BTN_initial_press, name: "Button > I > Down", description: "Press the button" },
 
-            { value: BTN_OFF + BTN_short_release, name: "Button > Off > Up (short)", description: "Release the button" },
-            { value: BTN_OFF + BTN_long_release, name: "Button > Off > Up (long)", description: "Release the button after a pause" },
+            { value: BTN_OFF + BTN_short_release, name: "Button > O > Up (short)", description: "Release the button" },
+            { value: BTN_OFF + BTN_long_release, name: "Button > O > Up (long)", description: "Release the button after a pause" },
 
-            { value: BTN_STAR_UP + BTN_initial_press, name: "Button > 🔆 > Down", description: "Press the button" },
-            { value: BTN_STAR_UP + BTN_repeat, name: "Button > 🔆 > Repeat", description: "Fires repeatedly while the button is down" },
+            { value: BTN_STAR_UP + BTN_initial_press, name: "Button > + > Down", description: "Press the button" },
+            { value: BTN_STAR_UP + BTN_repeat, name: "Button > + > Repeat", description: "Fires repeatedly while the button is down" },
 
-            { value: BTN_STAR_DOWN + BTN_initial_press, name: "Button > 🔅 > Down", description: "Press the button" },
-            { value: BTN_STAR_DOWN + BTN_repeat, name: "Button > 🔅 > Repeat", description: "Fires repeatedly while the button is down" },
+            { value: BTN_STAR_DOWN + BTN_initial_press, name: "Button > - > Down", description: "Press the button" },
+            { value: BTN_STAR_DOWN + BTN_repeat, name: "Button > - > Repeat", description: "Fires repeatedly while the button is down" },
         ]
     },
     {
@@ -2129,6 +2137,9 @@ export function rearrangeForHueComponents(data) {
         component.metadata = components.filter(c => c.name === component.description)[0];
 
         for (const sensor of component.sensors) {
+            // Link from sensor to component
+            sensor.component = component;
+
             const metadata = componentSensors.filter(cs => cs.modelid === sensor.modelid && cs.manufacturername == sensor.manufacturername)[0];
             if (metadata) {
                 sensor.metadata = metadata;
@@ -2236,3 +2247,95 @@ export function displayLocalTime(value) {
 }
 
 // TODO - freeze/copy metadata
+
+/*
+Returns true if the condition matches the specified sensor-property-value.
+Otherwise returns false.
+ONLY DEALING WITH EQ OPERATOR
+*/
+export function isMatchingCondition(condition, sensorID, property, value) {
+    const sensorAddress = `/sensors/${sensorID}/state/${property}`;
+    if (condition.address === sensorAddress) {
+        if (condition.operator === "eq") {
+            const textValue = `${value}`;
+            return condition.value === textValue;
+        }
+    }
+    return false;
+}
+
+export function getSensorTriggeredRules(rules, sensorID) {
+    const prefix = `/sensors/${sensorID}/`;
+    return rules.filter(rule => rule.triggers.some(trigger => trigger.conditions.some(condition => condition.address.startsWith(prefix))));
+}
+
+/*
+Returns an array of rules using the specified condition
+Rules is an array of rules
+*/
+export function getMatchingRules(rules, sensorID, property, value) {
+    return rules.filter(rule => rule.conditions.some(condition => isMatchingCondition(condition, sensorID, property, value)));
+}
+
+export function convertButtonRule(
+    rule,
+    oldSensorID, oldProperty, oldButtonEvent,
+    newSensorID, newProperty, newButtonEvent,
+) {
+    const newRule = { name: rule.name, conditions: [...rule.conditions], actions: [...rule.actions] };
+
+    const oldSensorBE = `/sensors/${oldSensorID}/state/${oldProperty}`;
+    const oldSensorLU = `/sensors/${oldSensorID}/state/lastupdated`;
+    const newSensorBE = `/sensors/${newSensorID}/state/${newProperty}`;
+    const newSensorLU = `/sensors/${newSensorID}/state/lastupdated`;
+    const oldButtonValue = `${oldButtonEvent}`;
+    const newButtonValue = `${newButtonEvent}`;
+
+    for (const condition of newRule.conditions) {
+        if (condition.address === oldSensorBE) {
+            condition.address = newSensorBE;
+            if (condition.value === oldButtonValue && condition.operator === "eq") {
+                condition.value = newButtonValue;
+            }
+        } else if (condition.address === oldSensorLU) {
+            condition.address = newSensorLU;
+        }
+    }
+
+    return newRule;
+}
+
+export async function copyButtonEvent(connection, data, oldSensorID, oldButtonEvent, newSensorID, newButtonEvent) {
+
+    const oldProperty = data.sensors[newSensorID].type === "ZLLSwitch" ? "buttonevent" : "status";
+    const newProperty = data.sensors[newSensorID].type === "ZLLSwitch" ? "buttonevent" : "status";
+
+    const rules = getMatchingRules(Object.values(data.rules), oldSensorID, oldProperty, oldButtonEvent);
+    const converted = rules.map(rule => convertButtonRule(rule, oldSensorID, oldProperty, oldButtonEvent, newSensorID, newProperty, newButtonEvent));
+
+    for (const rule of converted) {
+        await createRule(connection, rule);
+    }
+}
+
+export async function copyButton(connection, data, oldSensorID, oldButton, newSensorID, newButton) {
+    for (const event of [0, 1, 2, 3]) {
+        await copyButtonEvent(connection, data, oldSensorID, oldButton + event, newSensorID, newButton + event);
+    }
+}
+
+export async function copyButtonAccessory(connection, data, sourceSensorID, destinationSensorID) {
+    // Only copy buttons present in the destination
+    const destination = data.sensors[destinationSensorID];
+    
+    // Switches can tell us the number of buttons
+    let buttons = destination?.capabilities?.inputs?.map(input => input.events[0].buttonevent);
+    if (buttons === undefined) {
+        // Generic sensors support up to 4 buttons
+        buttons = [1000, 2000, 3000, 4000];
+    }
+
+    for (const button of buttons) {
+        await copyButton(connection, data, sourceSensorID, button, destinationSensorID, button);
+    }
+}
