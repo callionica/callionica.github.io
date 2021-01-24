@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Hue Batteries</title>
+    <title>Hue Temperatures</title>
     <link rel="stylesheet" href="hue-callionica.css">
     <style>
         .limit {
@@ -12,6 +12,14 @@
         }
         .numeric {
             text-align: right;
+        }
+        .celsius::after {
+            content: '℃';
+            color: gray;
+        }
+        .fahrenheit::after {
+            content: '℉';
+            color: gray;
         }
         td:first-of-type {
             padding: 0;
@@ -25,8 +33,15 @@
         let bridge;
         let connection;
 
-        function batteryHTML(item, type) {
-            return `<tr id="${type}-${item.id}" title="ID: ${item.id} (${type})"><td>${item.name}</td><td class="numeric">${item.config.battery}</td></tr>`;
+        function CtoF(c) {
+            return (c * 9/5) + 32;
+        }
+
+        function temperatureHTML(item, type) {
+            const c = (item.state.temperature)/100;
+            const f = CtoF(c);
+            const lastUpdated = localizeDateTime(item.state.lastupdated);
+            return `<tr id="${type}-${item.id}" title="ID: ${item.id} (${type})"><td>${item.name}</td><td class="numeric celsius">${c.toFixed(1)}</td><td class="numeric fahrenheit">${f.toFixed(1)}</td><td><time datetime="${item.state.lastupdated}">${lastUpdated.display}</time></td></tr>`;
         }
 
         async function main() {
@@ -36,20 +51,18 @@
             const data = await getAll(connection);
             const capabilities = await getCapabilities(connection);
 
-            const o = {};
-            ["sensors", "components", "rules", "schedules", "groups", "lights", "scenes"].forEach(n => o[n] = Object.values(data[n]));
-
-            const lights = o.lights.filter(light => light?.config?.battery !== undefined);
-            const sensors = o.sensors.filter(sensor => sensor?.config?.battery !== undefined);
+            const sensors = Object.values(data.sensors).filter(sensor => sensor?.state?.temperature !== undefined);
+            // const sensors = [
+            //     { id: 1, name: "Hall", state: { temperature: 1861, lastupdated: "2021-01-23T16:04:00" } },
+            // ];
 
             const html = `<h1>${connection.bridge.name}</h1>
-            <h2>Batteries</h2>
+            <h2>Temperatures</h2>
             <table>` 
-            + lights.map(item => batteryHTML(item, "light")).join("\n")
-            + sensors.map(item => batteryHTML(item, "sensor")).join("\n")
+            + sensors.map(item => temperatureHTML(item, "sensor")).join("\n")
             + `</table>`
             ;
-            document.getElementById("batteries").innerHTML = html;
+            document.getElementById("temperatures").innerHTML = html;
         }
 
         async function _main() {
@@ -78,10 +91,10 @@
     </script>
 </head>
 <body>
-    <h1>Hue Batteries</h1>
-    <p>Here you can see battery status for devices attached to the current bridge.</p>
+    <h1>Hue Temperatures</h1>
+    <p>Here you can see temperatures for devices attached to the current bridge.</p>
     <hr/>
     <div id="connection"></div>
-    <div id="batteries"></div>
+    <div id="temperatures"></div>
 </body>
 </html>
