@@ -14,7 +14,7 @@
     <script type="module">
         import { loadCurrentBridge, loadConnection } from "./hue-callionica-connect.js";
         import { sortBy, getAll, setSensorValue, setGroupOn, setGroupScene, setRuleActions, createSchedule, getConnectedComponents, deleteComponent, deleteSchedule, displayLocalTime } from "./hue-callionica.js";
-        import { paramsSort, getFourPartDayTimes } from "./hue-callionica-ui.js";
+        import { paramsSort, FourPartDay } from "./hue-callionica-ui.js";
 
         import { ActionHandler } from "./hue-callionica-switch.js"
 
@@ -253,76 +253,8 @@
 
                 if (turnOn && daypartEnabled) {
 
-                    function getTimeSeconds(date) {
-                        date = date || new Date();
-                        return (date.getHours() * 60 * 60) +
-                        (date.getMinutes() * 60) +
-                        (date.getSeconds())
-                        ;
-                    }
-
-                    function timeToSeconds(time) {
-                        const date = new Date(new Date().toISOString().substring(0, 10) + time);
-                        return getTimeSeconds(date);
-                    }
-
-                    const fourPartDayTimes = getFourPartDayTimes();
-
-                    const fourPartDayScenes = {
-                        morning: ["morning", "day", "dimmed"],
-                        day: ["day", "morning", "bright"],
-                        evening: ["evening", "day", "morning", "dimmed"],
-                        night: ["night", "nightlight"],
-                    };
-
-                    const fourPartDaySeconds = {
-                        morning: timeToSeconds(fourPartDayTimes.morning),
-                        day: timeToSeconds(fourPartDayTimes.day),
-                        evening: timeToSeconds(fourPartDayTimes.evening),
-                        night: timeToSeconds(fourPartDayTimes.night),
-                    }
-
-                    // function getTimeOnly() {
-                    //     const now = new Date();
-                    //     return { hour: now.getHours(), minute: now.getMinutes(), second: now.getSeconds() };
-                    // }
-
-                    // function toTS(time) {
-                    //     return `T${time.hour.toString().padStart(2, "0")}:${time.minute.toString().padStart(2, "0")}:${time.second.toString().padStart(2, "0")}`;
-                    // }
-
-                    function getFourPartDayPart() {
-                        const now = getTimeSeconds();
-
-                        if (now < fourPartDaySeconds.morning) {
-                            return "night";
-                        }
-                        if (now < fourPartDaySeconds.day) {
-                            return "morning";
-                        }
-                        if (now < fourPartDaySeconds.evening) {
-                            return "day";
-                        }
-                        if (now < fourPartDaySeconds.night) {
-                            return "evening";
-                        }
-
-                        return "night";
-                    }
-
-                    const dayPart = daypartOverride || getFourPartDayPart();
-                    const possibleScenes = fourPartDayScenes[dayPart];
-                    const scenes = Object.values(data.scenes).filter(scene => scene.group === groupID);
-
-                    let matchingScene;
-                    for (const possibleScene of possibleScenes) {
-                        for (const scene of scenes) {
-                            if (scene.name.toLowerCase() === possibleScene) {
-                                matchingScene = scene;
-                                break;
-                            }
-                        }
-                    }
+                    const dayPart = daypartOverride || FourPartDay.getPart(data);
+                    const matchingScene = FourPartDay.getScene(data, groupID, dayPart);
 
                     console.log(dayPart, matchingScene);
 
