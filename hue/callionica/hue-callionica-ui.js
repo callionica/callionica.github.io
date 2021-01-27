@@ -1,3 +1,16 @@
+export function getDaylight(data) {
+    const daylightSensor = Object.values(data.sensors).find(sensor => sensor.type === "Daylight");
+
+    let daylight;
+    if (daylightSensor?.config?.configured && daylightSensor?.config?.on) {
+        daylight = {
+            value: (daylightSensor?.state?.daylight) ? "light" : "dark",
+            updated: new Date(daylightSensor?.state?.lastupdated)
+        };
+    }
+    return daylight;
+}
+
 export const FourPartDay = (()=>{
     const parts = ["morning", "day", "evening", "night"];
     
@@ -28,10 +41,10 @@ export const FourPartDay = (()=>{
 
     const standardRules = {
         // Times
-        "morning": "T06:00:00",
+        "morning": "T06:30:00",
         "day": "T08:30:00",
         "evening": "T19:30:00",
-        "night": "T22:00:00",
+        "night": "T23:00:00",
     
         // Daylight adjustments
         "morning-dark": "morning",
@@ -40,13 +53,14 @@ export const FourPartDay = (()=>{
         "night-light": "night",
     };
 
-    const key = "hue-four-part-day";
+    const keyRules = "hue-four-part-day";
+    const keyManual = "hue-four-part-day-manual";
 
     function getRules() {
-        let rules = localStorage.getItem(key);
+        let rules = localStorage.getItem(keyRules);
         if (rules == undefined) {
             rules = standardRules;
-            localStorage.setItem(key, JSON.stringify(rules, null, 2));
+            localStorage.setItem(keyRules, JSON.stringify(rules, null, 2));
         } else {
             rules = JSON.parse(rules);
         }
@@ -54,13 +68,30 @@ export const FourPartDay = (()=>{
     }
     
     function setRules(rules) {
-        localStorage.setItem(key, JSON.stringify(rules, null, 2));
+        localStorage.setItem(keyRules, JSON.stringify(rules, null, 2));
+    }
+
+    function getManual() {
+        const item = localStorage.getItem(keyManual);
+        if (item == undefined) {
+            return undefined;
+        }
+        const o = JSON.parse(item);
+        o.start = new Date(o.start);
+        return o;
+    }
+
+    function setManual(manual) {
+        localStorage.setItem(keyManual, JSON.stringify(manual, null, 2));
     }
 
     // Returns the part based only on the time rules
     function getPartFromTime(rules, date) {
         rules = rules || getRules();
         date = date || new Date();
+
+        const today = new Date(date);
+        today.setHours(0, 0, 0, 0);
 
         function getTimeSeconds(date) {
             return (date.getHours() * 60 * 60) +
@@ -81,35 +112,48 @@ export const FourPartDay = (()=>{
             night: timeToSeconds(rules.night),
         }
 
+        // Assume that morning starts on or after 0 
+        // and night starts before 24
+    
         const now = getTimeSeconds(date);
 
         if (now < fourPartDaySeconds.morning) {
-            return "night";
+            const lastNight = new Date(today);
+            lastNight.setDate(lastNight.getDate() - 1);
+            lastNight.setSeconds(fourPartDaySeconds.night);
+            return { name: "night", start: lastNight };
         }
+
+        const start = new Date(today);
+
         if (now < fourPartDaySeconds.day) {
-            return "morning";
+            start.setSeconds(fourPartDaySeconds.morning);
+            return { name: "morning", start };
         }
         if (now < fourPartDaySeconds.evening) {
-            return "day";
+            start.setSeconds(fourPartDaySeconds.day);
+            return { name: "day", start };
         }
         if (now < fourPartDaySeconds.night) {
-            return "evening";
+            start.setSeconds(fourPartDaySeconds.evening);
+            return { name: "evening", start };
         }
 
-        return "night";
+        start.setSeconds(fourPartDaySeconds.night);
+        return { name: "night", start };
     }
 
-    function adjustPart(rules, part, daylight, daylightUpdated) {
+    function adjustPart(rules, part, daylight) {
         // If there's no daylight information, return the current part
-        if ((daylight === undefined) || (daylightUpdated === undefined)) {
+        if (daylight === undefined) {
             return part;
         }
 
-        const adjustment = `${part}-${daylight}`;
+        const adjustment = `${part.name}-${daylight.value}`;
         const result = rules[adjustment];
 
         // If there's no adjustment, return the current part
-        if ((result === undefined) || (result === part)) {
+        if ((result === undefined) || (result === part.name)) {
             return part;
         }
 
@@ -119,9 +163,9 @@ export const FourPartDay = (()=>{
 
         // Day can move to evening, but not morning
         // Night can move to morning, but not evening
-        const isForwardPart = forward[part];
-        const daylightPart = getPartFromTime(rules, daylightUpdated);
-        const isForwardTransition = (daylightPart === part);
+        const isForwardPart = forward[part.name];
+        const daylightPart = getPartFromTime(rules, daylight.updated);
+        const isForwardTransition = (daylightPart.name === part.name);
 
         // If the transition and the part are in different directions,
         // return the original part without any adjustment
@@ -129,34 +173,41 @@ export const FourPartDay = (()=>{
             return part;
         }
 
-        return result;
+        // Start time is the later of the original period's start time or the sunset/sunrise time
+        return { name: result, start: new Date(Math.max(daylight.updated, part.start)) };
     }
 
-    // Returns the part based on both time and daylight rules
-    function getPart(data, rules, date) {
+    // Returns the part based on time, daylight rules, and manual override
+    function getPart(data, rules, date, manual) {
         rules = rules || getRules();
         date = date || new Date();
+        manual = manual || getManual();
 
-        const daylightSensor = Object.values(data.sensors).find(sensor => sensor.type === "Daylight");
-
-        let daylight;
-        let daylightUpdated;
-        if (daylightSensor?.config?.configured && daylightSensor?.config?.on) {
-            daylight = (daylightSensor?.state?.daylight) ? "light" : "dark";
-            daylightUpdated = new Date(daylightSensor?.state?.lastupdated);
+        if (manual !== undefined) {
+            if (manual.locked) {
+                return manual;
+            }
         }
 
         const part = getPartFromTime(rules, date);
 
-        const adjustedPart = adjustPart(rules, part, daylight, daylightUpdated);
+        const daylight = getDaylight(data);
+        const adjustedPart = adjustPart(rules, part, daylight);
+
+        if (manual !== undefined) {
+            const expired = manual.start < adjustedPart.start;
+            if (!expired) {
+                return manual;
+            }
+        }
 
         return adjustedPart;
     }
 
-    function getScene(data, groupID, part) {
-        part = part || getPart(data);
-        
-        const possibleScenes = scenes[part];
+    function getScene(data, groupID, partName) {
+        partName = partName || getPart(data).name;
+
+        const possibleScenes = scenes[partName];
         const groupScenes = Object.values(data.scenes).filter(scene => scene.group === groupID);
 
         let matchingScene;
@@ -172,19 +223,9 @@ export const FourPartDay = (()=>{
         return matchingScene;
     }
 
-    // function adjustPart_Test() {
-    //     const rules = getRules();
-    //     const part = "day";
-    //     const daylight = undefined; //"dark";
-    //     const daylightUpdated = new Date("2001-01-01T10:30:00");
-    //     console.log(part, adjustPart(rules, part, daylight, daylightUpdated))
-    // }
-
-    // adjustPart_Test();
-
     return {
         parts, adjustments, rules, scenes, daylight, forward, standardRules,
-        getRules, setRules, getPartFromTime, adjustPart, getPart, getScene
+        getRules, setRules, getManual, setManual, getPartFromTime, adjustPart, getPart, getScene
     };
 })();
 

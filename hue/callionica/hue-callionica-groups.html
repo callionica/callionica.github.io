@@ -219,7 +219,7 @@
             const params = new URLSearchParams(document.location.search);
             daypartEnabled = params.has("daypart");
             if (daypartEnabled) {
-                let title = `Rooms & Zones - 4-Part Day`;
+                let title = `Rooms & Zones 🕐`;
 
                 daypartOverride = params.get("daypart")?.toLowerCase();
                 if (!dayparts.includes(daypartOverride)) {
@@ -253,10 +253,10 @@
 
                 if (turnOn && daypartEnabled) {
 
-                    const dayPart = daypartOverride || FourPartDay.getPart(data);
-                    const matchingScene = FourPartDay.getScene(data, groupID, dayPart);
+                    const dayPartName = daypartOverride || FourPartDay.getPart(data).name;
+                    const matchingScene = FourPartDay.getScene(data, groupID, dayPartName);
 
-                    console.log(dayPart, matchingScene);
+                    console.log(dayPartName, matchingScene);
 
                     if (matchingScene !== undefined) {
                         await setGroupScene(connection, groupID, matchingScene.id);
