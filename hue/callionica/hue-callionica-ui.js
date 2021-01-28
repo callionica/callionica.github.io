@@ -1,3 +1,6 @@
+const keySunrise = "hue-four-part-day-sunrise";
+const keySunset = "hue-four-part-day-sunset";
+
 export function getDaylight(data) {
     const daylightSensor = Object.values(data.sensors).find(sensor => sensor.type === "Daylight");
 
@@ -5,9 +8,35 @@ export function getDaylight(data) {
     if (daylightSensor?.config?.configured && daylightSensor?.config?.on) {
         daylight = {
             value: (daylightSensor?.state?.daylight) ? "light" : "dark",
-            updated: new Date(daylightSensor?.state?.lastupdated)
+            updated: new Date(daylightSensor?.state?.lastupdated),
+            sunriseOffset: daylightSensor?.config?.sunriseoffset,
+            sunsetOffset: daylightSensor?.config?.sunsetoffset,
         };
+
+        // Cache and return sunrise/sunset times
+        // TODO - doing a state change here is a little ugly!
+        const [keyStore, keyRead] = (daylight.value === "light") ? [keySunrise, keySunset] : [keySunset, keySunrise];
+
+        // Store the current value
+        localStorage.setItem(keyStore, JSON.stringify(daylight, null, 2));
+
+        // Load the other value
+        const d = localStorage.getItem(keyRead);
+        let o;
+        if (d != undefined) {
+            o = JSON.parse(d);
+            o.updated = new Date(o.updated);
+        }
+
+        if (daylight.value === "light") {
+            daylight.sunrise = daylight.updated;
+            daylight.sunset = o?.updated;
+        } else {
+            daylight.sunrise = o?.updated;
+            daylight.sunset = daylight.updated;
+        }
     }
+
     return daylight;
 }
 
@@ -28,12 +57,15 @@ export const FourPartDay = (()=>{
         night: true
     };
 
+    const brights = ["day", "bright", "read", "morning"];
+    const dims = ["evening", "dimmed", "morning"];
+
     const scenes = {
         first: ["first"],
-        morning: ["morning", "day", "dimmed"],
-        day: ["day", "morning", "bright"],
-        evening: ["evening", "day", "morning", "dimmed"],
-        night: ["night", "nightlight"],
+        morning: [...new Set(["morning", ...dims, ...brights])],
+        day: [...new Set(["day", ...brights, ...dims])],
+        evening: [...new Set(["evening", ...dims, ...brights])],
+        night: [...new Set(["night", "nightlight", ...dims])],
     };
 
     const adjustments = parts.map(part => `${part}-${daylight[part] === "light" ? "dark" : "light"}`);
@@ -270,6 +302,11 @@ export const FourPartDay = (()=>{
 
 
 export function localizeDateTime(dt) {
+    if (dt === undefined) {
+        return undefined;
+        // return { display: "Unknown", displayDate: "Unknown", displayTime: "Unknown" };
+    }
+
     const d = new Date(dt);
     const o = {weekday: "short", day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "numeric", timeZoneName: "short"};
     const oDate = {weekday: "short", day: "numeric", month: "long", year: "numeric"};
