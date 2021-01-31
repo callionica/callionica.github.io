@@ -20,92 +20,91 @@
             background: none;
             text-decoration: underline;
         }
+        #bridge-data {
+            display: none;
+        }
+        tr[data-type='heading'] {
+            color: gray;
+            text-transform: uppercase;
+        }
+        tr[data-type='heading'] td {
+            padding-top: 0.75rem;
+        }
+        tr[data-type='labels'] {
+            font-weight: bold;
+        }
+        td[data-type='label'] {
+            font-weight: bold;
+        }
+        td[data-type='label']::after {
+            font-weight: bold;
+            content: ':';
+        }
     </style>
     <script type="module">
         import { loadCurrentBridge, loadConnection } from "./hue-callionica-connect.js";
         import { sortBy, getAll, getAllCategories, getCapabilities, getSceneComplete } from "./hue-callionica.js";
         import { localizeDateTime } from "./hue-callionica-ui.js";
+        import * as Diff from "./hue-callionica-diff.js";
 
         let bridge;
         let connection;
 
-        function getAppData() {
-            const excluded = ["hue-callionica-disclaimer", "hue-bridges", "hue-bridge-current"];
-            const o = {};
-            for (const key of Object.keys(localStorage).filter(key => key.startsWith("hue-"))) {
-                if (!key.startsWith("hue-connection:")) {
-                    if (!excluded.some(e => e == key)) {
-                        o[key] = localStorage[key];
-                    }
+        async function onload(name, text) {
+            let source;
+            
+            try {
+                source = JSON.parse(text);
+            } catch (e) {
+            }
+
+            if (source === undefined) {
+                alert(`${name} does not contain Hue bridge data or is corrupted.`);
+            }
+
+            const s_id = source.config?.bridgeid;
+
+            if (s_id === undefined) {
+                alert(`${name} does not contain Hue bridge data.`);
+                return;
+            }
+
+            const destination = await getAll(connection);
+            const d_id = destination.config?.bridgeid;
+
+            if (s_id !== d_id) {
+                const shouldContinue = confirm("Bridges are different. Continue?");
+                if (!shouldContinue) {
+                    return;
                 }
             }
-            return o;
-        }
 
-        function getAppConnections() {
-            const o = {};
-            for (const key of Object.keys(localStorage).filter(key => ["hue-bridges", "hue-bridge-current"].includes(key) || key.startsWith("hue-connection:"))) {
-                o[key] = localStorage[key];
-            }
-            return o;
-        }
+            const lights = Diff.lights({ source, destination });
 
-        async function getBridgeData() {
-            const data = await getAllCategories(connection);
-            data.capabilities = await getCapabilities(connection);
-            for (const [id, scene] of Object.entries(data.scenes)) {
-                const completeScene = await getSceneComplete(connection, id);
-                scene.lightstates = completeScene.lightstates;
-            }
-            
-            return data;
-        }
+            // const lightsTable = Diff.lightsTable(lights);
 
-        function downloadAppData() {
-            const data = getAppData();
+            console.log(lights);
 
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-	        const file = URL.createObjectURL(blob);
+            const r = document.querySelector("#result");
+            r.innerHTML = "<hr/>";
 
-            const app = document.querySelector("#app");
-            app.href = file;
-        }
+            const s_name = source.config?.name;
+            const d_name = destination.config?.name;
 
-        function downloadAppConnections() {
-            const data = getAppConnections();
+            const s_time = new Date(source.config.UTC + "Z");
+            const s_displayTime = localizeDateTime(s_time).display;
+            const s_display = (s_name !== undefined) && (s_name === d_name) ? name : `${s_name} (${name})`;
+            const tbl = Diff.propertyTable([
+                ["Destination", destination.config.name],
+                ["Source", s_display],
+                ["Source Date", s_displayTime], 
+            ]);
 
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-	        const file = URL.createObjectURL(blob);
+            const lightsTable = Diff.lightsTable(lights, tbl);
 
-            const app = document.querySelector("#app-connections");
-            app.href = file;
-        }
+            r.append(lightsTable);
 
-        async function downloadBridgeData(e) {
-            const btnBridge = document.querySelector("#bridge");
-            if (btnBridge.disabled) {
-                return; 
-            }
-            btnBridge.disabled = true;
-
-            e.preventDefault();
-
-            async function download() {
-                const data = await getBridgeData();
-
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-                const file = URL.createObjectURL(blob);
-
-                const btn = document.querySelector("#bridge-async");
-                btn.href = file;
-
-                const btnBridge = document.querySelector("#bridge");
-                btnBridge.disabled = false;
-
-                btn.click();
-            }
-
-            download();
+            // alert("RESTORING BRIDGE DATA IS NOT IMPLEMENTED");
         }
 
         async function main() {
@@ -114,14 +113,17 @@
 
             const data = await getAll(connection);
 
-            /*const app = document.querySelector("#app");
-            app.onclick = downloadAppData;
-
-            const connections = document.querySelector("#app-connections");
-            connections.onclick = downloadAppConnections;
-
-            const btnBridge = document.querySelector("#bridge");
-            btnBridge.onclick = downloadBridgeData;*/
+            const p = document.querySelector("#bridge-data-proxy");
+            const b = document.querySelector("#bridge-data");
+            p.onclick = () => { b.value = null; b.click(); };
+            b.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file !== undefined) {
+                    const fr = new FileReader();
+                    fr.addEventListener("load", ()=>{ onload(file.name, fr.result); });
+                    fr.readAsText(file);
+                }
+            };
         }
 
         async function _wrap(fn) {
@@ -148,15 +150,20 @@
 </head>
 <body>
     <h1>Restore</h1>
-    <p>Here you can restore data and settings for this app or for the Hue bridge.</p>
+    <p>NOT YET IMPLEMENTED!<!-- Here you can restore data and settings for this app or for the Hue bridge.--></p>
     <hr/>
     <div id="connection"></div>
     <div id="content">
-        <p>NOT YET IMPLEMENTED!</p>
         <!--<p><a id="app" download="app-data.json">Restore app data</a></p>
-        <p><a id="app-connections" download="app-connections.json">Restore app connections</a></p>
-        <p><a id="bridge" href="#">Restore Hue bridge data</a><a id="bridge-async" download="bridge-data.json" style="display: none;">Download</a></p>-->
+        <p><a id="app-connections" download="app-connections.json">Restore app connections</a></p>-->
+        <table>
+            <tr>
+            <td><label for="bridge-data">Load Hue bridge data:</label></td>
+            <td><button id="bridge-data-proxy">Choose file</button><input id="bridge-data" type="file" accept=".json,application/json"></td>
+            </tr>
+        </table>
     </div>
+    <div id="result"></div>
     <hr/>
     <table>
         <tr><td><h4>Related</h4></td><td></td></tr>
