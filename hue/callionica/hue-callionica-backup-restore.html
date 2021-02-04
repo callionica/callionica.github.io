@@ -16,6 +16,12 @@
         td:first-of-type {
             padding: 0;
         }
+        select {
+            border-style: solid;
+            border-width: 0.1rem;
+            border-color: gray;
+            padding: 0.2rem;
+        }
         a {
             background: none;
             text-decoration: underline;
@@ -25,10 +31,12 @@
         }
         tr[data-type='heading'] {
             color: gray;
-            text-transform: uppercase;
+            font-size: 1.35rem;
+            /*text-transform: uppercase;*/
         }
         tr[data-type='heading'] td {
             padding-top: 0.75rem;
+            padding-bottom: 0.25rem;
         }
         tr[data-type='labels'] {
             font-weight: bold;
@@ -73,21 +81,16 @@
             const d_id = destination.config?.bridgeid;
 
             if (s_id !== d_id) {
-                const shouldContinue = confirm("Bridges are different. Continue?");
+                const shouldContinue = confirm("This backup comes from a different bridge. Continue?");
                 if (!shouldContinue) {
                     return;
                 }
             }
 
-            const lights = Diff.lights({ source, destination });
+            await step1(name, source, destination);
+        }
 
-            // const lightsTable = Diff.lightsTable(lights);
-
-            console.log(lights);
-
-            const r = document.querySelector("#result");
-            r.innerHTML = "<hr/>";
-
+        function contentTable(name, source, destination) {
             const s_name = source.config?.name;
             const d_name = destination.config?.name;
 
@@ -99,12 +102,228 @@
                 ["Source", s_display],
                 ["Source Date", s_displayTime], 
             ]);
+            return tbl;
+        }
+
+        // step 1 - map lights
+        // step 2 - rename lights
+
+        async function step1(name, source, destination) {
+            destination = destination || await getAll(connection);
+
+            const r = document.querySelector("#result");
+            r.innerHTML = "<hr/><h2>Stage 1: Connect old & new lights</h2>";
+
+            const tbl = contentTable(name, source, destination);
+
+            const lights = Diff.lights({ source, destination });
 
             const lightsTable = Diff.lightsTable(lights, tbl);
 
             r.append(lightsTable);
 
-            // alert("RESTORING BRIDGE DATA IS NOT IMPLEMENTED");
+            const next = document.createElement("button");
+            next.append("Next ›");
+            next.onclick = () => {
+                const s2dLights = Diff.extractSourceToDestinationMap(lights);
+
+                const missing = s2dLights.some(([s,d]) => d === undefined);
+                const duplicates = Object.keys(s2dLights.reduce((p, [s,d]) => {
+                    if (d !== undefined) {
+                        if (p.seen[d.id]) {
+                            p.duplicates[d.id] = true;
+                        }
+                        p.seen[d.id] = true;
+                    }
+                    return p;
+                }, { seen: {}, duplicates: {} }).duplicates);
+
+                if (missing || duplicates.length > 0) {
+                    const ok = confirm(
+                        (missing ? "Not all lights are matched." : "") + 
+                        ((missing && duplicates.length > 0) ? "\n" : "") +
+                        (duplicates.length > 0 ? "Some lights are matched to the same light." : "") + 
+                        "\nContinue?"
+                    );
+                    if (!ok) {
+                        return;
+                    }
+                }
+
+                step2(name, source, destination, s2dLights);
+            };
+
+            r.append(next);
+        }
+
+        async function step2(name, source, destination, s2dLights) {
+            destination = destination || await getAll(connection);
+
+            const r = document.querySelector("#result");
+            r.innerHTML = "<hr/><h2>Stage 2: Rename lights</h2>";
+
+            const tbl = contentTable(name, source, destination);
+
+            // console.log(s2dLights);
+
+            Diff.renameTable(source, destination, s2dLights, tbl);
+
+            r.append(tbl);
+
+            const next = document.createElement("button");
+            next.append("Next ›");
+            next.onclick = () => {
+                const list = Diff.extractRenameList(document);
+                // console.log(list);
+                if (list.length > 0) {
+                    const ok = confirm(
+`OK to rename ${list.length} lights?
+This will make changes to your Hue bridge now.`
+                    );
+                    if (ok) {
+                        alert("Not yet implemented");
+                    } else {
+                        return;
+                    }
+                }
+
+                step3(name, source, destination, s2dLights);                
+            };
+
+            r.append(next);
+        }
+
+        async function step3(name, source, destination, s2dLights) {
+            destination = destination || await getAll(connection);
+
+            const r = document.querySelector("#result");
+            r.innerHTML = "<hr/><h2>Stage 3: Connect old & new groups</h2>";
+
+            const tbl = contentTable(name, source, destination);
+
+            const lightMap = Object.fromEntries(s2dLights);
+            const groups = Diff.groups({ source, destination, lightMap });
+
+            console.log(groups);
+
+            const getFloatingD = (name) => groups.destination[name].filter(d => !groups.source[name].some(r => (r.destination === d) && (r.match === "id-name"))).sort((a, b) => a.name.localeCompare(b.name));
+            
+            const getFloatingS = (name) => groups.source[name].filter(r => r.match !== "id-name").sort((a, b) => a.source.name.localeCompare(b.source.name));
+
+            // Groups in the destination that don't have exact matches in the source
+            const floatingDestination = { rooms: getFloatingD("rooms"), zones: getFloatingD("zones") };
+
+            // Groups in the source that don't have exact matches in the destination
+            const floatingSource = { rooms: getFloatingS("rooms"), zones: getFloatingS("zones") };
+
+            // console.log("floatingD", floatingDestination);
+            // console.log("floatingS", floatingSource);
+
+            Diff.groupsTable("Room", floatingSource.rooms, floatingDestination.rooms, tbl);
+
+            Diff.groupsTable("Zone", floatingSource.zones, floatingDestination.zones, tbl);
+
+            r.append(tbl);
+
+            const next = document.createElement("button");
+            next.append("Next ›");
+            next.onclick = () => {
+                const list = Diff.extractGroupMap(document);
+
+                const unmatched = list.filter(item => item.destination === "(none)");
+                const create = list.filter(item => item.destination === "(create)");
+                const matched = list.filter(item => (item.destination !== "(none)") && (item.destination !== "(create)") );
+
+                const duplicates = list.reduce((p, item) => {
+                    if (p.seen.has(item.destination)) {
+                        p.duplicates.add(item.destination);
+                    } else {
+                        p.seen.add(item.destination);
+                    }
+                    return p;
+                }, { seen: new Set(), duplicates: new Set() }).duplicates; 
+
+                if ((duplicates.size > 0) || (unmatched.length > 0)) {
+                    const ok = confirm(
+                        ((unmatched.length > 0) ? "Not all groups are matched." : "") + 
+                        (((unmatched.length > 0) && (duplicates.size > 0)) ? "\n" : "") +
+                        ((duplicates.size > 0) ? "Some groups are matched to the same group." : "") + 
+                        "\nContinue?"
+                    );
+                    if (!ok) {
+                        return;
+                    }
+                }
+
+                if (create.length > 0) {
+                    const ok = confirm(
+`OK to create ${create.length} groups?
+This will make changes to your Hue bridge now.`
+                    );
+                    if (ok) {
+                        alert("Not yet implemented");
+                    } else {
+                        return;
+                    }
+                }
+
+                const gm = [...groups.source.rooms, ...groups.source.zones].map(v => list.find(item => item.source === v.source.id) || ({ source: v.source.id, destination: v.destination.id })).map(v => [v.source, v.destination]);
+
+                for (const g of gm) {
+                    if (g[1] === "(create)") {
+                        g[1] = undefined;  // TODO
+                    } else if (g[1] === "(none)") {
+                        g[1] = undefined;
+                    }
+                }
+
+                const groupMap = Object.fromEntries(gm);
+
+                console.log("groupMap", groupMap);
+
+                step4(name, source, destination, lightMap, groupMap);
+            };
+
+            r.append(next);
+        }
+
+        async function step4(name, source, destination, lightMap, groupMap) {
+            destination = destination || await getAll(connection);
+
+            const r = document.querySelector("#result");
+            r.innerHTML = "<hr/><h2>Stage 4: Rename groups</h2>";
+
+            const tbl = contentTable(name, source, destination);
+
+            Diff.renameGroupTable(source, destination, groupMap, tbl);
+
+            r.append(tbl);
+
+            const next = document.createElement("button");
+            next.append("Next ›");
+            next.onclick = () => {
+                const list = Diff.extractRenameList(document);
+                console.log(list);
+                if (list.length > 0) {
+                    const ok = confirm(
+`OK to rename ${list.length} groups?
+This will make changes to your Hue bridge now.`
+                    );
+                    if (ok) {
+                        alert("Not yet implemented");
+                    } else {
+                        return;
+                    }
+                }
+
+                step5(name, source, destination, lightMap, groupMap);                
+            };
+
+            r.append(next);
+        }
+
+        async function step5(name, source, destination, lightMap, groupMap) {
+            alert("step 5");
         }
 
         async function main() {
