@@ -218,13 +218,6 @@
                 } else {
                     const link = `https://${connection.bridge.ip}/api/unauthenticated/config`;
                     e.innerHTML = `<a href="${link}" rel="noopener">Refresh your Hue bridge connection</a>`;
-                    /*e.querySelector("a").onclick = (evt) => {
-                        alert("Temporaily unavailable");
-                        e.querySelector("iframe").src = link;
-                        evt.preventDefault();
-                        evt.stopPropagation();
-                        e.onclick = undefined;
-                    }*/
                 }
 
                 return;
