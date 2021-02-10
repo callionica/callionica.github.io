@@ -20,15 +20,15 @@
             font-size: inherit;
         }
 
-        :root {
+        /* :root {
             font-size: 16pt;
-        }
+        } */
 
-        @media (max-width: 720px) {
+        /* @media (max-width: 720px) {
             :root {
                 font-size: 3vw;
             }
-        }
+        } */
 
         body {
             -webkit-text-size-adjust: 100%;
@@ -174,9 +174,11 @@
             margin-left: 0.5rem;
             margin-right: 0.5rem;
             padding: 0.2rem;
-            min-width: 25rem;
-            width: 25rem;
+            
             display: inline-block;
+
+            width: 25rem;
+            flex-grow: 1;
         }
 
     </style>
