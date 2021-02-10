@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Zones">
+    <link rel="apple-touch-icon" href="apple-touch-icon-precomposed.png">
+
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Rooms & Zones</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            border: 0;
+            padding: 0;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-size: inherit;
+        }
+
+        :root {
+            font-size: 16pt;
+        }
+
+        @media (max-width: 720px) {
+            :root {
+                font-size: 3vw;
+            }
+        }
+
+        body {
+            -webkit-text-size-adjust: 100%;
+            width: 100vw;
+            padding: 0.25rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            padding-top: 0.25rem;
+        }
+        h2 {
+            font-size: 1.2rem;
+            padding-top: 0.25rem;
+        }
+        h3 {
+            font-size: 1.1rem;
+            padding-top: 0.25rem;
+        }
+
+        select, button, input {
+            border-style: solid;
+            border-width: 0.1rem;
+            border-color: gray;
+            border-radius: 0.275rem;
+            padding: 0.2rem;
+        }
+
+        hr {
+            overflow: visible; /* For IE */
+            padding: 0;
+            margin-bottom: 0.4rem;
+            margin-top: 0.4rem;
+            border: none;
+            border-top: medium double #333;
+            color: #333;
+            text-align: center;
+        }
+
+        :root {
+            --expando-over-height: 2.5rem;
+            --expando-inner-height: 2.5rem;
+            --expando-color: 55,55,55;
+            --expando-text-color: 204,204,204;
+        }
+
+        *[data-expando='outer'] {
+            /* Have to use a fixed height to get a smooth transition */
+            height: var(--expando-over-height);
+            overflow: hidden;
+            transition: height 0.6s ease, margin 0.6s ease, opacity 0.6s ease, visibility 0.6s ease;
+
+            color: rgb(var(--expando-text-color));
+            background-color: rgb(var(--expando-color));
+
+            /*margin-left: 0.25rem;
+            margin-right: 0.25rem;*/
+            margin-bottom: 0.75rem;
+
+            border-radius: 0.3rem;
+
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            cursor: pointer;
+        }
+
+        *[data-expando='over'] {
+            height: var(--expando-over-height);
+            display: flex;
+
+            /* Opaque background and relative positioning with z-index for slide behind */
+            background-color: rgb(var(--expando-color));
+            position: relative;
+            z-index: 2;
+        }
+
+        *[data-expando='inner'] {
+            height: var(--expando-inner-height);
+            display: flex;
+            overflow-y: hidden;
+
+            /* Relative positioning with z-index for slide behind */
+            position: relative;
+            z-index: 1;
+            /* background-color: darkorange; */
+
+            transition: height 0.6s ease, margin 0.6s ease, opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        *[data-expando='outer'][data-selected='true'] {
+            /* Have to use a fixed height to get a smooth transition */
+            height: calc(var(--expando-over-height) + var(--expando-inner-height));
+        }
+
+        *[data-expando='outer'] > *[data-expando='inner'] {
+            opacity: 0;
+            margin-top: calc(-1 * var(--expando-inner-height));
+            visibility: hidden;
+
+            transition: height 0.6s ease, margin 0.6s ease, opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        *[data-expando='outer'][data-selected='true'] > *[data-expando='inner'] {
+            opacity: 1;
+            margin-top: 0rem;
+            visibility: unset;
+        }
+
+        button {
+            margin: 0.25rem;
+            height: 2rem;
+            width: 6rem;
+            min-width: 6rem;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        :root {
+            --back-color: 30,30,30;
+            --button-color: 45,45,45;
+            --text-color: 204,204,204;
+
+            background-color: rgb(var(--back-color));
+            color: rgb(var(--text-color));
+        }
+
+        .group-name {
+            margin: 0.25rem;
+            margin-left: 0.5rem;
+            margin-right: 0.5rem;
+            padding: 0.2rem;
+            min-width: 25rem;
+            width: 25rem;
+            display: inline-block;
+        }
+
+    </style>
+    <script type="module">
+        import { loadCurrentBridge, loadConnection } from "./hue-callionica-connect.js";
+        import { getAll, summarizeLights, setGroupOn, setGroupScene, sortBy } from "./hue-callionica.js";
+        import { paramsSort, FourPartDay, getDaylight } from "./hue-callionica-ui.js";
+
+        async function ondata(data) {
+            // Called when new data arrives
+            const groups = Object.values(data.groups);
+            groups.sort(sortBy(g => g.name));
+            updateGroups(data, groups);
+        }
+
+        let dataRequestMade;
+        let dataTimeoutToken;
+        let bridge;
+        let connection;
+        let data;
+
+        // Call to get new data
+        async function requestData() {
+            if (dataRequestMade) {
+                return;
+            }
+
+            clearTimeout(dataTimeoutToken);
+            dataRequestMade = true;
+
+            try {            
+                try {
+                    if (bridge === undefined) {
+                        bridge = loadCurrentBridge();
+                    }
+
+                    if (connection === undefined) {
+                        connection = await loadConnection("Callionica", bridge);
+                    }
+
+                    data = await getAll(connection);
+                } catch (e) {
+                    document.body.dataset.showConnection = true;
+
+                    const e = document.querySelector("#connection");
+
+                    if ((bridge === undefined) || (connection === undefined)) {
+                        e.innerHTML = `<a href="hue-callionica-connect.html">Connect to your Hue bridge</a>`;
+                    } else {
+                        const link = `https://${connection.bridge.ip}/api/unauthenticated/config`;
+                        e.innerHTML = `<a href="${link}" rel="noopener">Refresh your Hue bridge connection</a>`;
+                    }
+                }
+            } finally {
+                dataRequestMade = false;
+            }
+
+            dataTimeoutToken = setTimeout(requestData, 2 * 1000);
+
+            ondata(data);
+        }
+
+        function ancestor(e, pred) {
+            let container = e.parentNode;
+            while (container) {
+                if (pred(container)) {
+                    break;
+                }
+                container = container.parentNode;
+            }
+            return container || undefined;
+        }
+
+        function ancestorData(e, name) {
+            const attr = "data-" + name;
+            let container = e.parentNode;
+            while (container) {
+                if (container.hasAttribute(attr)) {
+                    break;
+                }
+                container = container.parentNode;
+            }
+            return container?.getAttribute(attr) || undefined;
+        }
+
+        function expando(e) {
+            
+            const removeSelection = (e.dataset.selected === "true");
+
+            let container = e.closest("[data-expando='group']");
+            if (container == undefined) {
+                return;
+            }
+
+            const selected = container.querySelectorAll("[data-selected='true']");
+            for (const s of selected) {
+                delete s.dataset.selected;
+            }
+
+            if (!removeSelection) {
+                e.dataset.selected = true;
+            } else {
+                delete e.dataset.selected;
+            }
+        }
+    
+        const expandoExcludes = ["A", "BUTTON", "INPUT"];
+
+        function setupExpandoElement(element) {
+            element.addEventListener("click", (e) => {
+                if (!expandoExcludes.includes(e.target.nodeName)) {
+                    expando(element);
+                    e.preventDefault();
+                }
+            }, false);
+        }
+
+        function setupExpando(scope) {
+            scope = scope || document;
+
+            
+            const elements = [...scope.querySelectorAll("*[data-expando='outer']")];
+            for (const element of elements) {
+                setupExpandoElement(element);
+            }
+        }
+
+        function updateGroup(e, data, group, scope) {
+            const name = e.querySelector(".group-name");
+            name.innerText = group.name;
+            const lights = summarizeLights(group, data);
+            Object.assign(e.dataset, lights);
+            // e.dataset.anyOn = lights.anyOn;
+            // e.dataset.allOn = lights.allOn;
+            // e.dataset.anyUnreachable = lights.anyUnreachable;
+            // e.dataset.allUnreachable = lights.allUnreachable;
+        }
+
+        function createGroup(data, group, scope) {
+            scope = scope || document;
+
+            const e = scope.createElement("div");
+            e.id = `group-${group.id}`;
+            e.dataset.groupId = group.id;
+            e.classList.add("group");
+            e.dataset.expando = "outer";
+
+            const o = scope.createElement("div");
+            o.dataset.expando = "over";
+
+            const name = scope.createElement("span");
+            name.classList.add("group-name");
+            name.innerText = group.name;
+
+            const btn = scope.createElement("button");
+            btn.class = "group-button";
+
+            o.append(name, btn);
+
+            const i = scope.createElement("div");
+            i.dataset.expando = "inner";
+
+            e.append(o, i);
+
+            for (const period of ["morning", "day", "evening", "night"]) {
+                const periodTitle = period[0].toUpperCase() + period.substring(1);
+                const periodButton = scope.createElement("button");
+                periodButton.dataset.period = period;
+                periodButton.innerText = periodTitle;
+        
+                periodButton.onclick = () => activatePeriodScene(periodButton);
+                i.append(periodButton);
+            }
+
+            setupExpandoElement(e);
+
+            return e;
+        }
+
+        function updateGroups(data, groups, scope) {
+            scope = scope || document;
+
+            const container = scope.querySelector("#data");
+
+            const children = [];
+            for (const group of groups) {
+                let e = container.querySelector(`#group-${group.id}`);
+                if (e == undefined) {
+                    e = createGroup(data, group, scope);
+                    container.append(e);
+                }
+                children.push(e);
+
+                updateGroup(e, data, group, scope);
+            }
+
+            for (const ge of [...container.querySelectorAll(".group")]) {
+                if (children.includes(ge)) {
+                    // Move unreachables to the end
+                    if (ge.dataset.allUnreachable === "true") {
+                        container.appendChild(ge);
+                    }
+                    continue;
+                }
+
+                // Remove old groups
+                ge.remove();
+            }
+        }
+    
+        async function activatePeriodScene(btn) {
+            const dayPartName = btn.dataset.period;
+            const groupID = ancestorData(btn, "group-id");
+
+            const matchingScene = FourPartDay.getScene(data, groupID, dayPartName);
+            if (matchingScene !== undefined) {
+                await setGroupScene(connection, groupID, matchingScene.id);
+            } else {
+                await setGroupOn(connection, groupID, true);
+            }
+        }
+
+        requestData();
+    </script>
+</head>
+<body data-page="groups">
+    <h1>Rooms & Zones</h1>
+    <hr/>
+    <div id="connection"></div>
+    <div id="data" data-expando="group">
+        <!--<div class="group" data-expando="outer" data-selected="true">
+            <div data-expando="over">
+                <span class="group-name">Bedroom</span>
+                <button>ON</button>
+            </div>
+            <div data-expando="inner">
+                <button>Morning</button>
+                <button>Day</button>
+                <button>Evening</button>
+                <button>Night</button>
+                <button>Morning</button>
+                <button>Day</button>
+                <button>Evening</button>
+                <button>Night</button>
+                <button>Morning</button>
+                <button>Day</button>
+                <button>Evening</button>
+                <button>Night</button>
+                <button>Morning</button>
+                <button>Day</button>
+                <button>Evening</button>
+                <button>Night</button>
+                <button>Looooooooong</button>
+                <button>Evening</button>
+                <button>Night</button>
+                <button>Morning</button>
+                <button>Day</button>
+                <button>Evening</button>
+                <button>Night</button>
+            </div>
+            
+        </div>
+        <div class="group" data-expando="outer">
+            <div data-expando="over">
+                <span class="group-name">Living room</span>
+                <button>ON</button>
+            </div>
+            <div data-expando="inner">
+                <button>Morning</button>
+                <button>Day</button>
+                <button>Evening</button>
+                <button>Night</button>
+            </div>
+        </div>
+        <div class="group" data-expando="outer">
+            <div data-expando="over">
+                <span class="group-name">Bedroom</span>
+                <button>ON</button>
+            </div>
+            <a href="#what">Test</a>
+            <div data-expando="inner">
+                <button>Morning</button>
+                <button>Day</button>
+                <button>Evening</button>
+                <button>Night</button>
+            </div>
+        </div>-->
+    </div>
+</body>
+</html>
