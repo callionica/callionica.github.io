@@ -16,7 +16,7 @@
             border: 0;
             padding: 0;
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: inherit;
             font-size: inherit;
         }
 
@@ -37,6 +37,7 @@
             padding-left: 0.5rem;
             padding-right: 0.5rem;
             overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
         h1 {
@@ -58,6 +59,8 @@
             border-color: gray;
             border-radius: 0.275rem;
             padding: 0.2rem;
+            color: inherit;
+            background-color: inherit;
         }
 
         hr {
@@ -187,10 +190,18 @@
         import { getAll, summarizeLights, setGroupOn, setGroupScene, sortBy } from "./hue-callionica.js";
         import { paramsSort, FourPartDay, getDaylight } from "./hue-callionica-ui.js";
 
+        const params = new URLSearchParams(document.location.search);
+
         async function ondata(data) {
             // Called when new data arrives
-            const groups = Object.values(data.groups);
+            let groups = Object.values(data.groups);
+
+            // Basic sort by name
             groups.sort(sortBy(g => g.name));
+
+            // Advanced sort by include, exclude, sort params
+            groups = paramsSort(params, groups);
+
             updateGroups(data, groups);
         }
 
@@ -357,7 +368,8 @@
 
             e.append(o, i);
 
-            for (const period of ["morning", "day", "evening", "night"]) {
+            const periods = ["morning", "day", "evening", "night"];
+            for (const period of periods) {
                 const periodTitle = period[0].toUpperCase() + period.substring(1);
                 const periodButton = scope.createElement("button");
                 periodButton.dataset.dayPart = period;
@@ -367,7 +379,8 @@
                 i.append(periodButton);
             }
 
-            const scenes = Object.values(data.scenes).filter(scene => scene.group === group.id);
+            const periodScenes = ["first", "morning", "day", "evening", "night", "morning-dark", "day-dark", "evening-light", "night-light"];
+            const scenes = Object.values(data.scenes).filter(scene => (scene.group === group.id) && !periodScenes.includes(scene.name.toLowerCase())).sort((a,b) => a.name.localeCompare(b.name));
             for (const scene of scenes) {
                 const button = scope.createElement("button");
                 button.dataset.sceneId = scene.id;
