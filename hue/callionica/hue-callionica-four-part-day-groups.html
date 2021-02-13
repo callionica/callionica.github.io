@@ -202,11 +202,11 @@
 
         #flasher {
             position: fixed;
-            height: 1vw;
-            width: 1vw;
+            height: 0.75rem;
+            width: 0.75rem;
             border-radius: 50%;
-            top: 1vw;
-            left: 98vw;
+            top: 0.5rem;
+            right: 0.5rem;
             pointer-events: none;
             z-index: 5;
             background-color: rgb(var(--lit-color));
@@ -264,6 +264,27 @@
         button[data-unreachable='true'] {
             border-color: rgb(var(--back-color));
             color: rgb(var(--back-color));
+        }
+
+        button.light {
+            width: 2rem;
+            min-width: 2rem;
+            border-radius: 50%;
+            color: rgb(var(--ready-color));
+            border-color: rgb(var(--ready-color));
+            background-color: rgb(var(--ready-color));
+        }
+
+        button.light[data-on='true'] {
+            color: rgb(var(--lit-color));
+            border-color: rgb(var(--lit-color));
+            background-color: rgb(var(--lit-color));
+        }
+
+        button.light[data-unreachable='true'] {
+            color: rgb(var(--back-color));
+            border-color: rgb(var(--back-color));
+            background-color: rgb(var(--back-color));
         }
 
     </style>
@@ -426,7 +447,7 @@
             ++flashID;
             const myFlashID = flashID;
             setTimeout(() => {
-                if (flashID == myFlashID) {
+                if (flashID === myFlashID) {
                     flasher.classList.remove("flash");
                 }
             }, 0.35 * 1000);
@@ -455,6 +476,7 @@
                 }
                 children.push(lightElement);
 
+                lightElement.title = light.name;
                 lightElement.dataset.name = light.name;
                 lightElement.dataset.on = light.state.on && light.state.reachable;
                 lightElement.dataset.unreachable = !light.state.reachable;
@@ -472,6 +494,7 @@
 
         function createLight(light, scope) {
             const button = scope.createElement("button");
+            button.classList.add("light");
             button.dataset.lightId = light.id;
             button.innerText = light.name;
     
@@ -515,6 +538,7 @@
                 const periodTitle = period[0].toUpperCase() + period.substring(1);
                 const periodButton = scope.createElement("button");
                 periodButton.dataset.dayPart = period;
+                periodButton.title = periodTitle;
                 periodButton.innerText = periodTitle;
         
                 periodButton.onclick = () => { flash(); activateFourPartDayScene(periodButton); };
@@ -526,6 +550,7 @@
             for (const scene of scenes) {
                 const button = scope.createElement("button");
                 button.dataset.sceneId = scene.id;
+                button.title = scene.name;
                 button.innerText = scene.name;
         
                 button.onclick = () => { flash(); activateFourPartDayScene(button); };
