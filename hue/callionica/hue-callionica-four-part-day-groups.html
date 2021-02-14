@@ -239,32 +239,12 @@
             margin-top: 0.5rem;
         }
 
-        /* div[data-all-unreachable='false'][data-any-on='true'] .group-toggle {
-            border-color: rgb(var(--lit-color));
-            color: rgb(var(--lit-color));
-        }
-
-        div[data-all-unreachable='false'][data-any-on='false'] .group-toggle {
-            border-color: rgb(var(--ready-color));
-            color: rgb(var(--ready-color));
-        } */
-
         div[data-all-unreachable='true'] {
             color: rgb(var(--back-color));
         }
 
         div[data-all-unreachable='true'] button {
             border-color: rgb(var(--back-color));
-        }
-
-        button[data-on='true'] {
-            border-color: rgb(var(--lit-color));
-            color: rgb(var(--lit-color));
-        }
-
-        button[data-unreachable='true'] {
-            border-color: rgb(var(--back-color));
-            color: rgb(var(--back-color));
         }
 
         button.light {
@@ -275,6 +255,7 @@
             color: rgb(var(--expando-color));
             border-color: rgb(var(--ready-color));
             background-color: rgb(var(--expando-color));
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         button.light[data-on='true'] {
@@ -298,6 +279,7 @@
             color: rgb(var(--expando-color));
             border-color: rgb(var(--ready-color));
             background-color: rgb(var(--expando-color));
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         button.group-toggle[data-on='true'] {
