@@ -337,8 +337,26 @@ export async function getScenes(connection) {
     return getCategory_(connection, "scenes");
 }
 
-export async function getSceneComplete(connection, sceneID) {
-    return getCategory(connection, `scenes/${sceneID}`);
+const bridgeSceneCache = {};
+
+export async function getSceneComplete(connection, sceneID, lastUpdated) {
+    const bridgeID = connection.bridge.id;
+    let sceneCache = bridgeSceneCache[bridgeID];
+    if (sceneCache === undefined) {
+        sceneCache = {};
+        bridgeSceneCache[bridgeID] = sceneCache;
+    }
+
+    let scene = sceneCache[sceneID];
+    if ((scene !== undefined) && (scene.lastupdated === lastUpdated)) {
+        return scene;
+    }
+
+    scene = await getCategory(connection, `scenes/${sceneID}`);
+
+    sceneCache[sceneID] = scene;
+
+    return scene;
 }
 
 export async function getScene(connection, groupID, name) {
@@ -2213,6 +2231,16 @@ export function rearrangeForHueComponents(data) {
 export async function getAll(connection) {
     const data = await getAllCategories(connection);
     rearrangeForHueComponents(data);
+    return data;
+}
+
+/* Same as getAll plus all the scene details (using the scene cache) */
+export async function getAllPlus(connection) {
+    const data = await getAll(connection);
+    for (const scene of Object.values(data.scenes)) {
+        const completeScene = await getSceneComplete(connection, scene.id, scene.lastupdated);
+        scene.lightstates = completeScene.lightstates;
+    }
     return data;
 }
 
