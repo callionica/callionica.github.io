@@ -74,11 +74,11 @@
                     if (succeeded) {
                         storeConnection(conn);
                         e.querySelector(".error").innerText = "";
+                        
+                        alert(`Signed in to ${conn.bridge.name}`);
                         window.history.back();
-                        // alert("succeeded" + JSON.stringify(conn, null, 2));
-                        // document.location = document.location;
                     } else {
-                        e.querySelector(".error").innerText = "Invalid password";
+                        e.querySelector(".error").innerText = "Wrong password";
                     }
                 });
                 
