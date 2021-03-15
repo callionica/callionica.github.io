@@ -65,6 +65,12 @@
 
             e.querySelector("#manual-bridge").value = connection.bridge.name;
             e.querySelector("#manual-token").value = connection.token;
+
+            e.querySelector("input[type='submit']").onclick = () => {
+                const token = e.querySelector("#manual-token").value;
+                alert(`${connection.bridge.ip}###${token}`);
+                return false;
+            };
         }
 
         async function main() {
