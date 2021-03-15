@@ -68,6 +68,7 @@
             e.onsubmit = () => {
                 const token = e.querySelector("#manual-token").value;
                 alert(`${connection.bridge.ip}###${token}`);
+                document.location = document.location;
                 return false;
             };
         }
