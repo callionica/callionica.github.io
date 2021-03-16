@@ -126,7 +126,8 @@
                         // console.log(conn);
                         storeConnection(conn);
                         alert(`Signed in to ${conn.bridge.name}`);
-                        window.history.back();
+                        // window.history.back();
+                        document.location = document.location;
                     } else {
                         e.querySelector(".error").innerText = "Wrong password";
                     }
