@@ -100,39 +100,41 @@
             e.querySelector("#manual-bridge").value = connection.bridge.name;
             e.querySelector("#manual-token").value = connection.token;
 
-            e.onsubmit = () => {
-                (async function(){
-                    e.querySelector(".error").innerText = "";
+            if (e.onsubmit == undefined) {
+                e.onsubmit = () => {
+                    (async function(){
+                        e.querySelector(".error").innerText = "";
 
-                    const token = e.querySelector("#manual-token").value.trim();
+                        const token = e.querySelector("#manual-token").value.trim();
 
-                    let conn;
+                        let conn;
 
-                    if (token === "") {
-                        conn = await registerUnconnected(connection.bridge, connection.app);
-                        if (conn !== undefined) {
-                            updateConnection(conn);
+                        if (token === "") {
+                            conn = await registerUnconnected(connection.bridge, connection.app);
+                            if (conn !== undefined) {
+                                updateConnection(conn);
+                            }
+                        } else {
+                            conn = { ...connection, token };
                         }
-                    } else {
-                        conn = { ...connection, token };
-                    }
 
-                    if (conn === undefined) {
-                        return;
-                    }
+                        if (conn === undefined) {
+                            return;
+                        }
 
-                    const succeeded = await testConnection(conn);
-                    if (succeeded) {
-                        // console.log(conn);
-                        storeConnection(conn);
-                        alert(`Signed in to ${conn.bridge.name}`);
-                        // window.history.back();
-                        document.location = document.location;
-                    } else {
-                        e.querySelector(".error").innerText = "Wrong password";
-                    }
+                        const succeeded = await testConnection(conn);
+                        if (succeeded) {
+                            // console.log(conn);
+                            storeConnection(conn);
+                            alert(`Signed in to ${conn.bridge.name}`);
+                            // window.history.back();
+                            document.location = document.location;
+                        } else {
+                            e.querySelector(".error").innerText = "Wrong password";
+                        }
 
-                })();
+                    })();
+                }
                 
                 return false;
             };
