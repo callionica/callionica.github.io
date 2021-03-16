@@ -128,7 +128,7 @@
                             storeConnection(conn);
                             // alert(`Signed in to ${conn.bridge.name}`);
                             // window.history.back();
-                            document.location = document.location;
+                            setTimeout(()=>{document.location = document.location;}, 500);
                         } else {
                             e.querySelector(".error").innerText = "Wrong password";
                         }
