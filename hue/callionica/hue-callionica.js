@@ -9,12 +9,85 @@ export function uuid() {
     );
 }
 
-export function delay(ms) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve();
+export class Timeout {}
+export class TimeoutExpired extends Timeout {}
+export class TimeoutCanceled extends Timeout {}
+
+// Timeout expiry and timeout cancelation are not errors
+export function delay(ms, signal) {
+    let timeoutHandle;
+    let resolve;
+
+    if (signal !== undefined) {
+        signal.addEventListener("abort", () => {
+            if (timeoutHandle !== undefined) {
+                clearTimeout(timeoutHandle);
+                timeoutHandle = undefined;
+                resolve(new TimeoutCanceled());
+            }
+        });
+    }
+
+    return new Promise((res) => {
+        resolve = res;
+
+        timeoutHandle = setTimeout(() => {
+            timeoutHandle = undefined;
+            resolve(new TimeoutExpired());
         }, ms);
     });
+}
+
+// In case we ever decide to redefine 'fetch', we keep track of the original
+const original = (() => {
+    const fetch = globalThis.fetch.bind(globalThis);
+
+    return { fetch };
+})();
+
+// Throws TimeoutExpired or TimeoutCanceled
+export async function fetchJSON(input, init = undefined, timeoutMS = 2000) {
+    const fetchController = new AbortController();
+    const signal = fetchController.signal;
+
+    const timeoutController = new AbortController();
+    const timeout = delay(timeoutMS, timeoutController.signal);
+
+    if (init?.signal !== undefined) {
+        // A signal from the outside is treated like a timeout cancelation
+        // The connection will be aborted naturally, like a timeout expiry
+        init.signal.addEventListener("abort", () => {
+            timeoutController.abort();
+        });
+    }
+
+    try {
+        // Race the fetch and the timeout
+        const response = await Promise.race([original.fetch(input, { ...init, signal }), timeout]);
+
+        // If the winner of the race was the timeout (either expired or canceled), 
+        // abort the fetch and convert the result to an exception
+        if (response instanceof Timeout) {
+            fetchController.abort();
+            throw response;
+        }
+
+        // Otherwise the winner of the race was the fetch, so continue obtaining the data
+        const json = await Promise.race([response.json(), timeout]);
+
+        // If the winner of the race was the timeout (either expired or canceled), 
+        // abort the fetch and convert the result to an exception
+        if (json instanceof Timeout) {
+            fetchController.abort();
+            throw json;
+        }
+
+        // Otherwise the winner of the race was the json, so return the result
+        return json;
+    } finally {
+        // Aborting the timeout in all cases is safe
+        timeoutController.abort();
+    }
 }
 
 export async function retry(fn, delays) {
@@ -173,8 +246,7 @@ export async function send(method, address, body) {
 
     let bridgeResult;
     try {
-        const result = await fetch(address, { method, body });
-        bridgeResult = await result.json();
+        bridgeResult = await fetchJSON(address, { method, body });
     } catch (e) {
         console.log(body);
         console.log(e);
@@ -283,37 +355,37 @@ export async function createResourceLink(connection, body) {
 export async function deleteRule(connection, id) {
     const address = Address(connection, `rules/${id}`);
     const method = "DELETE";
-    return fetch(address, { method });
+    return fetchJSON(address, { method });
 }
 
 export async function deleteResourceLink(connection, id) {
     const address = Address(connection, `resourcelinks/${id}`);
     const method = "DELETE";
-    return fetch(address, { method });
+    return fetchJSON(address, { method });
 }
 
 export async function deleteSensor(connection, id) {
     const address = Address(connection, `sensors/${id}`);
     const method = "DELETE";
-    return fetch(address, { method });
+    return fetchJSON(address, { method });
 }
 
 export async function deleteSchedule(connection, id) {
     const address = Address(connection, `schedules/${id}`);
     const method = "DELETE";
-    return fetch(address, { method });
+    return fetchJSON(address, { method });
 }
 
 export async function deleteGroup(connection, id) {
     const address = Address(connection, `groups/${id}`);
     const method = "DELETE";
-    return fetch(address, { method });
+    return fetchJSON(address, { method });
 }
 
 export async function deleteScene(connection, id) {
     const address = Address(connection, `scenes/${id}`);
     const method = "DELETE";
-    return fetch(address, { method });
+    return fetchJSON(address, { method });
 }
 
 export async function getCategory(connection, category) {
@@ -321,8 +393,7 @@ export async function getCategory(connection, category) {
 
     var bridgeResult;
     try {
-        const result = await fetch(address);
-        bridgeResult = await result.json();
+        bridgeResult = await fetchJSON(address);
     } catch (e) {
         console.log(e);
         throw { address, e };

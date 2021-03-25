@@ -1,5 +1,5 @@
 "use strict";
-import { getConfig } from "./hue-callionica.js";
+import { getConfig, delay, TimeoutExpired, fetchJSON } from "./hue-callionica.js";
 
 // bridge: { id, ip, name }
 // connection: { bridge, app, token }
@@ -115,19 +115,46 @@ export async function bridgeByIP(ip) {
     return { id: config.bridgeid.toLowerCase(), ip, name: config.name };
 }
 
-// Return the bridge name and serial number obtained from the description XML over HTTP
-// This method avoids certificate issues by relying on HTTP only
-export async function bridgeFromDescriptionXML(address) {
-    const response = await fetch(`http://${address}/description.xml`);
-    const data = await response.text();
-    const parser = new DOMParser();
-    const dom = parser.parseFromString(data, "application/xml");
-    let serialNumber = dom.querySelector("serialNumber").textContent.toLowerCase();
-    const id = serialNumber.substring(0, 6) + "fffe" + serialNumber.substring(6);
-    const name = dom.querySelector("friendlyName").textContent;
-    const bridge = { id, ip: address, name };
-    return bridge;
+export async function diagnoseConnection(connection) {
+    try {
+        const result = await getConfig(connection);
+
+        const id = result.bridgeid?.toLowerCase();
+
+        if (id === undefined) {
+            return "not-a-bridge-error";
+        }
+
+        if (id !== connection.bridge.id) {
+            return "wrong-bridge-error";
+        }
+
+        if (result.whitelist === undefined) {
+            return "authentication-error";
+        }
+
+        return "success";
+    } catch (error) {
+        if (error.e instanceof TimeoutExpired) {
+            return "unreachable";
+        }
+        return "certificate-error";
+    }
 }
+
+// // Return the bridge name and serial number obtained from the description XML over HTTP
+// // This method avoids certificate issues by relying on HTTP only
+// export async function bridgeFromDescriptionXML(address) {
+//     const response = await fetch(`http://${address}/description.xml`);
+//     const data = await response.text();
+//     const parser = new DOMParser();
+//     const dom = parser.parseFromString(data, "application/xml");
+//     let serialNumber = dom.querySelector("serialNumber").textContent.toLowerCase();
+//     const id = serialNumber.substring(0, 6) + "fffe" + serialNumber.substring(6);
+//     const name = dom.querySelector("friendlyName").textContent;
+//     const bridge = { id, ip: address, name };
+//     return bridge;
+// }
 
 export async function bridgeFromAddress(address) {
     try {
@@ -149,11 +176,10 @@ export async function bridgeFromAddress(address) {
     // return { status: "unreachable" };
 }
 
-async function jsonFetch(address) {
+async function jsonFetch(address, ms) {
     var result;
     try {
-        const fetchResult = await fetch(address);
-        result = await fetchResult.json();
+        result = await fetchJSON(address, undefined, ms);
     } catch (e) {
         console.log(e);
         throw { address, e };
@@ -165,7 +191,7 @@ async function jsonFetch(address) {
 // Philips Hue bridges report internal IP addresses to meethue
 // The server will send you back the internal IP addresses of any bridges whose public IP matches the public IP address of your request
 export async function bridgesByRemoteDiscovery() {
-    const result = await jsonFetch("https://discovery.meethue.com");
+    const result = await jsonFetch("https://discovery.meethue.com", 6000);
     return result.map(item => { return { id: item.id, ip: item.internalipaddress }; });
 }
 
@@ -215,8 +241,7 @@ export async function bridgesByDiscovery() {
 async function get(address) {
     let bridgeResult;
     try {
-        const result = await fetch(address);
-        bridgeResult = await result.json();
+        bridgeResult = await fetchJSON(address);
     } catch (e) {
         console.log(address);
         console.log(body);
@@ -230,8 +255,7 @@ async function get(address) {
 async function send(method, address, body) {
     let bridgeResult;
     try {
-        const result = await fetch(address, { method, body });
-        bridgeResult = await result.json();
+        bridgeResult = await fetchJSON(address, { method, body });
     } catch (e) {
         console.log(address);
         console.log(body);
