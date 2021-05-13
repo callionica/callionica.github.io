@@ -457,3 +457,69 @@ export function paramsSort(params, items) {
 
     return items;
 }
+
+function CtoF(c) {
+    return (c * 9/5) + 32;
+}
+
+function CtoT(c) {
+    return Math.floor(100 * CtoF(c));
+}
+
+function FtoT(f) {
+    return Math.floor(100 * f);
+}
+
+export function optionsTemp(unit, start, end, interval) {
+    const fn = unit === "C" ? CtoT : FtoT;
+    
+    if (unit === "C") {
+        start = (start !== undefined) ? start : 0;
+        end = (end !== undefined) ? end : 40;
+        interval = interval || 0.5;
+    } else {
+        start = (start !== undefined) ? start : 30;
+        end = (end !== undefined) ? end : 110;
+        interval = interval || 1;
+    }
+
+    const result = [];
+    for (let current = start; current <= end; current += interval) {
+        const e = document.createElement("option");
+        e.value = fn(current);
+        e.innerText = interval < 1 ? current.toFixed(1) : current;
+
+        result.push(e);
+    }
+    return result;
+}
+
+function optionsIDName(items) {
+    const result = [];
+    for (const group of items) {
+        const e = document.createElement("option");
+        e.value = group.id;
+        e.innerText = group.name;
+
+        result.push(e);
+    }
+    return result;
+
+}
+
+export function optionsGroup(data) {
+    const groups = Object.values(data.groups);
+    groups.sort((a,b) => a.name.localeCompare(b.name));
+
+    return optionsIDName(groups);
+}
+
+export function optionsScene(data, group) {
+    function isRecoveryScene(scene) {
+        return scene.name.replaceAll(" ", "").toLowerCase().includes("recoveryscene");
+    }
+
+    const scenes = Object.values(data.scenes).filter(scene => (scene.group === group.id) && !isRecoveryScene(scene)).sort((a,b) => a.name.localeCompare(b.name));
+
+    return optionsIDName(scenes);
+}
