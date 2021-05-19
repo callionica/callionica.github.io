@@ -234,6 +234,16 @@
             t.innerText = sensor[scale === "C" ? "celsius" : "fahrenheit"] ?? "";
             t.dataset.scale = scale;
 
+            if (!reachable || !on) {
+                delete t.dataset.scale
+            }
+
+            if (!reachable) {
+                t.innerText = "Unreachable";
+            } else if (!on) {
+                t.innerText = "Off";
+            }
+
             // e.querySelector(".description").innerText = sensorKind(sensor);
             e.querySelector(".bridge-name").innerText = bridge.name;
             e.querySelector(".id").innerText = sensor.id;
