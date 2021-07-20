@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotter</title>
+    <style>
+        html {
+            box-sizing: border-box;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        select,
+        button,
+        input {
+            border-style: solid;
+            border-width: 0.1rem;
+            border-color: inherit;
+            padding: 0.2rem;
+            color: inherit;
+            background-color: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            margin: 0.2rem;
+        }
+
+        input {
+            border-radius: 0.1rem;
+        }
+
+        button {
+            background: -webkit-linear-gradient(top, hsl(195, 53%, 50%), hsl(195, 53%, 20%));
+            border-radius: 0.3rem;
+            box-shadow: rgba(0, 0, 0, 1) 0 1px 0;
+            text-shadow: rgba(0, 0, 0, .4) 0 1px 0;
+            color: white;
+            text-decoration: none;
+            vertical-align: middle;
+            padding: 0.3rem;
+        }
+
+        button:hover {
+            background: -webkit-linear-gradient(top, hsl(195, 53%, 30%), hsl(195, 53%, 20%));
+        }
+
+        button:active {
+            background: -webkit-linear-gradient(top, hsl(195, 53%, 30%), hsl(195, 53%, 20%));
+            color: lightgray;
+        }
+
+        select {
+            -webkit-appearance: menulist;
+            border-radius: 0.3rem;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            height: 100%;
+            margin: 0;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 60% 40%;
+        }
+
+        .box {
+            display: flex;
+            flex-flow: column;
+            height: 100vh;
+            padding: 0.5rem;
+        }
+
+        .filter-tag-include {
+            width: 25%;
+        }
+
+        .filter-tag-exclude {
+            width: 25%;
+        }
+
+        .new-property {
+            display: flex;
+            min-height: 1.75rem;
+            flex: 0 1 auto;
+        }
+
+        .new-property-name {
+            height: 1.75rem;
+        }
+
+        .new-property-value {
+            flex-grow: 1;
+            height: 1.75rem;
+        }
+
+        .new-property-increment {
+            height: 1.75rem;
+        }
+
+        .new-property-action {
+            height: 1.75rem;
+        }
+
+        .new-property-type {
+            width: 1rem;
+            height: 1.75rem;
+            background: -webkit-linear-gradient(top, hsl(195, 53%, 50%), hsl(195, 53%, 20%));
+            color: white;
+        }
+
+        .items {
+            flex: 1 1 auto;
+            overflow-y: scroll;
+        }
+
+        .item {
+            border-color: lightblue;
+            border-width: 0 0 0 0.5rem;
+            border-style: solid;
+            padding-left: 0.5rem;
+            margin-bottom: 0rem;
+            padding-top: 0.75rem;
+        }
+
+        .item::after {
+            content: "";
+            display: block;
+            width: auto;
+
+            border-color: lightblue;
+            border-width: 0 0 0.2rem 0;
+            border-style: dotted;
+
+            padding-top: 0.25rem;
+            padding-bottom: 1.0rem;
+        }
+
+        .item[data-current='true'] {
+            border-color: tomato;
+            background-color: aliceblue;
+        }
+
+        .property {
+            padding-top: 0.25rem;
+        }
+
+        .property-values {
+            padding-bottom: 0.25rem;
+        }
+
+        .property-name {
+            font-weight: bold;
+        }
+
+        .property-name::after {
+            content: ': ';
+        }
+
+        .property[data-id='id'] {
+            font-size: 0.9rem;
+            color: gray;
+            padding-bottom: 0.3rem;
+        }
+
+        .property[data-id='id'] .property-name {
+            display: none;
+        }
+
+        .property[data-id='id'] .property-values {
+            padding-bottom: 0rem;
+        }
+
+        .property[data-id='title'] {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .property[data-id='title'] .property-name {
+            display: none;
+        }
+
+        .property[data-id='content'] {
+            font-size: 1.25rem;
+        }
+
+
+        .property[data-id='content'] .property-name {
+            display: none;
+        }
+
+        .property[data-id='content'] .property-values {
+            padding-bottom: 0.75rem;
+        }
+
+        .property[data-id='content'] .value {
+            padding-bottom: 0.5rem;
+        }
+
+        .property[data-id='content'] .value+.value {
+            margin: 0;
+        }
+
+        .property[data-id='content'] .value+.value:before {
+            content: "";
+        }
+
+
+        .value-add {
+            visibility: hidden;
+        }
+
+        .value:hover>.value-add {
+            visibility: visible;
+        }
+
+        .value:focus-within>.value-add {
+            visibility: visible;
+        }
+
+        .value-remove {
+            visibility: hidden;
+        }
+
+        .value:hover>.value-remove {
+            visibility: visible;
+        }
+
+        .value:focus-within>.value-remove {
+            visibility: visible;
+        }
+
+        .property-value+.property-value::before {
+            content: ', ';
+        }
+
+        .value-relation::after {
+            content: ': ';
+        }
+
+        .value-level+.value-level::before {
+            content: '.';
+        }
+
+        .property[data-id='tag'] .property-name {
+            display: none;
+        }
+
+        .property[data-id='tag'] .property-values {
+            display: flex;
+        }
+
+        .property[data-id='tag'] .value+.value {
+            margin-left: 0.5rem;
+        }
+
+        .property[data-id='tag'] .value+.value:before {
+            content: "";
+        }
+
+        .property[data-id='tag'] .value {
+            background-color: rgb(247, 247, 189);
+            color: darkblue;
+
+            border-radius: 0.2rem;
+
+            padding: 0.3rem;
+            padding-left: 0.35rem;
+            padding-right: 0.35rem;
+        }
+
+        .value+.value:before {
+            content: " ・ ";
+        }
+
+        .property[data-id='time'] {
+            display: flex;
+            color: gray;
+        }
+
+        .property[data-id='time'] .property-values {
+            display: flex;
+        }
+
+        .property[data-id='sequence'] {
+            display: flex;
+            color: gray;
+        }
+
+        .property[data-id='sequence'] .property-values {
+            display: flex;
+        }
+
+        .property[data-id='sequence'] .property-values .value+value {
+            margin-left: 0;
+        }
+
+
+        .new-property {
+            margin-bottom: 1.5rem;
+        }
+
+        .keys {
+            font-weight: bold;
+        }
+    </style>
+    <script type="module">
+        import { _use, Document, View } from "./model.js";
+        import { HTMLView } from "./user-interface.js";
+
+        const params = new URLSearchParams(document.location.search);
+        const title = params.get("document") ?? "Plotter";
+
+        document.title = `Plotter - ${title}`;
+
+        const storageKey = "plotter-document:" + title.toLowerCase();
+        const data = localStorage.getItem(storageKey) ?? undefined;
+
+        const doc = new Document(storageKey);
+    
+        if (data !== undefined) {
+            doc.load(data);
+        }
+
+        let focused = false;
+        const viewElements = [...document.querySelectorAll(".box")];
+        const htmlViews = [];
+        for (const e of viewElements) {
+            const view = new View(doc);
+            const htmlView = new HTMLView(view, e);
+            htmlViews.push(htmlView);
+            if (!focused) {
+                htmlView.valueElement.focus();
+                focused = true;
+            }
+        }
+
+        document.onkeydown = (e) => {
+            if (e.ctrlKey && e.altKey && ["1", "2"].includes(e.key)) {
+                const index = parseInt(e.key, 10) - 1;
+                const htmlView = htmlViews[index];
+                if (htmlView !== undefined) {
+                    htmlView.focus();
+                }
+                return false;
+            }
+        };
+
+    </script>
+</head>
+
+<body>
+    <div class="content">
+        <div class="box">
+            <div>
+                <input class="filter-tag-include" type="text">
+                <input class="filter-tag-exclude" type="text">
+                <select class="filter-properties">
+                    <option value="id,title,content,tag,time,sequence,note">Extended</option>
+                    <option value="title,content,time,sequence">Standard</option>
+                    <option value="title,content">Minimal</option>
+                </select>
+                <select class="filter-sorting">
+                    <option value="document">Document</option>
+                    <option value="sequence">Sequence</option>
+                    <option value="time">Time</option>
+                </select>
+            </div>
+            <div class="new-property">
+                <select class="new-property-name">
+                    <option>ID</option>
+                    <option>Title</option>
+                    <option selected>Content</option>
+                    <option>Tag</option>
+                    <option>Time</option>
+                    <option>Sequence</option>
+                    <option>Note</option>
+                </select>
+                <input class="new-property-value" type="text">
+                <select class="new-property-increment">
+                    <option value="0">---</option>
+                    <option value="1" selected>+1</option>
+                    <option value="5">+5</option>
+                    <option value="10">+10</option>
+                </select>
+                <button class="new-property-action">Create</button>
+                <select class="new-property-type">
+                    <option value="item">New item</option>
+                    <option value="property">Add</option>
+                    <option value="property-edit">Edit</option>
+                    <option value="property-replace">Replace</option>
+                </select>
+            </div>
+            <div class="items">
+            </div>
+            <!--<div>
+        <p><span class="keys">Ctrl+N</span>: New item</p>
+        <p><span class="keys">Ctrl+E</span>: Edit property</p>
+        <p><span class="keys">Ctrl+P</span>: Property add; <span class="keys">Ctrl+Alt+P</span>: Property replace</p>
+        <p><span class="keys">Ctrl+R</span>: Reset filters</p>
+    </div>-->
+        </div>
+        <div class="box">
+            <div>
+                <input class="filter-tag-include" type="text">
+                <input class="filter-tag-exclude" type="text">
+                <select class="filter-properties">
+                    <option value="id,title,content,tag,time,sequence,note">Extended</option>
+                    <option value="title,content,time,sequence">Standard</option>
+                    <option value="title,content">Minimal</option>
+                </select>
+                <select class="filter-sorting">
+                    <option value="document">Document</option>
+                    <option value="sequence">Sequence</option>
+                    <option value="time">Time</option>
+                </select>
+            </div>
+            <div class="new-property">
+                <select class="new-property-name">
+                    <option>ID</option>
+                    <option>Title</option>
+                    <option selected>Content</option>
+                    <option>Tag</option>
+                    <option>Time</option>
+                    <option>Sequence</option>
+                    <option>Note</option>
+                </select>
+                <input class="new-property-value" type="text">
+                <select class="new-property-increment">
+                    <option value="0">---</option>
+                    <option value="1" selected>+1</option>
+                    <option value="5">+5</option>
+                    <option value="10">+10</option>
+                </select>
+                <button class="new-property-action">Create</button>
+                <select class="new-property-type">
+                    <option value="item">New item</option>
+                    <option value="property">Add</option>
+                    <option value="property-edit">Edit</option>
+                    <option value="property-replace">Replace</option>
+                </select>
+            </div>
+            <div class="items">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
