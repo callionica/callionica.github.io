@@ -20,6 +20,19 @@ export class HTMLView {
 
         element.callionica = { view };
 
+        element.addEventListener("dragstart", (e) => this.dragStart(e));
+
+        element.addEventListener("dragenter", (e) => this.dragEnter(e));
+        element.addEventListener("dragover", (e) => this.dragOver(e));
+        element.addEventListener("dragleave", (e) => this.dragLeave(e));
+
+        element.addEventListener("drop", (e) => this.drop(e));
+
+        element.addEventListener("dragend", (e) => this.dragEnd(e));
+
+        /** @type { import("./model.js").ViewItem[] } */
+        this.dragging = [];
+
         /** @type { HTMLSelectElement } */
         this.typeElement = /** @type { HTMLSelectElement } */ (element.querySelector(".new-property-type") ?? undefined);
 
@@ -47,7 +60,7 @@ export class HTMLView {
                 case "8":
                 case "9":
                 case "0":
-                    if (e.ctrlKey) {
+                    if (e.ctrlKey && !e.altKey) {
                         const index = parseInt(e.key, 10) - 1;
                         const value = (index < 0) ? "Content" : this.propertyElement.options[index]?.value;
                         if (value !== undefined) {
@@ -136,17 +149,26 @@ export class HTMLView {
                         return false;
                     }
                     break;
+                case "x":
+                    if (e.ctrlKey) {
+                        navigator.clipboard.writeText(this.view.selectionAsData());
+                        this.view.deleteSelected();
+                        return false;
+                    }
+                    break;
                 case "v":
                     if (e.ctrlKey) {
                         navigator.clipboard.readText().then(text => {
-                            this.view.load(text);
+                            const item = this.view.current;
+                            this.view.clearSelection();
+                            this.view.load(text, item);
                         });
                         return false;
                     }
                     break;
                 case "a":
                     if (e.ctrlKey) {
-                       this.view.selectAll();
+                        this.view.selectAll();
                         return false;
                     }
                     break;
@@ -178,7 +200,7 @@ export class HTMLView {
                 case "8":
                 case "9":
                 case "0":
-                    if (e.ctrlKey) {
+                    if (e.ctrlKey && !e.altKey) {
                         const index = parseInt(e.key, 10) - 1;
                         const value = (index < 0) ? "Content" : this.propertyElement.options[index]?.value;
                         if (value !== undefined) {
@@ -364,8 +386,118 @@ export class HTMLView {
     }
 
     get htmlDocument() {
-        return this.element.ownerDocument;
+        return /** @type { HTMLDocument } */ (this.element.ownerDocument);
     }
+
+    /**
+     * @param { DragEvent } e 
+     */
+    dragStart(e) {
+        const { item, element } = this.itemFromPoint(e);
+        console.log("drag start", item, e);
+        if (item !== undefined && element !== undefined) {
+            
+            // If we drag on a selected item, drag the whole selection
+            // Otherwise, drag the item itself
+            if (this.view.isSelected(item)) {
+                this.dragging = [...this.view.selected_];
+            } else {
+                this.dragging = [item];
+            }
+
+            // TODO - This is having a global effect on the page
+            // @ts-ignore
+            const dragElements = [...this.htmlDocument.querySelectorAll(".item")].filter(e => {
+                return this.dragging.some(d => d.item === e.callionica.item.item);
+            });
+
+            for (const element of dragElements) {
+                element.classList.add("dragging");
+            }
+
+            e.dataTransfer?.setData("text/plain", this.view.itemsAsData(this.dragging));
+            e.dataTransfer?.setDragImage(element, 10, 10);
+
+            // @ts-ignore
+            e.dataTransfer.effectAllowed = "copyMove";
+
+            
+        }
+    }
+
+    /**
+     * @param { DragEvent } e 
+     */
+    dragEnter(e) {
+        // @ts-ignore
+        e.dataTransfer.effectAllowed = "copyMove";
+        e.preventDefault(); // Allow drop
+    }
+
+    /**
+     * @param { DragEvent } e 
+     */
+    dragOver(e) {
+        e.preventDefault(); // Allow drop
+        const previous = this.draggingOver;
+        this.draggingOver = this.itemFromPoint(e);
+
+        if (previous?.element !== this.draggingOver?.element) {
+            previous?.element?.classList.remove("drag-over");
+            this.draggingOver?.element?.classList.add("drag-over");
+        }
+    }
+
+    /**
+     * @param { DragEvent } e 
+     */
+    dragLeave(e) {
+        const previous = this.draggingOver;
+        this.draggingOver = undefined;
+
+        // @ts-ignore
+        if (previous?.element !== this.draggingOver?.element) {
+            previous?.element?.classList.remove("drag-over");
+            // @ts-ignore
+            this.draggingOver?.element?.classList.add("drag-over");
+        }
+    }
+
+    /**
+     * @param { DragEvent } e 
+     */
+    drop(e) {
+        // @ts-ignore
+        const text = e.dataTransfer.getData("text/plain");
+        const { item } = this.draggingOver ?? {};
+        if (item !== undefined) {
+            this.view.clearSelection();
+            this.view.load(text, item);
+            e.preventDefault(); // Accept the drop
+        }
+    }
+
+    /**
+     * 
+     * @param { DragEvent } e 
+     */
+    dragEnd(e) {
+        console.log("drag-end", e);
+
+        // TODO - This is having a global effect on the page
+        // @ts-ignore
+        const dragElements = [...this.htmlDocument.querySelectorAll(".dragging")];
+        for (const element of dragElements) {
+            element.classList.remove("dragging");
+        }
+
+        if (e.dataTransfer?.dropEffect === "move") {
+            for (const item of this.dragging) {
+                this.view.document.removeItem(item.item);
+            }
+        }
+    }
+
 
     updatePropertyFilter() {
         const filter = new FilterProperties(this.displayElement.value);
@@ -376,28 +508,52 @@ export class HTMLView {
 
     /**
      * 
+     * @param { Event } e 
+     */
+    itemFromEvent(e) {
+        return this.itemFromElement(/** @type { HTMLElement | undefined } */(e.target) ?? undefined);
+    }
+
+    /**
+     * Returns the { item, element } at the specified client position
+     * @param { { clientX: number, clientY: number } } point 
+     */
+    itemFromPoint(point) {
+        const element = /**@type { HTMLElement | undefined } */ (document.elementFromPoint(point.clientX, point.clientY) ?? undefined);
+        return this.itemFromElement(element);
+    }
+
+    /**
+     * @param { HTMLElement | undefined } startElement 
+     */
+    itemFromElement(startElement) {
+        console.log(startElement, "itemFromElement")
+        let item;
+        let element = startElement;
+        while (element !== undefined) {
+            const possible = /** @type { import("./model.js").ViewItem | undefined } */ (element.callionica?.item);
+            if (possible !== undefined) {
+                item = possible;
+                break;
+            }
+            element = element.parentElement ?? undefined;
+        }
+        return { item, element };
+    }
+
+    /**
+     * 
      * @param { MouseEvent } e 
      */
     click(e) {
-        let currentItem;
-        let current = /** @type { HTMLElement | undefined } */ (e.target) ?? undefined;
-        while (current !== undefined) {
-            const item = /** @type { import("./model.js").ViewItem | undefined } */ (current.callionica?.item);
-            if (item !== undefined) {
-                currentItem = item;
-                break;
-            }
-            current = current.parentElement ?? undefined;
-        }
-        console.log(currentItem);
-
-        if (currentItem !== undefined) {
+        let { item, element } = this.itemFromEvent(e);
+        if (item !== undefined) {
             if (e.metaKey) {
-                this.view.toggleSelection(currentItem);
+                this.view.toggleSelection(item);
             } else if (e.shiftKey) {
-                this.view.extendSelection(currentItem);
+                this.view.extendSelection(item);
             } else {
-                this.view.current = currentItem;
+                this.view.current = item;
             }
 
             if (this.valueElement !== this.htmlDocument.activeElement) {

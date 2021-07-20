@@ -66,6 +66,22 @@
             margin: 0;
         }
 
+        .item.dragging {
+            border-color: blue;
+        }
+
+        .item[data-current='true'].dragging {
+            border-color: blue;
+        }
+
+        .item.drag-over {
+            border-color: brown;
+        }
+
+        .item[data-current='true'].drag-over {
+            border-color: brown;
+        }
+
         .content {
             display: grid;
             grid-template-columns: 60% 40%;
@@ -398,7 +414,7 @@
                     <option value="property-replace">Replace</option>
                 </select>
             </div>
-            <div class="items">
+            <div class="items" draggable="true">
             </div>
             <!--<div>
         <p><span class="keys">Ctrl+N</span>: New item</p>
@@ -447,7 +463,7 @@
                     <option value="property-replace">Replace</option>
                 </select>
             </div>
-            <div class="items">
+            <div class="items" draggable="true">
             </div>
         </div>
     </div>

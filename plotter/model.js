@@ -1619,8 +1619,16 @@ export class View {
     }
 
     selectionAsData() {
+        return this.itemsAsData(this.selected_);
+    }
+
+    /**
+     * Returns the list of items as text data
+     * @param { Iterable<ViewItem> } items 
+     */
+    itemsAsData(items) {
         // Sort the selection into document order
-        const selected = [...this.selected_].sort((a, b) => a.index - b.index).map(vi => vi.item);
+        const selected = [...items].sort((a, b) => a.index - b.index).map(vi => vi.item);
         // Then use toString to get the data
         return selected.join("\n\n");
     }
@@ -1842,6 +1850,11 @@ export class View {
         this.changedInternal.publish();
     }
 
+    clearSelection() {
+        this.selected_ = [];
+        this.changedInternal.publish();
+    }
+
     /**
      * 
      * @param { ViewItem | undefined } viewItem 
@@ -1890,13 +1903,15 @@ export class View {
 
     /**
      * 
-     * @param { string } text 
+     * @param { string } text The data to load
+     * @param { ViewItem | undefined } [viewItem] Load the data after this item (or the current item)
      */
-    load(text) {
-        const index = (this.current?.index ?? -1) + 1;
+    load(text, viewItem) {
+        viewItem = viewItem ?? this.current;
+        const index = (viewItem?.index ?? -1) + 1;
         const range = this.document.load(text, index);
 
-        let indexInView = (this.current !== undefined) ? this.current.viewIndex + 1 : this.items_.count();
+        let indexInView = (viewItem !== undefined) ? viewItem.viewIndex + 1 : this.items_.count();
         for (let documentIndex = range.start; documentIndex < range.end; ++documentIndex) {
 
             const viewItem = this.viewItem(this.document.items.at(documentIndex), documentIndex, indexInView);
