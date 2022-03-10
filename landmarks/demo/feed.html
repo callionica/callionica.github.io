@@ -240,7 +240,7 @@
 				a.download = attachment.title + mp3;
 
 				const t = e.querySelector(".text");
-				t.href = URL.createObjectURL(new Blob(description, { type: "text/plain" }));
+				t.href = URL.createObjectURL(new Blob([description], { type: "text/plain" }));
 				t.download = attachment.title + ".txt";
 			}
 
