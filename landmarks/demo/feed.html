@@ -192,16 +192,15 @@
 
 		function itemToHTML(channel, item) {
 			let t = `
-<a class="audio">
+
 <h1 class="title"></h1>
 <div>
 <img class="image" style="">
 <div class="content">
 <p class="subtitle"></p>
-<p class="details"><span class="date"></span><span class="duration"></span></p>
+<p class="details"><span class="date"></span><span class="duration"></span><a class="audio">A</a> <a class="text">T</a></p>
 </div>
 </div>
-</a>
 `;
 
 			let date = new Date(item.date_published);
@@ -215,13 +214,15 @@
 			e.innerHTML = t;
 			e.id = item.id;
 
-			let title = item.title;
+			const description = item.summary || item.content_text;
+
+			const title = item.title;
 			e.querySelector(".title").innerText = title || "";
 			e.querySelector(".date").innerText = `${formatHumanDate(date)}`;
 			e.querySelector(".duration").innerText = ((d > 0) && `${formatHumanDuration(duration)}`) || "";
-			e.querySelector(".subtitle").innerText = item.summary || item.content_text;
+			e.querySelector(".subtitle").innerText = description;
 			
-			let image = wrapURL(item.image || channel.icon, "store");
+			const image = wrapURL(item.image || channel.icon, "store");
 			e.querySelector(".image").src = image || missing;
 
 			if (image === undefined) {
@@ -229,14 +230,23 @@
 			}
 
 			if (item.attachments && item.attachments.length > 0) {
-				let a = e.querySelector(".audio");
-				a.href = item.attachments[0].url;
-				a.download = item.attachments[0].title;
+				const attachment = item.attachments[0];
+
+				// TODO - making an assumption on format here
+				const mp3 = attachment.title.endsWith(".mp3") ? "" : ".mp3";
+
+				const a = e.querySelector(".audio");
+				a.href = attachment.url;
+				a.download = attachment.title + mp3;
+
+				const t = e.querySelector(".text");
+				t.href = URL.createObjectURL(new Blob(description, { type: "text/plain" }));
+				t.download = attachment.title + ".txt";
 			}
 
 			if (item.external_url) {
 				// TODO
-				let a = e.querySelector(".audio");
+				const a = e.querySelector(".audio");
 				a.href = item.external_url;
 			}
 
