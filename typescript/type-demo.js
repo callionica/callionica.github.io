@@ -634,36 +634,6 @@ function parse(text) {
         }
     }
 }
-Deno.test({
-    name: "Parse",
-    fn: ()=>{
-        const texts = [
-            "a | b, ...c|d, e",
-            "a | b, ...c, d",
-            "a | b, ...(c|d), e",
-            "a[]\t[][]",
-            "(...(a|b)[])[]",
-            "a | b, d c, e",
-            "a b",
-            "a | b, c | d",
-            "...x",
-            "...a[]?",
-            "...a???[]?",
-            "...(a|undefined)[]?",
-            "(a | b)[]?",
-            "(x, (y)?, z, ()?)",
-            "(string, number) => void",
-            "string, number",
-            "[string, number]",
-            "[[string], number[]]",
-            "([string] | number[]?)", 
-        ];
-        for (const text of texts){
-            const p = parse(text);
-            console.log(JSON.stringify(p, null, 2));
-        }
-    }
-});
 function toType(o) {
     let type = {
         kind: o.identifier
