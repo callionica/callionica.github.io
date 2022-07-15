@@ -887,4 +887,4 @@ argsElement.onchange = ()=>{
 paramsElement.onchange = ()=>{
     update();
 };
-document.append(argsElement, paramsElement, resultElement, playgroundLinkElement);
+document.body.append(argsElement, paramsElement, resultElement, playgroundLinkElement);
