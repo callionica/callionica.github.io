@@ -34,8 +34,8 @@
     <h2>Notes</h2>
     <p>This is a simple demo with limited power in parsing and typechecking.</p>
     <p>It's designed to detect whether spreads in a function call are valid in basic scenarios involving primitive types.</p>
-    <p>Stick to `number` and `string`, and optionals, tuples, arrays, spread/rests, and unions of number and string.</p>
+    <p>Stick to `number` and `string`, and optionals, tuples, arrays, spread/rests, and unions of `number` and `string`.</p>
     <p>The type parser does not handle names, so optional `?` goes after the type.</p>
-    <p>Optional does not add `undefined` to the type as far as our spread checking algorithm goes.</p>
+    <p>Optional does not add `undefined` to the type as far as our spread checking algorithm goes, so add `undefined` by hand if you need to.</p>
 </body>
 </html>
