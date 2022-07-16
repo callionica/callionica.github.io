@@ -771,10 +771,15 @@ function typeCheckCall(call) {
         const param = params[index] ?? restParam?.member;
         if (!isArgumentTypeCompatible(arg.type, param)) {
             const paramDescription = index < params.length ? `parameter ${index}` : `rest parameter`;
-            throw `Incompatible types in ${paramDescription}: ${arg.type.kind} is not ${param.kind}`;
+            const argType = toTypeScriptType(arg.type);
+            const paramType = toTypeScriptType(param);
+            throw `Incompatible types in ${paramDescription}: ${argType} is not ${paramType}`;
         }
     }
     function spread(arg) {
+        if (arg.kind === "string") {
+            throw `${arg.kind} is spreadable, but should it be spreadable in a function call without an explicit cast?`;
+        }
         if (![
             "tuple",
             "array",
