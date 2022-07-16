@@ -854,17 +854,11 @@ function typeCheckCall(call) {
         throw "too few arguments";
     }
 }
-const argsElement = document.createElement("input");
-argsElement.classList.add("arguments");
-const paramsElement = document.createElement("input");
-paramsElement.classList.add("parameters");
-const resultElement = document.createElement("div");
-resultElement.classList.add("result");
-const errorsElement = document.createElement("div");
-errorsElement.classList.add("errors");
-const playgroundLinkElement = document.createElement("a");
-playgroundLinkElement.classList.add("playground");
-playgroundLinkElement.innerText = "View in Playground";
+const argsElement = document.querySelector(".arguments");
+const paramsElement = document.querySelector(".parameters");
+const resultElement = document.querySelector(".result");
+const errorsElement = document.querySelector(".errors");
+const playgroundLinkElement = document.querySelector(".playground");
 function update() {
     resultElement.innerText = "";
     playgroundLinkElement.href = "#";
@@ -887,4 +881,3 @@ argsElement.onchange = ()=>{
 paramsElement.onchange = ()=>{
     update();
 };
-document.body.append(argsElement, paramsElement, resultElement, playgroundLinkElement, errorsElement);
