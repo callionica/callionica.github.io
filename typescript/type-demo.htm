@@ -24,22 +24,31 @@
 </head>
 <body>
     <h1>Checking Function Calls with Spread (...)</h1>
-    <p>Argument types:</p>
-    <p><input class="arguments" type="text" size="80" value="[number, string, ...string[]]"></input></p>
     <p>Parameter types:</p>
     <p><input class="parameters" type="text" size="80" value="(number?, ...string[])"></input></p>
+
+    <p>Argument types:</p>
+    <p><input class="arguments" type="text" size="80" value="[number, string, ...string[]]"></input></p>
+    
     <p>Generated TypeScript code:</p>
     <div class="result">
 declare function fn(p0?: number, ...rest: string[]) : void;
+
 declare const a0 : number;
 declare const a1 : string;
 declare const a2 : string[];
+
 fn(a0, a1, ...a2);
     </div>
     <p><a class="playground" href="https://www.typescriptlang.org/play?ts=4.7.4#code/CYUwxgNghgTiAEAzArgOzAFwJYHtVNQAoAHABgH4AueVZAWwCMQYAaeAOk7gGcNreYWVAHMA2gF0AlPGoA3HFmABuAFChIsBGDy94UUjJr0mMVeuhx421LqgBGQwKHCz4C1p0Y9AJkcZBIhKqiET6bPZsnOxQ3pJKQA">View in Playground</a></p>
-    <h2>The judgement of Callionica:</h2>
+    <h2>Callionica's spread checker says:</h2>
     <div class="errors">No errors</div>
     <h2>Notes</h2>
+    <p>Provide types for function parameters and arguments and the spread checker will tell you if the call would succeed.</p>
+    <p>This page also generates TypeScript code that will help you understand how the spread checker has understood your types,
+        and a link to the playground so you can see how TypeScript handles the same situation.
+    </p>
+    <p></p>
     <p>This is a simple demo with limited power in parsing and typechecking.</p>
     <p>It's designed to detect whether spreads in a function call are valid in basic scenarios involving primitive types.</p>
     <p>Stick to `number` and `string`, and optionals, tuples, arrays, spread/rests, and unions of `number` and `string`.</p>

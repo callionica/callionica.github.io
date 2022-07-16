@@ -733,11 +733,12 @@ function toTypeScriptCall(call) {
         code.push(`${separator1}...rest: ${type1}`);
     }
     code.push(`) : void;`);
-    code.push("\n");
+    code.push("\n\n");
     for (const [index1, argument] of call.arguments.entries()){
         const type2 = toTypeScriptType(argument.type);
         code.push(`declare const a${index1} : ${type2};\n`);
     }
+    code.push("\n");
     code.push(`fn(`);
     for (const [index2, argument1] of call.arguments.entries()){
         const separator2 = index2 == 0 ? "" : ", ";
