@@ -24,13 +24,13 @@
 </head>
 <body>
     <h1>Checking Function Calls with Spread (...)</h1>
-    <p>Parameter types:</p>
+    <h3>Parameter types:</h3>
     <p><input class="parameters" type="text" size="80" value="(number?, ...string[])"></input></p>
 
-    <p>Argument types:</p>
+    <h3>Argument types:</h3>
     <p><input class="arguments" type="text" size="80" value="[number, string, ...string[]]"></input></p>
     
-    <p>Generated TypeScript code:</p>
+    <h3>Generated TypeScript code:</h3>
     <div class="result">
 declare function fn(p0?: number, ...rest: string[]) : void;
 
@@ -54,5 +54,6 @@ fn(a0, a1, ...a2);
     <p>Stick to `number` and `string`, and optionals, tuples, arrays, spread/rests, and unions of `number` and `string`.</p>
     <p>The type parser does not handle names, so optional `?` goes after the type.</p>
     <p>Optional does not add `undefined` to the type as far as our spread checking algorithm goes, so add `undefined` by hand if you need to.</p>
+    <p>The type parser does not handle names, objects, generics, inference. It's a demo!</p>
 </body>
 </html>
