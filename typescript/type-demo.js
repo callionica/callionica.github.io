@@ -780,7 +780,7 @@ function typeCheckCall(call) {
             "array",
             "iterable"
         ].includes(arg.kind)) {
-            throw "ERROR IN ALGORITHM";
+            throw `Not spreadable: ${arg.kind} is not tuple, array, or iterable`;
         }
         if (arg.kind === "tuple") {
             return arg.members.map((member)=>({
