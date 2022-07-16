@@ -27,7 +27,13 @@
     <p>Parameter types:</p>
     <p><input class="parameters" type="text" size="80" value="(number?, ...string[])"></input></p>
     <p>Generated TypeScript code:</p>
-    <div class="result"></div>
+    <div class="result">
+declare function fn(p0?: number, ...rest: string[]) : void;
+declare const a0 : number;
+declare const a1 : string;
+declare const a2 : string[];
+fn(a0, a1, ...a2);
+    </div>
     <p><a class="playground" href="https://www.typescriptlang.org/play?ts=4.7.4#code/CYUwxgNghgTiAEAzArgOzAFwJYHtVNQAoAHABgH4AueVZAWwCMQYAaeAOk7gGcNreYWVAHMA2gF0AlPGoA3HFmABuAFChIsBGDy94UUjJr0mMVeuhx421LqgBGQwKHCz4C1p0Y9AJkcZBIhKqiET6bPZsnOxQ3pJKQA">View in Playground</a></p>
     <h2>The judgement of Callionica:</h2>
     <div class="errors">No errors</div>
