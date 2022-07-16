@@ -23,9 +23,9 @@
 <body>
     <h1>Demo of Checking Function Calls with Spread (...)</h1>
     <p>Argument types:</p>
-    <p><input class="arguments" type="text" size="80">[number, string, ...string[]]</input></p>
+    <p><input class="arguments" type="text" size="80" value="[number, string, ...string[]]"></input></p>
     <p>Parameter types:</p>
-    <p><input class="parameters" type="text" size="80">(number?, ...string[])</input></p>
+    <p><input class="parameters" type="text" size="80" value="(number?, ...string[])"></input></p>
     <p>Generated TypeScript code:</p>
     <div class="result"></div>
     <p><a class="playground" href="https://www.typescriptlang.org/play?ts=4.7.4#code/CYUwxgNghgTiAEAzArgOzAFwJYHtVNQAoAHABgH4AueVZAWwCMQYAaeAOk7gGcNreYWVAHMA2gF0AlPGoA3HFmABuAFChIsBGDy94UUjJr0mMVeuhx421LqgBGQwKHCz4C1p0Y9AJkcZBIhKqiET6bPZsnOxQ3pJKQA">View in Playground</a></p>
@@ -35,7 +35,7 @@
     <p>This is a simple demo with limited power in parsing and typechecking.</p>
     <p>It's designed to detect whether spreads in a function call are valid in basic scenarios involving primitive types.</p>
     <p>Stick to `number` and `string`, and optionals, tuples, arrays, spread/rests, and unions of number and string.</p>
-    <p>The type parser does not handle names, so optional (?) goes after the type.</p>
+    <p>The type parser does not handle names, so optional `?` goes after the type.</p>
     <p>Optional does not add `undefined` to the type as far as our spread checking algorithm goes.</p>
 </body>
 </html>
