@@ -1,5 +1,6 @@
-import { loadCurrentBridges, loadConnection, diagnoseConnection } from "./hue-callionica-connect.js";
-import { delay, sortBy, getAllPlus } from "./hue-callionica.js";
+// deno-lint-ignore-file no-unused-vars require-await
+import { loadCurrentBridges, loadConnection, loadConnections, diagnoseConnection } from "./hue-callionica-connect.js";
+import { delay, sortBy, getAllPlus, getConnectedComponents } from "./hue-callionica.js";
 
 const keySunrise = "hue-four-part-day-sunrise";
 const keySunset = "hue-four-part-day-sunset";
@@ -369,7 +370,7 @@ export function formatHumanDate(date) {
             return dateFormatWithoutYear.format(date);
         }
         return dateFormatWithYear.format(date);
-    } catch (e) {
+    } catch (_e) {
         return "Unknown";
     }
 }
@@ -388,7 +389,7 @@ export function formatHumanDateTime(date) {
             return timeFormatMDT.format(date);
         }
         return timeFormatYMDT.format(date);
-    } catch (e) {
+    } catch (_e) {
         return "Unknown";
     }
 }
@@ -411,7 +412,7 @@ export function localizeDateTime(dt) {
 }
 
 function pick(names, items) {
-    const chosen = names.map(p => []);
+    const chosen = names.map(_p => []);
     const remainder = [];
     for (const item of items) {
         const index = names.indexOf(item.name.toLowerCase());
@@ -461,22 +462,51 @@ export function paramsSort(params, items) {
     return items;
 }
 
+/**
+ * 
+ * @param { number } c 
+ * @returns { number }
+ */
 function FFromC(c) {
     return (c * 9/5) + 32;
 }
 
+/**
+ * 
+ * @param { number } f 
+ * @returns { number }
+ */
 function CFromF(f) {
     return (f - 32) * 5/9;
 }
 
+/**
+ * 
+ * @param { number } c 
+ * @returns { number }
+ */
 function TFromC(c) {
     return Math.floor(100 * c);
 }
 
+/**
+ * 
+ * @param { number } f 
+ * @returns { number }
+ */
 function TFromF(f) {
     return TFromC(CFromF(f));
 }
 
+/**
+ * 
+ * @param {"C" | "F" } unit 
+ * @param {number} selectedT 
+ * @param {number} start 
+ * @param {number} end 
+ * @param {number} interval 
+ * @returns 
+ */
 export function optionsTemp(unit, selectedT, start, end, interval) {
     const fn = unit === "C" ? TFromC : TFromF;
     
@@ -612,18 +642,26 @@ export function snapToGrid(grid) {
 
 export class CallionicaHuePage {
     constructor() {
+        /** @type URLSearchParams */
         this.params = new URLSearchParams(document.location.search);
+        /** @type {"C" | "F"} */
         this.scale_ = undefined;
+        /** @type boolean */
         this.pauseData = false;
+        /** @type boolean */
         this.pauseUpdates = false;
+        /** @type boolean */
         this.dataRequestMade = false;
         this.dataTimeoutToken = undefined;
+        /** @type number */
         this.delay = 2 * 1000;
+        /** @type number */
         this.cacheMS = this.delay/2;
+        /** @type AbortController */
         this.delayController = new AbortController();
         this.hubs = [];
 
-        window.addEventListener('pageshow', (event) => {
+        globalThis.addEventListener('pageshow', (event) => {
             this.update();
         });
     }
@@ -639,7 +677,9 @@ export class CallionicaHuePage {
         return paramsSort(this.params, items);
     }
 
-    // Returns the current temperature scale ("C" or "F")
+    /**
+     * Returns the current temperature scale ("C" or "F")
+     */
     get scale() {
         if (this.scale_ !== undefined) {
             return this.scale_;
@@ -835,7 +875,14 @@ export class CallionicaHuePage {
             const bridge = data.id;
 
             // Add bridge ID to each item
-            return Object.values(data[prop]).map(item => ({...item, bridge}));
+            return Object.values(data[prop]).map(item => {
+                const components = getConnectedComponents(item, data);
+                const powerSensor = components.map(component => {
+                    const sensor = component.sensors.find(sensor => sensor.modelid == "PM.Zone.PowerLevel");
+                    return sensor;
+                }).find(x => x);
+                return {...item, components, powerSensor, bridge};
+            });
         });
 
         // Basic sort by name
