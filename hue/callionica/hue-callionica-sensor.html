@@ -233,11 +233,28 @@
             max-width: var(--max-width);
         }
 
+        .condition[data-kind='daylight']:before {
+            content: '☀️ ';
+        }
+
+        .condition[data-kind='time']:before {
+            content: '🕰 ';
+        }
+
+        .condition[data-kind='group']:before {
+            content: '🛋 ';
+        }
+
+        .condition[data-kind='component']:before {
+            content: '🎚 ';
+        }
+
+
     </style>
     <script type="module">
         import { loadConnection, loadConnections } from "./hue-callionica-connect.js";
         import { getAllPlus, getSensorTriggeredRules, createRule, deleteRule } from "./hue-callionica.js";
-        import { optionsTemp, optionsGroup, optionsScene, snapToGrid, ConditionControl } from "./hue-callionica-ui.js";
+        import { optionsTemp, optionsComponent, optionsGroup, optionsScene, snapToGrid, TriggerControl, ConditionControl, ActionControl } from "./hue-callionica-ui.js";
 
         const app = "Callionica";
         const params = new URLSearchParams(document.location.search);
@@ -300,35 +317,37 @@
         function getRule(sensor, scope) {
             scope = scope || document;
 
-            const buttonSelect = scope.querySelector(".button-id");
-            const buttonActionSelect = scope.querySelector(".button-action");
+            // const buttonSelect = scope.querySelector(".button-id");
+            // const buttonActionSelect = scope.querySelector(".button-action");
 
             const groupsSelect = scope.querySelector(".groups");
             const scenesSelect = scope.querySelector(".scenes");
 
-            const button = parseInt(buttonSelect.value, 10); 
-            const buttonAction = parseInt(buttonActionSelect.value);
+            // const button = parseInt(buttonSelect.value, 10); 
+            // const buttonAction = parseInt(buttonActionSelect.value);
 
             const group = groupsSelect.value;
             const scene = scenesSelect.value;
 
-            const actionIcon = {
-                "0": "↓",
-                "1": "↓↓",
-                "2": "↑",
-                "3": ".↑",
-                "4": "?",
-            };
+            // const actionIcon = {
+            //     "0": "↓",
+            //     "1": "↓↓",
+            //     "2": "↑",
+            //     "3": ".↑",
+            //     "4": "?",
+            // };
 
-            const name = `${button/1000}${actionIcon[buttonAction]} ${groupsSelect.selectedOptions[0]?.text} ${scenesSelect.selectedOptions[0]?.text}`.substring(0, 30).trim();
+            const triggerControl = scope.querySelector(".trigger-control").callionica.control;
 
-            const conditions = buttonTrigger(sensor, button + buttonAction);
+            const name = `${triggerControl.summary} ${groupsSelect.selectedOptions[0]?.text} ${scenesSelect.selectedOptions[0]?.text}`.substring(0, 30).trim();
+
+            const triggerConditions = triggerControl.conditions;
 
             const extraConditions = [...scope.querySelectorAll(".condition")].flatMap(s => {
                 return s.callionica.control.conditions;
             });
 
-            conditions.push(...extraConditions);
+            const conditions = [...triggerConditions, ...extraConditions];
 
             const action = {
                 address: `/groups/${group}/action`,
@@ -392,19 +411,29 @@
 
             updateRules();
 
+            const triggerControl = new TriggerControl(sensor);
+            console.log(triggerControl.element);
+            console.log(triggerControl.conditions);
+
             const nam = document.querySelector(".name");
             nam.innerHTML = "";
             const a = document.createElement("a");
             a.href = `hue-callionica-sensor-rename.html?bridge=${data.id}&sensor=${sensor.id}`;
             a.innerText = sensor.name;
             nam.append(a);
-            // const t = document.querySelector(".T");
-            // t.innerText = sensor[scale === "C" ? "celsius" : "fahrenheit"] ?? "";
-            // t.dataset.scale = scale;
+
+            if (sensor.state.temperature !== undefined) {
+                const t = document.querySelector(".T");
+                t.innerText = sensor[scale === "C" ? "celsius" : "fahrenheit"] ?? "";
+                t.dataset.scale = scale;
+            }
 
             document.querySelector(".description").innerText = sensorKind(sensor);
             document.querySelector(".bridge-name").innerText = bridgeName;
             document.querySelector(".id").innerText = sensor.id;
+
+            const triggerContainer = document.querySelector(".trigger");
+            triggerContainer.append(triggerControl.element);
 
             const groupsSelect = document.querySelector(".groups");
             const scenesSelect = document.querySelector(".scenes");
@@ -424,17 +453,10 @@
             };
 
             groupsSelect.append(...optionsGroup(data));
+            groupsSelect.append(...optionsComponent(data));
             groupsSelect.onchange();
 
             selectOption(groupsSelect, sensor.name);
-
-            // const addConditionSelect = document.querySelector(".condition-providers");
-            // for (const conditionProvider of conditionProviders) {
-            //     const providerElement = document.createElement("option");
-            //     providerElement.callionica = { conditionProvider: conditionProvider };
-            //     providerElement.innerText = conditionProvider.name;
-            //     addConditionSelect.append(providerElement);
-            // }
 
             const addConditionButton = document.querySelector(".condition-provider-add");
             addConditionButton.onclick = (evt) => {
@@ -445,23 +467,49 @@
                 const e = document.createElement("div");
                 const control = new ConditionControl(e, data);
 
+                const remove = document.createElement("button");
+                remove.classList.add(".condition-provider-remove");
+                remove.innerText = "-";
+                remove.onclick = (_evt) => {
+                    e.remove();
+                };
+
+                e.append(remove);
+
                 const parent = document.querySelector("#additional-conditions");
                 parent.append(e);
 
                 const itemSelect = e.querySelector(".condition-item");
                 selectOption(itemSelect, sensor.name);
                 control.update(data);
-
-                // const conditionProvider = addConditionSelect.selectedOptions[0].callionica.conditionProvider;
-                // console.log(conditionProvider);
-                // const e = conditionProvider.createElement();
-                // const parent = document.querySelector("#additional-conditions");
-                // parent.append(e);
             };
 
-            // document.querySelector(".temperatures").append(...optionsTemp(scale, sensor.state.temperature));
+            const addActionButton = document.querySelector(".action-provider-add");
+            addActionButton.onclick = (evt) => {
+                evt.preventDefault();
+                return;
 
-            // document.querySelector(".temperatures + *[data-scale]").dataset.scale = scale;
+                console.log("add action");
+
+                const control = new ActionControl(data);
+                const e = control.element;
+
+                const remove = document.createElement("button");
+                remove.classList.add(".action-provider-remove");
+                remove.innerText = "-";
+                remove.onclick = (_evt) => {
+                    e.remove();
+                };
+
+                e.append(remove);
+
+                const parent = document.querySelector("#actions");
+                parent.append(e);
+
+                const itemSelect = e.querySelector(".action-item");
+                selectOption(itemSelect, sensor.name);
+                control.update(data);
+            };
 
             snapToGrid();
 
@@ -502,9 +550,10 @@
         <form action="#">
             <div>
                 <h3>New Rule</h3>
-                <p class="label">Conditions:</p>
+                <p class="label">Trigger:</p>
+                <div class="trigger"></div>
         
-                <p class="snap-grid">
+                <!--<p class="snap-grid">
                     <span class="snap-grid-item">
                         Button:
                         <select class="button-id">
@@ -520,11 +569,13 @@
                         <option value="2" selected>Up (short)</option>
                         <option value="3">Up (long)</option>
                     </select>
-                </p>
-                <p class="label">Additional Conditions:</p>
+                </p>-->
+                <p class="label">Conditions:</p>
                 <div id="additional-conditions"></div>
-                <p><!--<select class="condition-providers"></select> --><button class="condition-provider-add">+</button></p>
+                <p><button class="condition-provider-add">+</button></p>
                 <p class="label">Actions:</p>
+                <div id="actions"></div>
+                <p><button class="action-provider-add">+</button></p>
                 <p class="snap-grid">
                     <select class="groups snap-grid-item">
                     </select>
