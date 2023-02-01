@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-unused-vars
 // ALL RIGHTS RESERVED
 // A simple RSS podcast feed parser that converts RSS to JSON
 // This example demonstrates early exit
@@ -55,7 +56,6 @@ class LandmarksText {
         if (trimmed.length) {
             this.text += this.trailingWhitespace + trimmed;
             this.trailingWhitespace = (last(normalizedText) === " ") ? " " : "";
-            ;
         }
     }
     // Appends a line break \n
@@ -116,7 +116,7 @@ class Gleaner extends BaseHandler {
     }
     StartTagPrefix(document, tag) {
         const qn = tag.getQualifiedName(document);
-        let element = Object.assign({}, qn);
+        const element = Object.assign({}, qn);
         this.elements.push(element);
     }
     StartTagAttribute(document, attribute) {
@@ -164,20 +164,20 @@ class Feed extends BaseHandler {
     }
     // Returns the current item if there is one
     get item() {
-        let c = this.current("item") ?? this.current("entry") ;
+        const c = this.current("item") ?? this.current("entry") ;
         return c && c.item;
     }
     // Returns the current channel if there is one
     get channel() {
-        let c = this.current("channel") ?? this.current("feed");
+        const c = this.current("channel") ?? this.current("feed");
         return c && c.channel;
     }
     cleanupTag() {
-        let c = this.current();
-        let item = c && c.item;
+        const c = this.current();
+        const item = c && c.item;
         if (item) {
             // Send the channel before sending the first item
-            let channel = this.channel;
+            const channel = this.channel;
             if (channel && !channel.sent) {
                 channel.sent = true;
                 this.feedHandler.Channel(channel.data);
@@ -186,7 +186,7 @@ class Feed extends BaseHandler {
         }
         else {
             // Send the channel if there are no items
-            let channel = c && c.channel;
+            const channel = c && c.channel;
             if (channel && !channel.sent) {
                 channel.sent = true;
                 this.feedHandler.Channel(channel);
@@ -215,20 +215,26 @@ class Feed extends BaseHandler {
         this.Text(document, range);
     }
     Text(document, range) {
-        let item = this.item;
+        const item = this.item;
         if (item !== undefined) {
-            let props = ["author", "title", "description", "subtitle", "summary", "pubDate", "link", "duration", "guid"];
-            for (let prop of props) {
+            const props = [
+                "author", "title", "description", "subtitle", "summary", "pubDate", "link", "duration", "guid",
+                "updated", "published"
+            ];
+            for (const prop of props) {
                 if (this.current(prop)) {
                     item[prop] = removeMarkup(range.getDecodedText(document));
                 }
             }
         }
         else {
-            let channel = this.channel;
+            const channel = this.channel;
             if (channel !== undefined) {
-                let props = ["author", "title", "description", "subtitle", "summary", "pubDate", "link",];
-                for (let prop of props) {
+                const props = [
+                    "author", "title", "description", "subtitle", "summary", "pubDate", "link",
+                    "updated"
+                ];
+                for (const prop of props) {
                     if (this.current(prop)) {
                         channel.data[prop] = removeMarkup(range.getDecodedText(document));
                     }
@@ -238,7 +244,7 @@ class Feed extends BaseHandler {
     }
     StartTagPrefix(document, tag) {
         const qn = tag.getQualifiedName(document);
-        let element = Object.assign({}, qn);
+        const element = Object.assign({}, qn);
         this.elements.push(element);
         switch (element.localName) {
             case "item":
@@ -254,7 +260,7 @@ class Feed extends BaseHandler {
     StartTagAttribute(document, attribute) {
         const e = this.current();
         const qn = attribute.getQualifiedName(document);
-        let item = this.item;
+        const item = this.item;
         if (item) {
             if (e.localName === "enclosure") {
                 item.enclosure[qn.localName] = attribute.value.getDecodedText(document);
@@ -264,7 +270,7 @@ class Feed extends BaseHandler {
             }
         }
         else {
-            let channel = this.channel;
+            const channel = this.channel;
             if (channel) {
                 if (e.localName === "image" && qn.localName === "href") {
                     channel.data.image = attribute.value.getDecodedText(document);
@@ -296,21 +302,21 @@ function secondsFromDuration(time) {
     const ms = /^(?<m>\d{1,2}):(?<s>\d{1,2})$/ig;
     const s = /^(?<s>\d+)$/ig;
     const formats = [hms, ms, s];
-    for (let format of formats) {
-        let match = format.exec(time); // TODO - as any
+    for (const format of formats) {
+        const match = format.exec(time); // TODO - as any
         if (match) {
-            let o = match.groups;
+            const o = match.groups;
             let result = 0;
             if (o.h) {
-                let h = parseInt(o.h, 10);
+                const h = parseInt(o.h, 10);
                 result += h * 60 * 60;
             }
             if (o.m) {
-                let m = parseInt(o.m, 10);
+                const m = parseInt(o.m, 10);
                 result += m * 60;
             }
             if (o.s) {
-                let s = parseInt(o.s, 10);
+                const s = parseInt(o.s, 10);
                 result += s;
             }
             return result;
@@ -325,22 +331,22 @@ export function feedToJSON(text, maximumItems = -1) {
     // If we get passed json, do some updates
     if (text.slice(0, 16).includes("{")) {
         try {
-            let feed = JSON.parse(text);
+            const feed = JSON.parse(text);
             if (feed.version && feed.version.startsWith("https://jsonfeed.org/version/")) {
-                let simpleChannelTitle = simplifyTitle(feed.title);
+                const simpleChannelTitle = simplifyTitle(feed.title);
                 feed.items = feed.items.map((item) => {
                     if (item.content_text === undefined && item.content_html !== undefined) {
                         // TODO - make this better!
-                        let b = gleanFromMarkup(item.content_html);
+                        const b = gleanFromMarkup(item.content_html);
                         item.content_text = b.text;
                         if ((item.attachments === undefined) || (item.attachments.length === 0)) {
-                            for (let a of b.audio) {
+                            for (const a of b.audio) {
                                 if (a.endsWith(".mp3")) {
                                     if (item.attachments === undefined) {
                                         item.attachments = [];
                                     }
-                                    let url = a;
-                                    let type = "audio/mpeg";
+                                    const url = a;
+                                    const type = "audio/mpeg";
                                     item.attachments.push({ url, type });
                                 }
                             }
@@ -350,10 +356,10 @@ export function feedToJSON(text, maximumItems = -1) {
                         item.date_published = item.date_modified;
                     }
                     if (item.date_published !== undefined && (item.attachments) && (item.attachments.length === 1)) {
-                        let attachment = item.attachments[0];
+                        const attachment = item.attachments[0];
                         if (attachment.title === undefined) {
-                            let yyyy_mm_dd = item.date_published.substring(0, "yyyy-mm-dd".length);
-                            let title = `${simpleChannelTitle} - ${yyyy_mm_dd} ${item.title}`;
+                            const yyyy_mm_dd = item.date_published.substring(0, "yyyy-mm-dd".length);
+                            const title = `${simpleChannelTitle} - ${yyyy_mm_dd} ${item.title}`;
                             attachment.title = title;
                         }
                     }
@@ -363,6 +369,7 @@ export function feedToJSON(text, maximumItems = -1) {
             }
         }
         catch (e) {
+            // nothing
         }
         return text;
     }
@@ -392,10 +399,10 @@ export function feedToJSON(text, maximumItems = -1) {
             throw e;
         }
     }
-    let { channel, items } = feedHandler;
-    let simpleChannelTitle = simplifyTitle(channel.title);
+    const { channel, items } = feedHandler;
+    const simpleChannelTitle = simplifyTitle(channel.title);
     // Create jsonfeed from the extracted data
-    let jsonfeed = {
+    const jsonfeed = {
         version: "https://jsonfeed.org/version/1",
         author: { name: channel.author },
         title: channel.title,
@@ -410,10 +417,11 @@ export function feedToJSON(text, maximumItems = -1) {
                 yyyy_mm_dd = date_published.substring(0, "yyyy-mm-dd".length);
             }
             catch (e) {
+                // nothing
             }
             let attachments = undefined;
             if (item.enclosure && item.enclosure.url) {
-                let title = `${simpleChannelTitle} - ${yyyy_mm_dd} ${item.title}`;
+                const title = `${simpleChannelTitle} - ${yyyy_mm_dd} ${item.title}`;
                 let duration_in_seconds = undefined;
                 if (item.duration !== undefined) {
                     duration_in_seconds = secondsFromDuration(item.duration);
@@ -428,7 +436,7 @@ export function feedToJSON(text, maximumItems = -1) {
                     }
                 ];
             }
-            let jsonitem = {
+            const jsonitem = {
                 id: item.guid,
                 author: { name: item.author },
                 title: item.title,
