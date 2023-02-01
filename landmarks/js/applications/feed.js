@@ -164,12 +164,12 @@ class Feed extends BaseHandler {
     }
     // Returns the current item if there is one
     get item() {
-        let c = this.current("item");
+        let c = this.current("item") ?? this.current("entry") ;
         return c && c.item;
     }
     // Returns the current channel if there is one
     get channel() {
-        let c = this.current("channel");
+        let c = this.current("channel") ?? this.current("feed");
         return c && c.channel;
     }
     cleanupTag() {
@@ -242,9 +242,11 @@ class Feed extends BaseHandler {
         this.elements.push(element);
         switch (element.localName) {
             case "item":
+            case "entry":
                 element.item = { enclosure: {} };
                 break;
             case "channel":
+            case "feed":
                 element.channel = { sent: false, data: {} };
                 break;
         }
