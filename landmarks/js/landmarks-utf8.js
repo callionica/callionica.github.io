@@ -1,5 +1,6 @@
+const u8Encoder = new TextEncoder();
 export function u8(text) {
-    return new TextEncoder().encode(text);
+    return u8Encoder.encode(text);
 }
 export class UTF8String {
     constructor(first, length) {
