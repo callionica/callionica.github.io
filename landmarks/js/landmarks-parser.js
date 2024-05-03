@@ -248,7 +248,7 @@ export function LandmarksParser(policy) {
                         start_position = search_position = npos;
                         break;
                     }
-                    const original_element_name = document.substr(start_name, end_name - start_name);
+                    const original_element_name = document.substring(start_name, end_name);
                     const tagID = policy.getTagID(original_element_name);
                     tag.tagID = tagID;
                     if (elements.length > 0) {
@@ -299,7 +299,7 @@ export function LandmarksParser(policy) {
                                     const start_name = (start_name_o != npos) ? start_name_o : search_position;
                                     const end_name = findFirstOf(document, element_name_end, start_name);
                                     const pos = (start_name > length) ? length : start_name;
-                                    const currentID = policy.getTagID(document.substr(pos, end_name - pos));
+                                    const currentID = policy.getTagID(document.substring(pos, end_name));
                                     if (policy.isSameElement(tagID, currentID)) {
                                         /*
                                          We're positioned at the end of the end tag
@@ -332,7 +332,7 @@ export function LandmarksParser(policy) {
                 }
                 const end_name = findFirstOf(document, element_name_end, start_name);
                 const pos = (start_name > length) ? length : start_name;
-                const el_name = document.substr(pos, end_name - pos);
+                const el_name = document.substring(pos, end_name);
                 let tagID = (end_name === npos) ? UnknownTagID : policy.getTagID(el_name);
                 let end_state = "unmatched" /* unmatched */;
                 if (elements.length > 0) {
