@@ -77,7 +77,7 @@ class EntityEncoder {
         return this;
     }
     appendString(text) {
-        const data = new TextEncoder().encode(text);
+        const data = u8(text);
         return this.appendBytes(data);
     }
     append(text) {
