@@ -1,4 +1,5 @@
 const u8Encoder = new TextEncoder();
+const u8Decoder = new TextDecoder();
 export function u8(text) {
     return u8Encoder.encode(text);
 }
@@ -126,7 +127,7 @@ export class UTF8String {
     }
     // Returns a JS string of the data
     toString() {
-        return new TextDecoder().decode(this.value);
+        return u8Decoder.decode(this.value);
     }
 }
 //# sourceMappingURL=landmarks-utf8.js.map
