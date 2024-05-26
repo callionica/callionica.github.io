@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Behaviours AKA Web Attributes</title>
-    <style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Behaviours AKA Web Attributes</title>
+	<style>
 		html {
 			box-sizing: border-box;
 		}
 
-		*, *:before, *:after {
+		*,
+		*:before,
+		*:after {
 			box-sizing: inherit;
 		}
 
@@ -32,7 +35,7 @@
 			--ink-3: silver;
 
 			--blue: rgb(108, 115, 222);
-			--brown: rgb(118, 108,  29);
+			--brown: rgb(118, 108, 29);
 
 			--font-size: 3vw;
 			--line-height: 1.2;
@@ -50,7 +53,7 @@
 			margin-right: var(--margin);
 
 			font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-			font-size: 3vw;
+			font-size: min(3vw, 1.7em);
 			line-height: 1.2;
 			background-color: var(--paper);
 			color: var(--ink);
@@ -64,6 +67,10 @@
 		#output {
 			font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 			white-space: pre;
+		}
+
+		code {
+			font-size: 0.9rem;
 		}
 
 		img {
@@ -81,9 +88,14 @@
 
 		h1 {
 			color: inherit;
-			font-size: 4vw;
+			font-size: min(4vw, 2rem);
 			font-weight: bold;
+			margin-top: 2vw;
 			margin-bottom: 2vw;
+		}
+
+		h2 { 
+			margin-bottom: 1vw;
 		}
 
 		p {
@@ -102,8 +114,9 @@
 			display: inline-block;
 			width: var(--content-width);
 			margin-left: var(--margin);
-			margin-top: calc(-1 * var(--adjustment, 0)); /* Visual adjust to align with image */
-			
+			margin-top: calc(-1 * var(--adjustment, 0));
+			/* Visual adjust to align with image */
+
 		}
 
 		.no-image .content {
@@ -123,7 +136,8 @@
 
 		.details {
 			color: var(--ink-3);
-			padding-top: calc(2 * var(--adjustment, 0)); /* Visual adjust to counter .content's adjustment */
+			padding-top: calc(2 * var(--adjustment, 0));
+			/* Visual adjust to counter .content's adjustment */
 		}
 
 		.duration:not(:empty)::before {
@@ -180,20 +194,36 @@
 			margin: 0;
 			background-color: var(--paper);
 		}
+
 		.spacer {
 			height: 8vw;
 		}
 	</style>
 </head>
-<body>
-    <h1>Behaviours AKA Web Attributes</h1>
-    <p><a href="behaviour.js">GET THE CODE HERE - behaviour.js</a></p>
-    <p>Safari doesn't support web components using the `is` attribute, so I've implemented a quick library that allows you to hook component code to an element using any custom attribute of your choosing.</p>
-    <p>This is a paragraph</p>
-    <p>This is a paragraph</p>
-    <p>This is a paragraph</p>
-    <p>This is a paragraph</p>
 
-    <h2>H2 Gies here</h2>
+<body>
+	<h1>Behaviour.js - The Web Attribute Component Library</h1>
+	<p><a href="behaviour.js">GET THE CODE HERE - behaviour.js</a></p>
+	<p>Safari doesn't support web components using the <code>is</code> attribute, so I've implemented a quick library that allows
+		you to hook component code to an element using any custom attribute of your choosing.</p>
+	<p>Grab the code above to experiment with it if you're interested.</p>
+	<p>This has been lightly influenced by Lea Verou's <a
+			href="https://github.com/WICG/webcomponents/issues/1029">attributes for all</a> proposal. (If I had not read
+		that proposal: I would have tied attributes & behaviours to <code>string</code> element names instead of to
+		<code>HTMLElement</code>-derived classes.)</p>
+
+	<h2>Lightning Overview</h2>
+	<p>Your code lives in a class derived from <code>Behaviour</code></p>
+	<p><code>Behaviour</code> has an <code>element</code> property that holds the element the behaviour is attached to.</p>
+	<p><code>Behaviour</code> has <code>connected</code> and <code>disconnected</code> methods that get called when you might expect.</p>
+	<p>You register your class against an element class and a list of attribute names using
+		<code>registerBehaviour(MyBehaviour, HTMLDivElement, ["my-attribute", "another-attribute"])</code></p>
+	<p>You enable behaviour support in a document by calling <code>enableBehaviours(document)</code></p>
+	<p>You get a reference to a behaviour from an element using
+		<code>getBehaviour(element, MyBehaviour)</code></p>
+	<p>That's it really.</p>
+	<p></p>
+	<p>The code was written at speed and hasn't been tested, but at first glance appears to work. I think the minimal API is interesting.</p>
 </body>
+
 </html>

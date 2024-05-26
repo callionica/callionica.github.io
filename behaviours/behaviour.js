@@ -1,3 +1,5 @@
+// (c) Callionica 2024
+
 // A behaviour library AKA "web components for attributes"
 //
 // A behaviour is a class derived from Behaviour.
