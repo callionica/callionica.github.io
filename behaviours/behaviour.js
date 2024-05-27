@@ -117,6 +117,20 @@ function* chain(current) {
 }
 
 /**
+ * Tests whether the base object is in the prototype chain of the derived object
+ * @param { object } derived 
+ * @param { object } base 
+ */
+function isBase(derived, base) {
+    for (const link of chain(derived)) {
+        if (link === base) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * A list of all elements
  * @param { Iterable<Element> } elements 
  */
@@ -127,7 +141,12 @@ function* allElements(elements) {
     }
 }
 
-/** @type Map<typeof HTMLElement, Record<AttributeName, typeof Behaviour> > */
+/**
+ * This contains the behaviours directly applied to a particular element type.
+ * To get the effective behaviours for a particular element type, we need to
+ * traverse the class hierarchy (prototype chain) which is handled by `getBehaviourRecord` 
+ * @type Map<typeof HTMLElement, Record<AttributeName, typeof Behaviour> >
+ * */
 const elementTypeToBehaviourRecord = new Map();
 
 /**
@@ -143,6 +162,8 @@ function getOrCreateBehaviourRecord(elementType) {
 }
 
 /**
+ * Returns the effective record of behaviours/attributes that have been
+ * applied to the specified element type and any base classes.
  * @param { typeof HTMLElement } elementType 
  * @returns { Record<AttributeName, typeof Behaviour> }
  */
@@ -157,6 +178,10 @@ export function getBehaviourRecord(elementType) {
 }
 
 /**
+ * Registers a behaviour and a set of attributes as being usable with a particular element type (and its derived classes).
+ * Returns a list of warnings if there are existing behaviours using the same attribute names anywhere in the element class hierarchy.
+ * The warnings may be completely benign (if you want to provide a different behaviour for an attribute in a derived class, for example)
+ * or they may indicate that you have a conflict with two behaviours both trying to use the same attribute names.
  * @param { typeof Behaviour } behaviourType 
  * @param { typeof HTMLElement } elementType 
  * @param { string[] } attributes 
@@ -172,10 +197,10 @@ export function registerBehaviour(behaviourType, elementType, attributes) {
         const existing = behaviours[attribute];
         if (existing !== undefined) {
             warnings.push({ attribute, behaviourType, existing });
-        } else {
-            const localBehaviours = getOrCreateBehaviourRecord(elementType);
-            localBehaviours[attribute] = behaviourType;
         }
+
+        const localBehaviours = getOrCreateBehaviourRecord(elementType);
+        localBehaviours[attribute] = behaviourType;
     }
     return { warnings };
 }
@@ -207,9 +232,25 @@ function connect(element, behaviourType) {
  * @returns { Behaviour | undefined }
  */
 export function getBehaviour(element, behaviourType) {
+    /** @type Map<typeof Behaviour, Behaviour> */
     const instances = element[INSTANCES] ?? undefined;
+    if (instances === undefined) {
+        return undefined;
+    }
     const existing = instances?.get(behaviourType);
-    return existing;
+    if (existing !== undefined) {
+        return existing;
+    }
+
+    // If we are given MyBaseBehaviour and we have stored MyDerivedBehaviour,
+    // we still need to find the behaviour and return it
+    for (const [behaviourType_, behavior_] of instances.entries()) {
+        if (isBase(behaviourType_, behaviourType)) {
+            return behavior_;
+        }
+    }
+
+    return undefined;
 }
 
 class BehaviourRegistry {
