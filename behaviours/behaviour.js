@@ -23,8 +23,11 @@
 //
 // In this version of the library, behaviours are enabled on a per-document basis.
 // Call `enableBehaviours(document)` to enable behaviour handling for that document.
+// It is not necessary to call `enableBehaviours(document)` for the main document since it will be enabled automatically.
+// You can still call it if you want to control when the document behaviours are updated, or you can call `disableBehaviours(document)` if you 
+// prefer behaviours not to be enabled for the main document.
 //
-// You can get a behaviour from an element if you know the type of the behavior:
+// You can get a behaviour from an element if you know the type (or base type) of the behavior:
 //
 // const behaviour = getBehaviour(element, MyBehaviour);
 //
@@ -115,7 +118,17 @@ function addMicrotaskProperty(cls, methodName) {
     });
 }
 
-/** @typedef { string } AttributeName */
+/**
+ * Attribute names allow us to know when a behaviour should apply to an element.
+ * @typedef { string } AttributeName
+ * */
+
+/**
+ * A string that cannot be an attribute name (it ends with an equals sign).
+ * They're used to say that a behaviour will always be available on a relevant element.
+ * There's still a name here so type inheritance & overriding works appropriately, but the name doesn't have to be used as an attribute.
+ * @typedef { `${string}=` } NotAttributeName
+ * */
 
 /**
  * Base class for attribute behaviours
@@ -145,6 +158,26 @@ export class Behaviour {
 
     connected() { }
     disconnected() { }
+}
+
+/**
+ * Behaviour keys that do not require a matching element to have any attributes 
+ * @typedef { NotAttributeName | Symbol } UniversalBehaviourKey
+ * */
+
+/**
+ * A behaviour key is used to associate a behaviour with an element
+ * @typedef { AttributeName | UniversalBehaviourKey } BehaviourKey
+ * */
+
+/** @typedef { Record<BehaviourKey, typeof Behaviour> } BehaviourRecord */
+
+/**
+ * @param { BehaviourKey } key 
+ * @returns { key is AttributeName }
+ */
+function isAttributeName(key) {
+    return !((typeof key === "symbol") || key.endsWith("="));
 }
 
 const INSTANCES = Symbol("behaviour-instances");
@@ -182,6 +215,21 @@ function* allElements(elements) {
     for (const element of elements) {
         yield element;
         yield* element.querySelectorAll("*");
+    }
+}
+
+/**
+ * A list of all entries including Symbol-keyed ones
+ * @param { object } o 
+ * @returns { Iterable<[string | Symbol, any]> }
+ */
+function* allEntries(o) {
+    for (const e of Object.entries(o)) {
+        yield e;
+    }
+
+    for (const s of Object.getOwnPropertySymbols(o)) {
+        yield [s, o[s]];
     }
 }
 
@@ -241,13 +289,15 @@ export function getBehaviour(element, behaviourType) {
     return undefined;
 }
 
+/** @typedef { { key: BehaviourKey, elementType: typeof HTMLElement, behaviourType: typeof Behaviour, existingBehaviourType: typeof Behaviour } } Warning */
+
 class BehaviourRegistry {
 
     /**
      * This contains the behaviours directly applied to a particular element type.
      * To get the effective behaviours for a particular element type, we need to
      * traverse the class hierarchy (prototype chain) which is handled by `getBehaviourRecord` 
-     * @type Map<typeof HTMLElement, Record<AttributeName, typeof Behaviour> >
+     * @type Map<typeof HTMLElement, BehaviourRecord >
      * */
     elementTypeToBehaviourRecord = new Map();
 
@@ -328,7 +378,7 @@ class BehaviourRegistry {
      * Returns the effective record of behaviours/attributes that have been
      * applied to the specified element type and any base classes.
      * @param { typeof HTMLElement } elementType 
-     * @returns { Record<AttributeName, typeof Behaviour> }
+     * @returns { BehaviourRecord }
      */
     getBehaviourRecord(elementType) {
         const elementTypeToBehaviourRecord = this.elementTypeToBehaviourRecord;
@@ -348,23 +398,25 @@ class BehaviourRegistry {
      * or they may indicate that you have a conflict with two behaviours both trying to use the same attribute names.
      * @param { typeof Behaviour } behaviourType 
      * @param { typeof HTMLElement } elementType 
-     * @param { string[] } attributes 
+     * @param { BehaviourKey[] } keys An array of attribute names or non-attribute strings or Symbols
      */
-    register(behaviourType, elementType, attributes) {
-        if (!Array.isArray(attributes)) {
+    register(behaviourType, elementType, keys) {
+        if (!Array.isArray(keys)) {
             throw "attributes should be an array";
         }
 
+        /** @type Warning[] */
         const warnings = [];
         const behaviours = this.getBehaviourRecord(elementType);
-        for (const attribute of attributes) {
-            const existingBehaviourType = behaviours[attribute];
+        for (const key of keys) {
+            /** @type { (typeof Behaviour) | undefined } */
+            const existingBehaviourType = behaviours[key];
             if (existingBehaviourType !== undefined) {
-                warnings.push({ attribute, elementType, behaviourType, existingBehaviourType });
+                warnings.push({ key, elementType, behaviourType, existingBehaviourType });
             }
 
             const localBehaviours = this.getOrCreateBehaviourRecord(elementType);
-            localBehaviours[attribute] = behaviourType;
+            localBehaviours[key] = behaviourType;
         }
 
         // For the first registration, we add the main document to the queue so that users cannot forget to call enable on it
@@ -390,11 +442,10 @@ class BehaviourRegistry {
      */
     connect(elements) {
         for (const element of elements) {
-            const behaviours = getBehaviourRecord(element.constructor);
-            if (behaviours !== undefined) {
-                const entries = Object.entries(behaviours);
-                for (const [attribute, behaviour] of entries) {
-                    if (element.hasAttribute(attribute)) {
+            const behaviourRecord = this.getBehaviourRecord(element.constructor);
+            if (behaviourRecord !== undefined) {
+                for (const [key, behaviour] of allEntries(behaviourRecord)) {
+                    if (!isAttributeName(key) || element.hasAttribute(key)) {
                         connect(element, behaviour);
                     }
                 }
@@ -477,18 +528,41 @@ addMicrotaskProperty(BehaviourRegistry, "update");
 
 const customBehaviours = new BehaviourRegistry();
 
+/**
+ * Starts watching the document and connecting behaviours to relevant elements
+ * @param { Document } document 
+ */
 export function enableBehaviours(document) {
     customBehaviours.enable(document);
 }
 
+/**
+ * Stops watching the document. Does not disconnect already connected behaviours.
+ * @param { Document } document 
+ */
 export function disableBehaviours(document) {
     customBehaviours.disable(document);
 }
 
+/**
+ * Returns the effective record of behaviours/attributes that have been
+ * applied to the specified element type and any base classes.
+ * @param { typeof HTMLElement } elementType 
+ * @returns { BehaviourRecord }
+ */
 export function getBehaviourRecord(elementType) {
     return customBehaviours.getBehaviourRecord(elementType);
 }
 
-export function registerBehaviour(behaviourType, elementType, attributes) {
-    return customBehaviours.register(behaviourType, elementType, attributes);
+/**
+ * Registers a behaviour and a set of attributes as being usable with a particular element type (and its derived classes).
+ * Returns a list of warnings if there are existing behaviours using the same attribute names anywhere in the element class hierarchy.
+ * The warnings may be completely benign (if you want to provide a different behaviour for an attribute in a derived class, for example)
+ * or they may indicate that you have a conflict with two behaviours both trying to use the same attribute names.
+ * @param { typeof Behaviour } behaviourType 
+ * @param { typeof HTMLElement } elementType 
+ * @param { BehaviourKey[] } keys An array of attribute names or non-attribute strings or Symbols
+ */
+export function registerBehaviour(behaviourType, elementType, keys) {
+    return customBehaviours.register(behaviourType, elementType, keys);
 }
