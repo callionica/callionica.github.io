@@ -220,6 +220,11 @@ export function getBehaviour(element, behaviourType) {
     if (instances === undefined) {
         return undefined;
     }
+
+    // Because we first check using exact match on the type,
+    // if the element has both MyBaseBehaviour and MyDerivedBehaviour
+    // and we ask for MyBaseBehaviour, we'll get the base behaviour.
+    // If the element only has MyDerivedBehaviour, we fall through to the next check.
     const existing = instances?.get(behaviourType);
     if (existing !== undefined) {
         return existing;
@@ -256,28 +261,50 @@ class BehaviourRegistry {
      * Documents that need to be re-examined for behaviours
      * @type Document[]
      */
-    updateQueue = [];
+    documentQueue = [];
 
     /**
-     * Add a document to the update queue - the entire document will be examined for elements/attributes that need to be connected to behaviours.
+     * We only ensure the main document is enabled once on the first call to `register`
+     * so that callers can successfully disable this document without us re-enabling it
+     */
+    isMainDocumentHandled = false;
+
+    /**
+     * Add a document to the queue - the entire document will be examined for elements/attributes that need to be connected to behaviours.
      * The processing of the document happens in a microtask.
      * @param { Document } document 
      * */
-    addToUpdateQueue(document) {
-        if (!this.updateQueue.includes(document)) {
-            this.updateQueue.push(document);
+    addToQueue(document) {
+        if (!this.documentQueue.includes(document)) {
+            this.documentQueue.push(document);
             this.needsUpdate = true;
         }
     }
 
     updateDocument(document) {
+        const existing = this.documentToRegistry.get(document);
+
+        if (existing === undefined) {       
+            const controller = listenToElement(document.body, (mutations, observer) => {
+                for (const mutation of mutations) {
+                    this.handleMutation(mutation);
+                }
+            });
+
+            this.documentToRegistry.set(document, { registry: this, controller });
+        }
+
         this.connect(document.body.querySelectorAll("*"));
     }
 
-    /** Processes all the documents in the update queue */
+    /**
+     * Processes all the documents in the queue.
+     * Adds mutation observation if necessary and
+     * examines all existing document content to attach behaviours if necessary.
+    */
     update() {
-        const documents = this.updateQueue;
-        this.updateQueue = [];
+        const documents = this.documentQueue;
+        this.documentQueue = [];
 
         for (const document of documents) {
             this.updateDocument(document);
@@ -331,19 +358,26 @@ class BehaviourRegistry {
         const warnings = [];
         const behaviours = this.getBehaviourRecord(elementType);
         for (const attribute of attributes) {
-            const existing = behaviours[attribute];
-            if (existing !== undefined) {
-                warnings.push({ attribute, behaviourType, existing });
+            const existingBehaviourType = behaviours[attribute];
+            if (existingBehaviourType !== undefined) {
+                warnings.push({ attribute, elementType, behaviourType, existingBehaviourType });
             }
 
             const localBehaviours = this.getOrCreateBehaviourRecord(elementType);
             localBehaviours[attribute] = behaviourType;
         }
 
-        // If stuff gets registered after the document is enabled,
+        // For the first registration, we add the main document to the queue so that users cannot forget to call enable on it
+        // We only do this once so that users can choose to disable the main document
+        if (!this.isMainDocumentHandled) {
+            this.isMainDocumentHandled = true;
+            this.addToQueue(document);
+        }
+
+        // If behaviours get registered after a document is enabled,
         // we need to update existing documents
         for (const document of this.documentToRegistry.keys()) {
-            this.addToUpdateQueue(document);
+            this.addToQueue(document);
         }
 
         return { warnings };
@@ -406,21 +440,10 @@ class BehaviourRegistry {
      * @param { Document } document 
      */
     enable(document) {
-        const existing = this.documentToRegistry.get(document);
-        if (existing !== undefined) {
-            // Already enabled
-            return;
-        }
-
-        const controller = listenToElement(document.body, (mutations, observer) => {
-            for (const mutation of mutations) {
-                this.handleMutation(mutation);
-            }
-        });
-
-        this.documentToRegistry.set(document, { registry: this, controller });
-
-        this.updateDocument(document);
+        // Here we add the specified document to the queue then immediately process the queue
+        // to ensure that all routes are going through the same code paths.
+        this.addToQueue(document);
+        this.update();
     }
 
     /**
@@ -428,6 +451,20 @@ class BehaviourRegistry {
      * @param { Document } document 
      */
     disable(document) {
+        if (document === globalThis.document) {
+            // Disable main document handling by saying it's already done
+            // This code means that users can disable the main document before any registrations.
+            // Without this code, users would have to ensure that disable is called after the first registration.
+            this.isMainDocumentHandled = true;
+        }
+
+        // Remove this document from the queue if it's there
+        const index = this.documentQueue.indexOf(document);
+        if (index >= 0) {
+            this.documentQueue.splice(index, 1);
+        }
+
+        // Stop listening to this document if we've started listening
         const existing = this.documentToRegistry.get(document);
         if (existing !== undefined) {
             existing.controller.abort();
