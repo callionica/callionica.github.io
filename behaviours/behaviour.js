@@ -1,5 +1,5 @@
 // (c) Callionica 2024
-
+//
 // A behaviour library AKA "web components for attributes"
 //
 // A behaviour is a class derived from Behaviour.
@@ -70,6 +70,51 @@ function listenToElement(element, fn, options = undefined) {
     return controller;
 }
 
+/**
+ * Capitalizes the first character in the string
+ * @param { string } name 
+ */
+function capitalizeFirst(name) {
+    return name[0].toUpperCase() + name.substring(1);
+}
+
+/**
+ * If you have a method that needs to be called under different conditions
+ * but you only want the method to be called once per turn, you need a microtask
+ * property that you can set to true when the method needs to be called.
+ * No matter how many times you set the property to true the method will be called
+ * only once.
+ * Example: `refresh` method, `needsRefresh` microtask property.
+ * Example: `layout` method, `needsLayout` microtask property.
+ * @param { object } cls The class on which you wish to add the boolean property which triggers a microtask
+ * @param { string } methodName The name of the method for which you need a microtask property (if method is `refresh`, the microtask property will be `needsRefresh`)
+ **/
+function addMicrotaskProperty(cls, methodName) {
+    const propertyName = `needs${capitalizeFirst(methodName)}`;
+    const dataName = `${propertyName}_`;
+
+    Object.defineProperty(cls.prototype, propertyName, {
+        get() {
+            return this[dataName] ?? false;
+        },
+        set(value) {
+            if (value && (value !== this[dataName])) {
+                this[dataName] = true;
+
+                queueMicrotask(() => {
+                    if (this[dataName]) {
+                        this[dataName] = false;
+                        const fn = this[methodName]?.bind(this) ?? undefined;
+                        if (fn !== undefined) {
+                            fn();
+                        }
+                    }
+                });
+            }
+        }
+    });
+}
+
 /** @typedef { string } AttributeName */
 
 /**
@@ -103,7 +148,6 @@ export class Behaviour {
 }
 
 const INSTANCES = Symbol("behaviour-instances");
-const REGISTRIES = Symbol("behaviour-registries");
 
 /**
  * Returns the prototype chain
@@ -142,70 +186,8 @@ function* allElements(elements) {
 }
 
 /**
- * This contains the behaviours directly applied to a particular element type.
- * To get the effective behaviours for a particular element type, we need to
- * traverse the class hierarchy (prototype chain) which is handled by `getBehaviourRecord` 
- * @type Map<typeof HTMLElement, Record<AttributeName, typeof Behaviour> >
- * */
-const elementTypeToBehaviourRecord = new Map();
-
-/**
- * @param { typeof HTMLElement } elementType 
- */
-function getOrCreateBehaviourRecord(elementType) {
-    let record = elementTypeToBehaviourRecord.get(elementType);
-    if (record === undefined) {
-        record = {};
-        elementTypeToBehaviourRecord.set(elementType, record);
-    }
-    return record;
-}
-
-/**
- * Returns the effective record of behaviours/attributes that have been
- * applied to the specified element type and any base classes.
- * @param { typeof HTMLElement } elementType 
- * @returns { Record<AttributeName, typeof Behaviour> }
- */
-export function getBehaviourRecord(elementType) {
-    let value = {};
-
-    for (const link of chain(elementType)) {
-        value = { ...elementTypeToBehaviourRecord.get(link), ...value };
-    }
-
-    return value;
-}
-
-/**
- * Registers a behaviour and a set of attributes as being usable with a particular element type (and its derived classes).
- * Returns a list of warnings if there are existing behaviours using the same attribute names anywhere in the element class hierarchy.
- * The warnings may be completely benign (if you want to provide a different behaviour for an attribute in a derived class, for example)
- * or they may indicate that you have a conflict with two behaviours both trying to use the same attribute names.
- * @param { typeof Behaviour } behaviourType 
- * @param { typeof HTMLElement } elementType 
- * @param { string[] } attributes 
- */
-export function registerBehaviour(behaviourType, elementType, attributes) {
-    if (!Array.isArray(attributes)) {
-        throw "attributes should be an array";
-    }
-
-    const warnings = [];
-    const behaviours = getBehaviourRecord(elementType);
-    for (const attribute of attributes) {
-        const existing = behaviours[attribute];
-        if (existing !== undefined) {
-            warnings.push({ attribute, behaviourType, existing });
-        }
-
-        const localBehaviours = getOrCreateBehaviourRecord(elementType);
-        localBehaviours[attribute] = behaviourType;
-    }
-    return { warnings };
-}
-
-/**
+ * Connects a behaviour of the specified type to an element
+ * if the element doesn't already have a behaviour of that exact type.
  * @param { HTMLElement } element 
  * @param { typeof Behaviour } behaviourType 
  */
@@ -213,6 +195,7 @@ function connect(element, behaviourType) {
     /** @type Map<typeof Behaviour, Behaviour> */
     const instances = element[INSTANCES] ?? (element[INSTANCES] = new Map());
 
+    // Note that we check for *exact* behaviour type here
     const existing = instances.get(behaviourType);
     if (existing !== undefined) {
         existing.isConnected = true;
@@ -256,15 +239,119 @@ export function getBehaviour(element, behaviourType) {
 class BehaviourRegistry {
 
     /**
-     * @param { typeof Behaviour } behaviourType 
-     * @param { typeof HTMLElement } elementType 
-     * @param { AttributeName[] } attributes 
+     * This contains the behaviours directly applied to a particular element type.
+     * To get the effective behaviours for a particular element type, we need to
+     * traverse the class hierarchy (prototype chain) which is handled by `getBehaviourRecord` 
+     * @type Map<typeof HTMLElement, Record<AttributeName, typeof Behaviour> >
+     * */
+    elementTypeToBehaviourRecord = new Map();
+
+    /**
+     * Stores documents that we're watching for changes 
+     * @type Map<Document, { registry: BehaviourRegistry, controller: AbortController } >
+     * */
+    documentToRegistry = new Map();
+
+    /**
+     * Documents that need to be re-examined for behaviours
+     * @type Document[]
      */
-    register(behaviourType, elementType, attributes) {
-        return registerBehaviour(behaviourType, elementType, attributes);
+    updateQueue = [];
+
+    /**
+     * Add a document to the update queue - the entire document will be examined for elements/attributes that need to be connected to behaviours.
+     * The processing of the document happens in a microtask.
+     * @param { Document } document 
+     * */
+    addToUpdateQueue(document) {
+        if (!this.updateQueue.includes(document)) {
+            this.updateQueue.push(document);
+            this.needsUpdate = true;
+        }
+    }
+
+    updateDocument(document) {
+        this.connect(document.body.querySelectorAll("*"));
+    }
+
+    /** Processes all the documents in the update queue */
+    update() {
+        const documents = this.updateQueue;
+        this.updateQueue = [];
+
+        for (const document of documents) {
+            this.updateDocument(document);
+        }
     }
 
     /**
+     * @param { typeof HTMLElement } elementType 
+     */
+    getOrCreateBehaviourRecord(elementType) {
+        const elementTypeToBehaviourRecord = this.elementTypeToBehaviourRecord;
+        let record = elementTypeToBehaviourRecord.get(elementType);
+        if (record === undefined) {
+            record = {};
+            elementTypeToBehaviourRecord.set(elementType, record);
+        }
+        return record;
+    }
+
+    /**
+     * Returns the effective record of behaviours/attributes that have been
+     * applied to the specified element type and any base classes.
+     * @param { typeof HTMLElement } elementType 
+     * @returns { Record<AttributeName, typeof Behaviour> }
+     */
+    getBehaviourRecord(elementType) {
+        const elementTypeToBehaviourRecord = this.elementTypeToBehaviourRecord;
+        let value = {};
+
+        for (const link of chain(elementType)) {
+            value = { ...elementTypeToBehaviourRecord.get(link), ...value };
+        }
+
+        return value;
+    }
+
+    /**
+     * Registers a behaviour and a set of attributes as being usable with a particular element type (and its derived classes).
+     * Returns a list of warnings if there are existing behaviours using the same attribute names anywhere in the element class hierarchy.
+     * The warnings may be completely benign (if you want to provide a different behaviour for an attribute in a derived class, for example)
+     * or they may indicate that you have a conflict with two behaviours both trying to use the same attribute names.
+     * @param { typeof Behaviour } behaviourType 
+     * @param { typeof HTMLElement } elementType 
+     * @param { string[] } attributes 
+     */
+    register(behaviourType, elementType, attributes) {
+        if (!Array.isArray(attributes)) {
+            throw "attributes should be an array";
+        }
+
+        const warnings = [];
+        const behaviours = this.getBehaviourRecord(elementType);
+        for (const attribute of attributes) {
+            const existing = behaviours[attribute];
+            if (existing !== undefined) {
+                warnings.push({ attribute, behaviourType, existing });
+            }
+
+            const localBehaviours = this.getOrCreateBehaviourRecord(elementType);
+            localBehaviours[attribute] = behaviourType;
+        }
+
+        // If stuff gets registered after the document is enabled,
+        // we need to update existing documents
+        for (const document of this.documentToRegistry.keys()) {
+            this.addToUpdateQueue(document);
+        }
+
+        return { warnings };
+    }
+
+    /**
+     * Examines all the elements and determines if they have attributes that
+     * require them to be connected to a behaviour
      * @param { Iterable<HTMLElement> } elements 
      */
     connect(elements) {
@@ -319,10 +406,7 @@ class BehaviourRegistry {
      * @param { Document } document 
      */
     enable(document) {
-        /** @type { { registry: BehaviourRegistry, controller: AbortController }[] } */
-        const registries = document[REGISTRIES] ?? (document[REGISTRIES] = []);
-
-        const existing = registries.find(o => o.registry === this);
+        const existing = this.documentToRegistry.get(document);
         if (existing !== undefined) {
             // Already enabled
             return;
@@ -334,9 +418,9 @@ class BehaviourRegistry {
             }
         });
 
-        registries.push({ registry: this, controller });
+        this.documentToRegistry.set(document, { registry: this, controller });
 
-        this.connect(document.body.querySelectorAll("*"));
+        this.updateDocument(document);
     }
 
     /**
@@ -344,18 +428,15 @@ class BehaviourRegistry {
      * @param { Document } document 
      */
     disable(document) {
-        /** @type { { registry: BehaviourRegistry, controller: AbortController }[] } */
-        const registries = document[REGISTRIES] ?? undefined;
-        if (registries !== undefined) {
-            const existing = registries.find(o => o.registry === this);
-            if (existing !== undefined) {
-                existing.controller.abort();
-                existing.controller = undefined;
-                existing.registry = undefined;
-            }
+        const existing = this.documentToRegistry.get(document);
+        if (existing !== undefined) {
+            existing.controller.abort();
+            this.documentToRegistry.delete(document);
         }
     }
 }
+
+addMicrotaskProperty(BehaviourRegistry, "update");
 
 const customBehaviours = new BehaviourRegistry();
 
@@ -365,4 +446,12 @@ export function enableBehaviours(document) {
 
 export function disableBehaviours(document) {
     customBehaviours.disable(document);
+}
+
+export function getBehaviourRecord(elementType) {
+    return customBehaviours.getBehaviourRecord(elementType);
+}
+
+export function registerBehaviour(behaviourType, elementType, attributes) {
+    return customBehaviours.register(behaviourType, elementType, attributes);
 }
