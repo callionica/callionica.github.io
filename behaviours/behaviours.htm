@@ -205,8 +205,8 @@
 <body>
 	<h1>Behaviour.js - The Web Attribute Component Library</h1>
 	<p><a href="behaviour.js">GET THE CODE HERE - behaviour.js</a></p>
-	<p>Safari doesn't support web components using the <code>is</code> attribute, so I've implemented a quick library that allows
-		you to hook component code to an element using any custom attribute of your choosing.</p>
+	<p>Safari doesn't support web components that extend built-in elements using the <code>is</code> attribute, so I've implemented a quick library that allows
+		you to hook component code to an element using any custom attribute of your choosing (or no attribute at all).</p>
 	<p>Grab the code above to experiment with it if you're interested.</p>
 	<p>This has been lightly influenced by Lea Verou's <a
 			href="https://github.com/WICG/webcomponents/issues/1029">attributes for all</a> proposal. (If I had not read
@@ -216,15 +216,55 @@
 	<h2>Lightning Overview</h2>
 	<p>Your code lives in a class derived from <code>Behaviour</code></p>
 	<p><code>Behaviour</code> has an <code>element</code> property that holds the element the behaviour is attached to.</p>
-	<p><code>Behaviour</code> has <code>connected</code> and <code>disconnected</code> methods that get called when you might expect.</p>
+	<p><code>Behaviour</code> has <code>connected</code> and <code>disconnected</code> methods that get called when the behaviour is first attached to the element and when the underlying element is connected/disconnected from the document.</p>
 	<p>You register your class against an element class and a list of attribute names using
 		<code>registerBehaviour(MyBehaviour, HTMLDivElement, ["my-attribute", "another-attribute"])</code></p>
-	<p>You enable behaviour support in a document by calling <code>enableBehaviours(document)</code></p>
 	<p>You get a reference to a behaviour from an element using
 		<code>getBehaviour(element, MyBehaviour)</code></p>
-	<p>That's it really.</p>
+	<p>That's the basics.</p>
 	<p></p>
-	<p>The code was written at speed and hasn't been tested, but at first glance appears to work. I think the minimal API is interesting.</p>
+	<p>The code was written at speed and hasn't been much tested, but at first glance appears to work. I think the minimal API is interesting.</p>
+	
+	<h2>Enable/Disable</h2>
+	<p>In addition to the API above, which covers the basic uses of behaviours, we also provide functions for enabling and disabling behaviours
+		for a particular target (such as a document or element): <code>enableBehaviours</code> and <code>disableBehaviours</code></p>
+	<p>You do not have to use these functions if all you are doing is adding behaviours to the main document. 
+		The main document is automatically enabled if you register a behaviour using <code>registerBehaviour</code>.</p>
+	<p>You can disable behaviour support in the main document by calling <code>disableBehaviours(document)</code></p>
+	<p>You enable behaviour support in a document or element by calling <code>enableBehaviours(documentOrElement)</code></p>
+	
+	<h2>Respecting the Element Type Hierarchy</h2>
+	<p>You can register behaviours at different levels of the element type hierarchy. For example, you can register behaviours that apply to <code>HTMLElement</code> and 
+		other behaviours that apply to <code>HTMLDivElement</code>. The behaviours that apply to <code>HTMLElement</code> also apply to <code>HTMLDivElement</code> because <code>HTMLDivElement</code> is a derived class (unless those behaviours are overridden on the derived class). Behaviours get overridden by a derived class when the behaviour is registered using the same attribute name or key but using the more derived element type.</p>
+
+	<p>It is possible to see the effective behaviours that have been registered for an element type (including behaviours registered for its base types that have not been overridden)
+		by calling <code>getBehaviourRecord(HTMLDivElement)</code> or similar. The result is a simple object with keys that are the attribute names and values that are behaviour types.
+	</p>
+	
+	<h2>registerBehaviour Warnings</h2>
+	<p>Because it is desirable to be able to override behaviours in derived classes using the same attribute name or key, or to replace behaviours with other behaviours using the same key, <code>registerBehaviour</code> takes a last-call-wins approach (while respecting & preserving the element type hierarchy). However, it's useful to know when you are registering a behaviour using a key that's already in use, so the return value of <code>registerBehaviour</code> provides a list of warnings: for each instance of a key that is being overridden or replaced, the warnings list the current element type, the key, the new behaviour, and the old behaviour.</p>
+
+	<h2>Attaching Behaviours without Attributes (Using Symbols and Non-Attribute Keys)</h2>
+	<p>To support attaching behaviours to elements without having any attributes in the markup at all, the third parameter to <code>registerBehaviour</code> is not just a list of attribute names, it is actually a list of behaviour keys.</p>
+	<p>A behaviour key can be one of:</p>
+	<ol>
+		<li><p>1. An attribute name</p></li>
+		<li><p>2. A non-attribute name (must end with <code>=</code>)</p></li>
+		<li><p>3. A <code>Symbol</code></p></li>
+	</ol>
+	<p>When an attribute name is used, the behaviour will only be attached to an element if that attribute is present.</p>
+	<p>When a non-attribute name or Symbol is used as a key, the behaviour will be attached to an element if it matches the element type of the registration without looking at attributes at all.</p>
+	<p>In all cases, the key controls which behaviours are related to each other for the purposes of overriding based on the element type class hierarchy.</p>
+
+	<h2>Respecting the Behaviour Type Hierarchy</h2>
+	<p><code>getBehaviour</code> takes an element type. It will return that exact type if a behaviour of that type is attached to the element or it will return the first derived class of that type if a behaviour of the exact type is not found.</p>
+
+	<h2>Custom Registries</h2>
+	<p>The free functions described above are built on top of a <code>BehaviourRegistry</code>. If you need more control, you can use a behaviour registry directly.</p>
+	<p>The global registry is called <code>customBehaviours</code>.</p>
+	<p>You can call <code>register</code>, <code>getBehaviourRecord</code>, <code>enable</code>, and <code>disable</code> on it.</p>
+	<p>The free functions delegate directly to the global behaviour registry, so you know that the global registry handles the main document automatically.</p>
+	<p>You can also create instances of <code>BehaviourRegistry</code> yourself for ultimate control. By default, custom registries do not have main document handling turned on. You will need to call <code>enable</code> on your target to see the effect of your behaviour registrations.</p>
 </body>
 
 </html>
