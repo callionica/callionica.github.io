@@ -265,6 +265,32 @@
 	<p>You can call <code>register</code>, <code>getBehaviourRecord</code>, <code>enable</code>, and <code>disable</code> on it.</p>
 	<p>The free functions delegate directly to the global behaviour registry, so you know that the global registry handles the main document automatically.</p>
 	<p>You can also create instances of <code>BehaviourRegistry</code> yourself for ultimate control. By default, custom registries do not have main document handling turned on. You will need to call <code>enable</code> on your target to see the effect of your behaviour registrations.</p>
+
+	<h2>Design Notes</h2>
+	
+	<h3>Three Level API</h3>
+	<p>This has been designed as a 3-level API:</p>
+	<ol>
+		<li><p>1. Free functions, primarily <code>registerBehaviour</code> and <code>getBehaviour</code></p></li>
+		<li><p>2. A global object, <code>customBehaviours</code></p></li>
+		<li><p>3. A class, <code>BehaviourRegistry</code></li>
+	</ol>
+	<p>I think it's important to have that first level with a very simple and easy to use API that at its simplest means a single call to registerBehaviour gets everything working in the main document with no further calls.</p>
+	
+	<h3>Any Attribute Name</h3>
+	<p>Note that this design does not distinguish between standard attribute names and custom attribute names. The implementation here is just about hooking a behaviour to an element. An attribute name is one of the possible criteria for making the connection between a behaviour and an element. It doesn't matter whether the attribute is a standard or non-standard attribute for these purposes.</p>
+
+	<h3>Coordination of Behaviour Application at the Element</h3>
+	<p>As currently implemented, you can have multiple independent registries, but the application of behaviours is not entirely independent between registries that act on the same elements using the same behaviour classes. We apply at most one single instance of any Behaviour-derived class to a particular element and this is coordinated at the element itself without regard to which registry caused the behaviour to be applied to that element. This is a conscious choice, but it's not the only possible choice. Note that our chosen solution is hinted at through the API: the <code>getBehaviour</code> function only exists as a free function because it is not tied to a specific registry. We could have chosen to expose this feature as a method on <code>BehaviourRegistry</code> for discoverability. However, that might mislead and obscure an important aspect of the relationship between registries, behaviours, and elements.</p>
+
+	<h3>registerBehaviour Parameter Order</h3>
+	<p>Currently registerBehaviour arguments are in the order:</p>
+	<p>behaviour type, element type, keys</p>
+	<p>This matches a conceptual model where a behaviour is first and always associated with an element type and only then are attributes considered (and not always).</p>
+	<p>However, if we changed the order to:</p>
+	<p>behaviour type, keys, element type</p>
+	<p>we could default the element type to HTMLElement and perhaps simplify the use and complexity of the API.</p>
+	<p>This is a tempting change.</p>
 </body>
 
 </html>
