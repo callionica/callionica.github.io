@@ -218,7 +218,7 @@
 	<p><code>Behaviour</code> has an <code>element</code> property that holds the element the behaviour is attached to.</p>
 	<p><code>Behaviour</code> has <code>connected</code> and <code>disconnected</code> methods that get called when the behaviour is first attached to the element and when the underlying element is connected/disconnected from the document.</p>
 	<p>You register your class against an element class and a list of attribute names using
-		<code>registerBehaviour(MyBehaviour, HTMLDivElement, ["my-attribute", "another-attribute"])</code></p>
+		<code>registerBehaviour(MyBehaviour, ["my-attribute", "another-attribute"], HTMLDivElement)</code></p>
 	<p>You get a reference to a behaviour from an element using
 		<code>getBehaviour(element, MyBehaviour)</code></p>
 	<p>That's the basics.</p>
@@ -267,7 +267,7 @@
 	<p>You can also create instances of <code>BehaviourRegistry</code> yourself for ultimate control. By default, custom registries do not have main document handling turned on. You will need to call <code>enable</code> on your target to see the effect of your behaviour registrations.</p>
 
 	<h2>Design Notes</h2>
-	
+
 	<h3>Three Level API</h3>
 	<p>This has been designed as a 3-level API:</p>
 	<ol>
@@ -283,14 +283,15 @@
 	<h3>Coordination of Behaviour Application at the Element</h3>
 	<p>As currently implemented, you can have multiple independent registries, but the application of behaviours is not entirely independent between registries that act on the same elements using the same behaviour classes. We apply at most one single instance of any Behaviour-derived class to a particular element and this is coordinated at the element itself without regard to which registry caused the behaviour to be applied to that element. This is a conscious choice, but it's not the only possible choice. Note that our chosen solution is hinted at through the API: the <code>getBehaviour</code> function only exists as a free function because it is not tied to a specific registry. We could have chosen to expose this feature as a method on <code>BehaviourRegistry</code> for discoverability. However, that might mislead and obscure an important aspect of the relationship between registries, behaviours, and elements.</p>
 
-	<h3>registerBehaviour Parameter Order</h3>
-	<p>Currently registerBehaviour arguments are in the order:</p>
-	<p>behaviour type, element type, keys</p>
-	<p>This matches a conceptual model where a behaviour is first and always associated with an element type and only then are attributes considered (and not always).</p>
-	<p>However, if we changed the order to:</p>
+	<h3>registerBehaviour Parameters</h3>
+	<p><code>registerBehaviour</code> parameters are in the order:</p>
 	<p>behaviour type, keys, element type</p>
-	<p>we could default the element type to HTMLElement and perhaps simplify the use and complexity of the API.</p>
-	<p>This is a tempting change.</p>
+	<p>This allows element type to be defaulted to <code>HTMLElement</code> and therefore omitted by the caller.</p>
+	<p>In addition the keys parameter has been typed and implemented so that a single key can be provided.</p>
+	<p>So this code is valid:</p>
+	<p><code>registerBehaviour(MyBehaviour, "my-behaviour");</code></p>
+	<p>and is equivalent to:</p>
+	<p><code>registerBehaviour(MyBehaviour, ["my-behaviour"], HTMLElement);</code></p>
 </body>
 
 </html>

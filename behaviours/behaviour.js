@@ -6,11 +6,13 @@
 // A behaviour is attached at most once to an element with a relevant attribute.
 // Behaviours are associated with element types and relevant attributes using `registerBehaviour`:
 //
-// registerBehaviour(MyBehaviour, HTMLElement, ["my-attribute"]);
+// registerBehaviour(MyBehaviour, "my-attribute");
+// registerBehaviour(MyBehaviour2, ["my-attribute", "other-attr"], HTMLDivElement);
 //
-// This code registers the behaviour as being relevant to any class derived from HTMLElement.
+// The first line registers the behaviour as being relevant to any class derived from HTMLElement as long as it has an attribute `my-attribute`.
+// The second line registers a different behaviour using the same key (attribute name) for any class derived from HTMLDivElement. It also registers the behaviour using a second attribute.
 //
-// The final argument to `registerBehaviour` is an array of attribute names.
+// The 2nd argument to `registerBehaviour` is an array of keys, which are most commonly attribute names.
 // When one or more of the specified attribute names is added to an element derived from the appropriate type,
 // a single instance of `MyBehaviour` will be created and its `element` property set to the element.
 //
@@ -415,12 +417,18 @@ export class BehaviourRegistry {
      * The warnings may be completely benign (if you want to provide a different behaviour for an attribute in a derived class, for example)
      * or they may indicate that you have a conflict with two behaviours both trying to use the same attribute names.
      * @param { typeof Behaviour } behaviourType 
+     * @param { BehaviourKey | BehaviourKey[] } keys An array of attribute names or non-attribute strings or Symbols
      * @param { typeof HTMLElement } elementType 
-     * @param { BehaviourKey[] } keys An array of attribute names or non-attribute strings or Symbols
      */
-    register(behaviourType, elementType, keys) {
+    register(behaviourType, keys, elementType = HTMLElement) {
         if (!Array.isArray(keys)) {
-            throw "attributes should be an array";
+            // Allow a single key to be passed as well as multiple keys
+            keys = [keys];
+        }
+
+        // Part of the reason for doing this check is to protect against callers providing multiple keys as multiple arguments
+        if (!isBase({ base: HTMLElement, derived: elementType })) {
+            throw "elementType does not extend HTMLElement";
         }
 
         /** @type Warning[] */
@@ -580,9 +588,9 @@ export function getBehaviourRecord(elementType) {
  * The warnings may be completely benign (if you want to provide a different behaviour for an attribute in a derived class, for example)
  * or they may indicate that you have a conflict with two behaviours both trying to use the same attribute names.
  * @param { typeof Behaviour } behaviourType 
+ * @param { BehaviourKey | BehaviourKey[] } keys An array of attribute names or non-attribute strings or Symbols
  * @param { typeof HTMLElement } elementType 
- * @param { BehaviourKey[] } keys An array of attribute names or non-attribute strings or Symbols
  */
-export function registerBehaviour(behaviourType, elementType, keys) {
-    return customBehaviours.register(behaviourType, elementType, keys);
+export function registerBehaviour(behaviourType, keys, elementType = HTMLElement) {
+    return customBehaviours.register(behaviourType, keys, elementType);
 }
