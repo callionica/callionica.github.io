@@ -21,11 +21,13 @@
 //
 // (Note that calls to `connected` and `disconnected` are delayed by `MutationObserver` which is what we use to track changes to the document)
 //
-// In this version of the library, behaviours are enabled on a per-document basis.
+// In this version of the library, behaviours are enabled on a per-target basis.
 // Call `enableBehaviours(document)` to enable behaviour handling for that document.
 // It is not necessary to call `enableBehaviours(document)` for the main document since it will be enabled automatically.
-// You can still call it if you want to control when the document behaviours are updated, or you can call `disableBehaviours(document)` if you 
+// You can still call it if you want to control when the behaviours are updated, or you can call `disableBehaviours(document)` if you 
 // prefer behaviours not to be enabled for the main document.
+//
+// You can also pass an element to `enableBehaviours` to limit the scope to that element.
 //
 // You can get a behaviour from an element if you know the type (or base type) of the behavior:
 //
@@ -194,11 +196,14 @@ function* chain(current) {
 }
 
 /**
- * Tests whether the base object is in the prototype chain of the derived object
+ * Tests whether the `base` object is in the prototype chain of the `derived` object
  * @param { object } derived 
  * @param { object } base 
  */
-function isBase(derived, base) {
+function isBase({ derived, base }) {
+    if (derived === undefined || base === undefined) {
+        throw "Invalid argument to isBase";
+    }
     for (const link of chain(derived)) {
         if (link === base) {
             return true;
@@ -281,7 +286,7 @@ export function getBehaviour(element, behaviourType) {
     // If we are given MyBaseBehaviour and we have stored MyDerivedBehaviour,
     // we still need to find the behaviour and return it
     for (const [behaviourType_, behavior_] of instances.entries()) {
-        if (isBase(behaviourType_, behaviourType)) {
+        if (isBase({ derived: behaviourType_, base: behaviourType })) {
             return behavior_;
         }
     }
@@ -291,7 +296,12 @@ export function getBehaviour(element, behaviourType) {
 
 /** @typedef { { key: BehaviourKey, elementType: typeof HTMLElement, behaviourType: typeof Behaviour, existingBehaviourType: typeof Behaviour } } Warning */
 
-class BehaviourRegistry {
+/**
+ * A `Target` is a document or element in which behaviours have been enabled
+ * @typedef { Node } Target
+ * */
+
+export class BehaviourRegistry {
 
     /**
      * This contains the behaviours directly applied to a particular element type.
@@ -302,62 +312,70 @@ class BehaviourRegistry {
     elementTypeToBehaviourRecord = new Map();
 
     /**
-     * Stores documents that we're watching for changes 
-     * @type Map<Document, { registry: BehaviourRegistry, controller: AbortController } >
+     * Stores targets that we're watching for changes 
+     * @type Map<Target, { registry: BehaviourRegistry, controller: AbortController } >
      * */
-    documentToRegistry = new Map();
+    targetToRegistry = new Map();
 
     /**
-     * Documents that need to be re-examined for behaviours
-     * @type Document[]
+     * Targets that need to be re-examined for behaviours
+     * @type Target[]
      */
-    documentQueue = [];
+    queue = [];
 
     /**
      * We only ensure the main document is enabled once on the first call to `register`
      * so that callers can successfully disable this document without us re-enabling it
      */
-    isMainDocumentHandled = false;
+    shouldHandleMainDocument = false;
+
+    constructor(shouldHandleMainDocument = false) {
+        this.shouldHandleMainDocument = shouldHandleMainDocument;
+    }
 
     /**
-     * Add a document to the queue - the entire document will be examined for elements/attributes that need to be connected to behaviours.
-     * The processing of the document happens in a microtask.
-     * @param { Document } document 
+     * Add a target to the queue - the target node will be examined for elements/attributes that need to be connected to behaviours.
+     * The processing of the target happens in a microtask.
+     * @param { Target } target 
      * */
-    addToQueue(document) {
-        if (!this.documentQueue.includes(document)) {
-            this.documentQueue.push(document);
+    addToQueue(target) {
+        if (!this.queue.includes(target)) {
+            this.queue.push(target);
             this.needsUpdate = true;
         }
     }
 
-    updateDocument(document) {
-        const existing = this.documentToRegistry.get(document);
+    /**
+     * 
+     * @param { Target } target 
+     */
+    updateTarget(target) {
+        const existing = this.targetToRegistry.get(target);
 
         if (existing === undefined) {       
-            const controller = listenToElement(document.body, (mutations, observer) => {
+            const controller = listenToElement(target, (mutations, observer) => {
                 for (const mutation of mutations) {
                     this.handleMutation(mutation);
                 }
             });
 
-            this.documentToRegistry.set(document, { registry: this, controller });
+            this.targetToRegistry.set(target, { registry: this, controller });
         }
 
-        this.connect(document.body.querySelectorAll("*"));
+        this.connect(target.querySelectorAll("*"));
     }
 
     /**
-     * Processes all the documents in the queue.
+     * Processes all the targets in the queue.
      * Adds mutation observation if necessary and
-     * examines all existing document content to attach behaviours if necessary.
+     * examines all existing target content to attach behaviours if necessary.
     */
     update() {
-        const documents = this.documentQueue;
-        this.documentQueue = [];
+        const targets = this.queue;
+        this.queue = [];
 
-        for (const document of documents) {
-            this.updateDocument(document);
+        for (const target of targets) {
+            this.updateTarget(target);
         }
     }
 
@@ -421,15 +439,15 @@ class BehaviourRegistry {
 
         // For the first registration, we add the main document to the queue so that users cannot forget to call enable on it
         // We only do this once so that users can choose to disable the main document
-        if (!this.isMainDocumentHandled) {
-            this.isMainDocumentHandled = true;
-            this.addToQueue(document);
+        if (this.shouldHandleMainDocument) {
+            this.shouldHandleMainDocument = false;
+            this.addToQueue(globalThis.document);
         }
 
-        // If behaviours get registered after a document is enabled,
-        // we need to update existing documents
-        for (const document of this.documentToRegistry.keys()) {
-            this.addToQueue(document);
+        // If behaviours get registered after a target is enabled,
+        // we need to update existing targets
+        for (const target of this.targetToRegistry.keys()) {
+            this.addToQueue(target);
         }
 
         return { warnings };
@@ -487,61 +505,63 @@ class BehaviourRegistry {
     }
 
     /**
-     * Starts watching the document and connecting behaviours to relevant elements
-     * @param { Document } document 
+     * Starts watching the target and connecting behaviours to relevant elements
+     * @param { Target } target 
      */
-    enable(document) {
-        // Here we add the specified document to the queue then immediately process the queue
+    enable(target) {
+        // Here we add the specified target to the queue then immediately process the queue
         // to ensure that all routes are going through the same code paths.
-        this.addToQueue(document);
+        this.addToQueue(target);
         this.update();
     }
 
     /**
-     * Stops watching the document. Does not disconnect already connected behaviours.
-     * @param { Document } document 
+     * Stops watching the target. Does not disconnect already connected behaviours.
+     * @param { Target } target 
      */
-    disable(document) {
-        if (document === globalThis.document) {
+    disable(target) {
+        if (target === globalThis.document) {
             // Disable main document handling by saying it's already done
             // This code means that users can disable the main document before any registrations.
             // Without this code, users would have to ensure that disable is called after the first registration.
-            this.isMainDocumentHandled = true;
+            this.shouldHandleMainDocument = false;
         }
 
-        // Remove this document from the queue if it's there
-        const index = this.documentQueue.indexOf(document);
+        // Remove this target from the queue if it's there
+        const index = this.queue.indexOf(target);
         if (index >= 0) {
-            this.documentQueue.splice(index, 1);
+            this.queue.splice(index, 1);
         }
 
-        // Stop listening to this document if we've started listening
-        const existing = this.documentToRegistry.get(document);
+        // Stop listening to this target if we've started listening
+        const existing = this.targetToRegistry.get(target);
         if (existing !== undefined) {
             existing.controller.abort();
-            this.documentToRegistry.delete(document);
+            this.targetToRegistry.delete(target);
         }
     }
 }
 
 addMicrotaskProperty(BehaviourRegistry, "update");
 
-const customBehaviours = new BehaviourRegistry();
+// The global behaviour registry has main document handling turned on
+// Other behaviour registries default to main document handling being off
+export const customBehaviours = new BehaviourRegistry(true);
 
 /**
- * Starts watching the document and connecting behaviours to relevant elements
- * @param { Document } document 
+ * Starts watching the target and connecting behaviours to relevant elements
+ * @param { Target } target 
  */
-export function enableBehaviours(document) {
-    customBehaviours.enable(document);
+export function enableBehaviours(target) {
+    customBehaviours.enable(target);
 }
 
 /**
- * Stops watching the document. Does not disconnect already connected behaviours.
- * @param { Document } document 
+ * Stops watching the target. Does not disconnect already connected behaviours.
+ * @param { Target } target 
  */
-export function disableBehaviours(document) {
-    customBehaviours.disable(document);
+export function disableBehaviours(target) {
+    customBehaviours.disable(target);
 }
 
 /**
