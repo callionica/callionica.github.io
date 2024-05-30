@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIG LIST</title>
+    <style>
+        /* Using fixed pixel sizes and contain: strict in an attempt to get a performant large list */
+        :root {
+            font-size: 24px;
+        }
+
+        .list {
+            width: 256px;
+            height: 512px;
+
+            background-color: peachpuff;
+
+            overflow-x: clip;
+            overflow-y: scroll;
+            
+            contain: strict;
+            content-visibility: auto; /* Not supported in Safari */
+        }
+
+        .item {
+            contain: strict;
+            content-visibility: auto; /* Not supported in Safari */
+            contain-intrinsic-size: 128px 64px;
+
+            width: 128px;
+            height: 64px;
+
+            background-color: brown;
+            color: beige;
+        }
+    </style>
+    <script type="module">
+        function createItem(index) {
+            const e = document.createElement("div");
+            e.classList.add("item");
+            e.innerHTML = `
+<div class="name">Name ${index}</div>
+<!--<div class="age">Age ${index}</div>-->
+            `;
+            return e;
+        }
+
+        const count = 100000
+        const list = document.querySelector(".list");
+        for (let i = 0; i < count; ++i) {
+            list.append(createItem(i));
+        }
+        const p = document.querySelector("p");
+        p.innerText = `A list of ${count} items`;
+    </script>
+</head>
+<body>
+    <p>GENERATING ITEMS...</p>
+    <div class="list">
+    </div>
+    <p>This repro loads a lot of simple items in a scrolling div and attempts to make it as easy as possible for the browser to lay out the visible items 
+        and provide stable scroll positions for the other items. But fixed sizes and contain: strict are not sufficient to get acceptable scrolling behaviour.
+    </p>
+    <p>Scrolling is stuttery. Both item background and item text disappear during scrolling. Even when scrolling stops it occasionally takes seconds before the content appears.</p>
+    <p>Try commenting out the string content of the items and you'll see that the list still flashes and stutters.</p>
+    <p>Both Chrome (Mac) and Safari (Mac) give poor results.</p>
+</body>
+</html>
