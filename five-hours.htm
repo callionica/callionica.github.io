@@ -5,5 +5,5 @@
 </header>
 <body>
   <p>5 hours to kill</p>
-  <p><a href='javascript:(function(){const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/five-hours.js"; document.body.appendChild(e);})();'>Shortcut</a></p>
+  <p><a href='javascript:(function(){ const name = "five-hours"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/five-hours.js"; document.body.appendChild(e); } else { fn(); } })();'>Shortcut</a></p>
 </body>
