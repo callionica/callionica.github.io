@@ -1,12 +1,25 @@
 <header>
+  <title>Copy Clicked Image</title>
+  <link rel="canonical" href='javascript:(function(){ const name = "callionica.copy-clicked-images"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/five-hours.js"; document.body.appendChild(e); } else { fn(); } })();' />
   <script type="module">
     
   </script>
 </header>
 <body>
-  <p>5 hours to kill</p>
-  <p>
+  <h1>Copy Clicked Image: An Active Bookmark</h1>
+  <p>If you want to easily copy the URLs of images in web pages, this active bookmark is for you. It handles SVG images and images used as backgrounds which browsers don't normally allow you to manipulate.</p>
+  <h2>To create the bookmark:</h2>
+  <p>1. Bookmark this page</p>
+  <p>2. Click <a href='javascript:navigator.clipboard.writeText(document.querySelector("#copy-clicked-image").href)'>COPY</a> to copy the bookmarklet</p>
+  <p>3. Edit the bookmark that you created and paste into the <b>URL</b> or <b>Address</b> field of the bookmark</p>
+  
+  <h2>To use the bookmark to copy the URL of an image:</h2>
+  <p>1. View the web page that contains the image that you're interested in</p>
+  <p>2. Activate the bookmark you created</p>
+  <p>3. Click on the image</p>
+  <p>4. The URL of the image will be on your clipboard. Paste it to your desired destination.</p>
+
+  <p style="display: none;">
     <a id="copy-clicked-image" href='javascript:(function(){ const name = "callionica.copy-clicked-images"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/five-hours.js"; document.body.appendChild(e); } else { fn(); } })();'>Copy clicked images</a>
-    <a href='javascript:navigator.clipboard.writeText(document.querySelector("#copy-clicked-image").href)'>COPY</a>
   </p>
 </body>
