@@ -5,5 +5,8 @@
 </header>
 <body>
   <p>5 hours to kill</p>
-  <p><a href='javascript:(function(){ const name = "callionica.copy-clicked-images"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/five-hours.js"; document.body.appendChild(e); } else { fn(); } })();'>Shortcut</a></p>
+  <p>
+    <a id="copy-clicked-image" href='javascript:(function(){ const name = "callionica.copy-clicked-images"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/five-hours.js"; document.body.appendChild(e); } else { fn(); } })();'>Copy clicked images</a>
+    <a href='javascript:navigator.clipboard.writeText(document.querySelector("#copy-clicked-image").href)'>COPY</a>
+  </p>
 </body>
