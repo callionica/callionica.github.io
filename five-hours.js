@@ -110,7 +110,7 @@ globalThis[name] = function copyClickedImages() {
 
             const tap = document.createElement("div");
             const rect = overlay.getBoundingClientRect();
-            console.log(rect);
+            // console.log(rect);
             const width = 64;
             const height = 64;
             const x = evt.clientX - width/2;
@@ -159,15 +159,15 @@ globalThis[name] = function copyClickedImages() {
      */
     function getImages(clickedElements) {
 
-        console.log("clickedElements", clickedElements);
+        // console.log("clickedElements", clickedElements);
 
         const first = firstImage(clickedElements);
-        console.log("first", first);
+        // console.log("first", first);
 
         return [first];
 
         const leafElements = leaves(clickedElements);
-        console.log("leafElements", leafElements);
+        // console.log("leafElements", leafElements);
     
         /** @type { string[] } */
         let images = [];
@@ -241,6 +241,18 @@ globalThis[name] = function copyClickedImages() {
     function _commonPath(items) {
         return items.reduce((path, node) => commonPathToRoot(node, path), undefined);
     }
+
+    async function main() {
+        const images = await getClickedElements(elements => {
+            const images = getImages(elements);
+            navigator.clipboard.writeText(images.join("\n"));
+            return images;
+        });
+        
+        return images;
+    }
+
+    main().then(images => console.log(images));
 
 };
 
