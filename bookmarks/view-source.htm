@@ -1,0 +1,24 @@
+<header>
+  <title>View Sourcee</title>
+</header>
+
+<body>
+  <h1>View Source: An Active Bookmark</h1>
+  <p>If you want to view the source of a web page, this active bookmark is for you.</p>
+  <h2>To create the bookmark:</h2>
+  <p>1. Bookmark this page</p>
+  <p>2. Click <a
+      href='javascript:navigator.clipboard.writeText(document.querySelector("#bookmark").href)'>COPY</a> to
+    copy the bookmarklet</p>
+  <p>3. Edit the bookmark that you created and paste into the <b>URL</b> or <b>Address</b> field of the bookmark</p>
+
+  <h2>To use the bookmark:</h2>
+  <p>1. View the web page that you want to view the source of</p>
+  <p>2. Activate the bookmark you created</p>
+
+  <p style="display: none;">
+    <a id="bookmark"
+      href='javascript:(function(){ const name = "callionica.view-source"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/bookmarks/view-source.js"; document.body.appendChild(e); } else { fn(); } })();'>Copy
+      clicked images</a>
+  </p>
+</body>
