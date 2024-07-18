@@ -21,4 +21,20 @@
       href='javascript:(function(){ const name = "callionica.edit-manifest"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/bookmarks/edit-manifest.js"; document.body.appendChild(e); } else { fn(); } })();'>Copy
       clicked images</a>
   </p>
+
+  <h3>Problems?</h3>
+  <p>Click <a id="inline">COPY INLINE CODE</a> instead</p>
+
+  <script>
+    (async function () {
+      const a = document.querySelector("#inline") ?? undefined;
+      if (a !== undefined) {
+        const response = await fetch("https://callionica.github.io/bookmarks/edit-manifest.js");
+        const code = await response.text();
+        globalThis.inlineBookmark = `javascript:(function(){ ${code} })();`;
+        const href = `javascript:navigator.clipboard.writeText(globalThis.inlineBookmark)`;
+        a.href = href;
+      }
+    })();
+  </script>
 </body>
