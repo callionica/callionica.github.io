@@ -11,8 +11,9 @@ globalThis[name] = async function editManifest() {
     if (originalURL === undefined) { return; }
 
     const response = await fetch(originalURL);
+    alert("got response");
     const json = await response.json();
-
+    alert("got JSON");
     const text = JSON.stringify(json, null, 2);
     alert(text);
 
