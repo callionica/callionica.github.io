@@ -32,16 +32,29 @@
   <p>1. View the web page that you want to view, edit, or create the manifest of</p>
   <p>2. Activate the bookmark you created</p>
 
+  <h3><a id="source">View Source</a></h3>
+
+  <script>(function () {
+    
+    const a = document.querySelector("#source") ?? undefined;
+    if (a !== undefined) {
+      a.href = bookmark.location;
+    }
+
+  })();</script>
+
   <p style="display: none;">
     <a id="bookmark">Execute</a>
   </p>
 
-  <script>
-  const a = document.querySelector("#bookmark") ?? undefined;
-  if (a !== undefined) {
-    a.href = code;
-  }
-  </script>
+  <script>(function () {
+
+    const a = document.querySelector("#bookmark") ?? undefined;
+    if (a !== undefined) {
+      a.href = code;
+    }
+
+  })();</script>
 
   <h3>Problems?</h3>
   <p>Click <a id="inline">COPY INLINE CODE</a> instead</p>
