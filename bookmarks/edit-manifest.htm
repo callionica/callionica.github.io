@@ -1,14 +1,30 @@
 <head>
-  <title>Edit Manifest</title>
+  <title>Bookmark</title>
+  <script>
+    const bookmark = {
+      title: "Edit Manifest",
+      id: "edit-manifest"
+    };
+    bookmark.location = `https://callionica.github.io/bookmarks/${bookmark.id}.js`;
+
+    document.title = bookmark.title;
+
+    const code = `javascript:(function(){ const name = "callionica.${bookmark.id}"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="${bookmark.location}"; document.body.appendChild(e); } else { fn(); } })();`;
+  </script>
 </head>
 
 <body>
-  <h1>Edit Manifest: An Active Bookmark</h1>
+  <h1>An Active Bookmark</h1>
+  <script>
+    const h1 = document.querySelector("h1") ?? undefined;
+    h1.innerText = `${bookmark.title}: ${h1.innerText}`;
+  </script>
+
   <p>If you want to view, edit, or create a manifest for a web page so that it can be installed as an app, this active bookmark is for you.</p>
   <h2>To create the bookmark:</h2>
   <p>1. Bookmark this page</p>
   <p>2. Click <a
-      href='javascript:navigator.clipboard.writeText(document.querySelector("#bookmark").href)'>COPY</a> to
+      href='javascript:navigator.clipboard.writeText(code)'>COPY</a> to
     copy the bookmarklet</p>
   <p>3. Edit the bookmark that you created and paste into the <b>URL</b> or <b>Address</b> field of the bookmark</p>
 
@@ -17,10 +33,15 @@
   <p>2. Activate the bookmark you created</p>
 
   <p style="display: none;">
-    <a id="bookmark"
-      href='javascript:(function(){ const name = "callionica.edit-manifest"; const fn = globalThis[name]; if (fn === undefined) { const e = document.createElement("script"); e.type="module"; e.src="https://callionica.github.io/bookmarks/edit-manifest.js"; document.body.appendChild(e); } else { fn(); } })();'>Copy
-      clicked images</a>
+    <a id="bookmark">Execute</a>
   </p>
+
+  <script>
+  const a = document.querySelector("#bookmark") ?? undefined;
+  if (a !== undefined) {
+    a.href = code;
+  }
+  </script>
 
   <h3>Problems?</h3>
   <p>Click <a id="inline">COPY INLINE CODE</a> instead</p>
@@ -29,7 +50,7 @@
     (async function () {
       const a = document.querySelector("#inline") ?? undefined;
       if (a !== undefined) {
-        const response = await fetch("https://callionica.github.io/bookmarks/edit-manifest.js");
+        const response = await fetch(bookmark.location);
         const code = await response.text();
         globalThis.inlineBookmark = `javascript:(function(){ ${code} })();`;
         const href = `javascript:navigator.clipboard.writeText(globalThis.inlineBookmark)`;
