@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undata</title>
+    <script>
+        let file = document.location.search.substring(1);
+        if (!file.startsWith("data:")) {
+            file = "";
+        }
+        const index = file.indexOf(";");
+        if (index < 0) {
+            file = "";
+        }
+        const mimeType = index < 0 ? "" : file.substring("data:".length, index);
+    </script>
+</head>
+<body>
+    <h1>Undata</h1>
+    <p>Mime type: <span id="mimeType"></span></p>
+    <script>(function (){
+        const a = document.querySelector("#mimeType") ?? undefined;
+        if (a !== undefined) {
+            a.innerText = mimeType;
+        }
+    })();</script>
+    <p>Document length: <script>
+    (function (){ const length = Math.max(0, file.length); document.write(length); })();
+    </script> characters.</p>
+    <p><a id="download" download="undata">DOWNLOAD</a></p>
+    <script>(function (){
+        const a = document.querySelector("#download") ?? undefined;
+        if (a !== undefined) {
+            a.href = file;
+        }
+        if (file === "") {
+            a.innerText = "INVALID FILE";
+        }
+    })();</script>
+    <h2>WARNING: The file you are about to download could come from anyone and could contain any data. Download at your own risk.</h2>
+</body>
+</html>
