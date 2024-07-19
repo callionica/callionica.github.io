@@ -15,30 +15,29 @@
             file = "";
         }
         const mimeType = index < 0 ? "" : file.substring("data:".length, index);
+
+        function write(selector, text) {
+            const e = document.querySelector(selector);
+            if (typeof text === "object") {
+                for (const [k, v] of Object.entries(text)) {
+                    e[k] = v;
+                }
+            } else {
+                e.innerText = text;
+            }
+        }
     </script>
 </head>
 <body>
     <h1>Undata</h1>
     <p>Mime type: <span id="mimeType"></span></p>
-    <script>(function (){
-        const a = document.querySelector("#mimeType") ?? undefined;
-        if (a !== undefined) {
-            a.innerText = mimeType;
-        }
-    })();</script>
-    <p>File length: <script>
-    (function (){ const length = Math.max(0, file.length); document.write(length); })();
-    </script> characters.</p>
+    <p>File length: <span id="fileLength"></span> characters.</p>
     <p><a id="download" download="undata">DOWNLOAD</a></p>
-    <script>(function (){
-        const a = document.querySelector("#download") ?? undefined;
-        if (a !== undefined) {
-            a.href = file;
-        }
-        if (file === "") {
-            a.innerText = "INVALID FILE";
-        }
-    })();</script>
     <h2>WARNING: The file you are about to download could come from anyone and could contain any data. Download at your own risk.</h2>
+    <script>
+    write("#mimeType", mimeType);
+    write("#fileLength", file.length);
+    write("#download", { href: file, innerText: file === "" ? "INVALID FILE" : "DOWNLOAD" });
+    </script>
 </body>
 </html>
