@@ -25,11 +25,11 @@
 
         function pickColorful(colors) {
             while (true) {
-                const result = pick(color);
+                const result = pick(colors);
                 if (isColorful(result)) {
                     return result;
                 }
-        }
+            }
         }
         const primary = pickColorful(colors);
         const fns = { coordinating, contrasting, neutrals, whites, darks };
