@@ -20960,6 +20960,10 @@ export function isWhite(color) {
   return color.categories.includes("White");
 }
 
+export function isColorful(color) {
+  return !isNeutral(color) && !isWhite(color);
+}
+
 export function isDark(color) {
   // return color.lightness !== undefined && color.lightness < 20;
   return color.hsl.l < 30;
@@ -20990,7 +20994,7 @@ function connecting(color, connection, connection2 = connection, filter = (_clr)
 }
 
 export function coordinating(color) {
-  return connecting(color, "Coordinating Colours", "Coordinating Colours", (clr) => !isNeutral(clr) && !isWhite(clr));
+  return connecting(color, "Coordinating Colours", "Coordinating Colours", (clr) => isColorful(clr));
 }
 
 export function contrasting(color) {

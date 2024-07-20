@@ -21,8 +21,17 @@
         }
     </script>
     <script type="module">
-        import { colors, coordinating, contrasting, neutrals, whites, darks } from "./colors.js";
-        const primary = pick(colors);
+        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks } from "./colors.js";
+
+        function pickColorful(colors) {
+            while (true) {
+                const result = pick(color);
+                if (isColorful(result)) {
+                    return result;
+                }
+        }
+        }
+        const primary = pickColorful(colors);
         const fns = { coordinating, contrasting, neutrals, whites, darks };
         const types = ["coordinating", "contrasting", "neutrals", "whites", "darks"];
 
