@@ -23,8 +23,11 @@ globalThis[name] = async function editManifest() {
     const text = JSON.stringify(json, null, 2);
     alert("CHANGED\n" + text);
 
-    const blob = new Blob([text], { type: "application/manifest+json" });
-    const editedURL = URL.createObjectURL(blob);
+    // const blob = new Blob([text], { type: "application/manifest+json" });
+    // const editedURL = URL.createObjectURL(blob);
+
+    const data = `data:application/manifest+json;utf8,${encodeURIComponent(text)}`;
+    const editedURL = data;
 
     manifestLink.href = editedURL;
 };
