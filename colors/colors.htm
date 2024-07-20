@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Colors</title>
+    <script>
+        function write(selector, text) {
+            const e = document.querySelector(selector);
+            if (typeof text === "object") {
+                for (const [k, v] of Object.entries(text)) {
+                    e[k] = v;
+                }
+            } else {
+                e.innerText = text;
+            }
+        }
+    </script>
+    <script type="module">
+        import colors from "./colors.js";
+        const primary = colors[0];
+        console.log(colors);
+    </script>
 </head>
 <body>
     
