@@ -15,10 +15,15 @@
                 e.innerText = text;
             }
         }
+
+        function pick(items) {
+            return items[Math.floor(Math.random() * items.length)];
+        }
     </script>
     <script type="module">
         import { colors } from "./colors.js";
-        const primary = colors[0];
+        const primary = pick(colors);
+        console.log(primary);
         console.log(colors);
     </script>
 </head>
