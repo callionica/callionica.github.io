@@ -14,8 +14,14 @@ globalThis[name] = async function editManifest() {
     alert("got response");
     const json = await response.json();
     alert("got JSON");
+
+    const originalText = JSON.stringify(json, null, 2);
+    alert(originalText);
+
+    json.start_url = document.location.toString();
+
     const text = JSON.stringify(json, null, 2);
-    alert(text);
+    alert("CHANGED\n" + text);
 
     const blob = new Blob([text], { type: "application/manifest+json" });
     const editedURL = URL.createObjectURL(blob);
