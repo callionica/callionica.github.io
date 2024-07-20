@@ -21,9 +21,17 @@
         }
     </script>
     <script type="module">
-        import { colors } from "./colors.js";
+        import { colors, coordinating, contrasting, neutrals, whites, darks } from "./colors.js";
         const primary = pick(colors);
-        console.log(primary);
+        const fns = { coordinating, contrasting, neutrals, whites, darks };
+        const types = ["coordinating", "contrasting", "neutrals", "whites", "darks"];
+
+        const all = { primary };
+        for (const type of types) {
+            all[type] = fns[type](primary);
+        }
+
+        console.log(all);
         console.log(colors);
     </script>
 </head>
