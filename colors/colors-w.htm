@@ -136,7 +136,7 @@
 
         document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
             const colors = all[key].colors;
-            
+
             if (colors.length === 0) {
                 return "";
             }
@@ -206,14 +206,14 @@
             transition: width 0.6s ease;
         }
 
-        expand-children > * {
+        expand-children > .swatch {
             position: absolute;
             display: block;
-            background-color: red;
+            /* background-color: red; */
             top: 0;
             left: 0; /* Explicit for first-time animation */
-            width: 100px;
-            height: 100px;
+            /* width: 100px;
+            height: 100px; */
             transition: left 0.6s ease;
         }
 
