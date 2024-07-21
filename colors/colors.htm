@@ -85,7 +85,9 @@
             }
             const color = pick(colors);
             return `<a href="?primary=${color.id}"><div class="${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch></div></a>`;
-        }).join("\n");
+        }).join("\n") + 
+        `<a href="?"><div class="random">Random</div></a>`
+        ;
         
     </script>
     <style>
