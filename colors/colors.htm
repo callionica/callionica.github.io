@@ -67,8 +67,15 @@
         console.log(all);
         console.log(colors);
 
-        document.body.innerHTML = `<color-swatch data-color="Cerys"></color-swatch>`;
+        document.body.innerHTML = `<color-swatch data-color="${primary.id}"></color-swatch>`;
     </script>
+    <style>
+        color-swatch {
+            display: block;
+            width: 10vh;
+            height: 10vh;
+        }
+    </style>
 </head>
 <body>
     
