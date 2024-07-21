@@ -134,13 +134,13 @@
         console.log(all);
         console.log(colors);
 
-        document.body.innerHTML = `<div class="primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
+        document.body.innerHTML = `<div class="group primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
             const colors = all[key].colors;
             if (colors.length === 0) {
                 return "";
             }
             const color = pick(colors);
-            return `<div class="${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
+            return `<div class="group ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
         }).join("\n") + 
         `<a href="?"><div class="random">Random</div></a>`
         ;
@@ -161,7 +161,14 @@
             height: 10vh;
         }
 
+        .group {
+            position: relative;
+        }
+
         color-swatch + a {
+            position: absolute;
+            top: 0;
+            left: 0;
             display: block;
             height: 100%;
             width: 100%;
