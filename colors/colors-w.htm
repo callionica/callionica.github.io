@@ -206,22 +206,20 @@
             transition: width 0.6s ease;
         }
 
-        expand-children > .swatch {
+        expand-children > * {
             position: absolute;
             display: block;
-            /* background-color: red; */
             top: 0;
             left: 0; /* Explicit for first-time animation */
-            /* width: 100px;
-            height: 100px; */
             transition: left 0.6s ease;
+        }
+
+        expand-children > .swatch {
+            position: absolute;
         }
 
         /* The last child is the control */
         expand-children > *:last-child {
-            position: absolute;
-            display: block;
-            transition: left 0.6s ease;
             width: 32px;
             height: 25px;
             top: unset;
