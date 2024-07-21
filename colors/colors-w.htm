@@ -136,16 +136,20 @@
 
         document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
             const colors = all[key].colors;
+            
             if (colors.length === 0) {
                 return "";
             }
 
-            return `<expand-children>
-                ${colors.map(color => `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`)}
-                <div><a href='javascript: document.querySelector("#e").toggle()'>◉</a></div>
-            </expand-children>`;
-            // const color = pick(colors);
-            // return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
+            if (colors.length > 1) {
+                return `<expand-children>
+                    ${colors.map(color => `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`).join("\n")}
+                    <div><a href='javascript: document.querySelector("#e").toggle()'>◉</a></div>
+                </expand-children>`;
+            }
+
+            const color = pick(colors);
+            return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
         }).join("\n") + 
         `<a href="?"><div class="random">Random</div></a>`
         ;
