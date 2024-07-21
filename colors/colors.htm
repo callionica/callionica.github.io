@@ -79,7 +79,7 @@
             if (colors.length === 0) {
                 return "";
             }
-            return `<div class="${key}"><color-swatch data-color="${pick(colors).id}"></color-swatch></div>`;
+            return `<div class="${key}" title="${key}"><color-swatch data-color="${pick(colors).id}"></color-swatch></div>`;
         }).join("\n");
         
     </script>
