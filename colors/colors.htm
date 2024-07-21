@@ -23,7 +23,11 @@
         class ExpandChildren extends HTMLElement {
             
             connectedCallback() {
-                // this.contract();
+                const last = this.lastElementChild ?? undefined;
+                console.log("last", last);
+                if (last !== undefined) {
+                    last.onclick = (e) => this.toggle();
+                }
             }
 
             itemWidth() {
@@ -136,10 +140,23 @@
 
         document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
             const colors = all[key].colors;
+
             if (colors.length === 0) {
                 return "";
             }
+
             const color = pick(colors);
+
+            if (colors.length > 1) {
+                return `<expand-children>
+                    ${colors.map(clr => {
+                        const selected = clr === color ? "selected" : "";
+                        return `<div class="swatch ${key} ${selected}" title="${key}"><color-swatch data-color="${clr.id}"></color-swatch><a href="?primary=${clr.id}"></a></div>`;
+                    }).join("\n")}
+                    <div>◉</div>
+                </expand-children>`;
+            }
+
             return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
         }).join("\n") + 
         `<a href="?"><div class="random">Random</div></a>`
@@ -167,6 +184,10 @@
             height: 10vh;
         }
 
+        .swatch.selected {
+            z-index: 1;
+        }
+
         color-swatch + a {
             position: absolute;
             top: 0;
@@ -189,23 +210,24 @@
         }
         
         expand-children {
-            background-color: pink;
+            /* background-color: pink; */
             position: relative;
             display: block;
-            width: 132px;
-            height: 100px;
+            width: calc(16vh + 32px);
+            height: 10vh;
             transition: width 0.6s ease;
         }
 
         expand-children > * {
             position: absolute;
             display: block;
-            background-color: red;
             top: 0;
             left: 0; /* Explicit for first-time animation */
-            width: 100px;
-            height: 100px;
             transition: left 0.6s ease;
+        }
+
+        expand-children > .swatch {
+            position: absolute;
         }
 
         /* The last child is the control */
@@ -214,7 +236,7 @@
             height: 25px;
             top: unset;
             bottom: 0px;
-            left: 100px;
+            left: 16vh;
             background: none;
             padding-left: 6px;
             padding-right: 6px;
