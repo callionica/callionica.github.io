@@ -69,7 +69,7 @@
 
         const primary = fixedPrimary !== undefined ? toColor(fixedPrimary.trim()) : pickColorful(colors);
 
-        document.title = `Colors - ${primary.title}`;
+        document.title = `Colors - ${primary.title.replaceAll(/[™®]/g, "")}`;
 
         const fns = { coordinating, contrasting, darks, neutrals, whites };
 
