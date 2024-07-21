@@ -75,10 +75,11 @@
         console.log(colors);
 
         document.body.innerHTML = `<div class="primary"><color-swatch data-color="${primary.id}"></color-swatch></div>` + Object.keys(fns).map(key => {
-            if (all[key].length === 0) {
+            const colors = all[key].colors;
+            if (colors.length === 0) {
                 return "";
             }
-            return `<div class="${key}"><color-swatch data-color="${pick(all[key]).id}"></color-swatch></div>`;
+            return `<div class="${key}"><color-swatch data-color="${pick(colors).id}"></color-swatch></div>`;
         }).join("\n");
         
     </script>
