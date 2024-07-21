@@ -26,7 +26,7 @@
         class ColorSwatch extends HTMLElement {
 
             connectedCallback() {
-                const color = toColor(this.dataset.color) ?? toColor("cerys"); 
+                const color = toColor(this.dataset.color) ?? toColor("Carys"); 
                 this.dataset.colorJSON = JSON.stringify(color, null, 2);
 
                 this.style.backgroundColor = color.color;
