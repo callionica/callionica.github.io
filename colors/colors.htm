@@ -68,6 +68,9 @@
         const fixedPrimary = params.get("primary") ?? undefined;
 
         const primary = fixedPrimary !== undefined ? toColor(fixedPrimary.trim()) : pickColorful(colors);
+
+        document.title = `Colors - ${primary.title}`;
+
         const fns = { coordinating, contrasting, darks, neutrals, whites };
 
         const all = { primary };
