@@ -19,6 +19,59 @@
         function pick(items) {
             return items[Math.floor(Math.random() * items.length)];
         }
+
+        class ExpandChildren extends HTMLElement {
+            
+            connectedCallback() {
+                // this.contract();
+            }
+
+            itemWidth() {
+                return this.firstElementChild?.getBoundingClientRect().width ?? 120;
+            }
+
+            lastItemWidth() {
+                return this.lastElementChild?.getBoundingClientRect().width ?? 120;
+            }
+
+            toggle() {
+                if (this.dataset.expanded) {
+                    this.contract();
+                } else {
+                    this.expand();
+                }
+            }
+
+            expand() {
+                this.dataset.expanded = true;
+
+                const count = this.childElementCount;
+                const width = this.itemWidth();
+                this.style.width = `${(width * (count - 1)) + this.lastItemWidth()}px`;
+
+                let index = 0;
+                for (const child of [...this.children]) {
+                    console.log(child);
+                    child.style.left = `${index * width}px`;
+                    ++index;
+                }
+            }
+
+            contract() {
+                delete this.dataset.expanded;
+
+                const width = this.itemWidth();
+                this.style.width = ``;
+
+                let index = 0;
+                for (const child of [...this.children]) {
+                    child.style.left = ``;
+                    ++index;
+                }
+            }
+        }
+        customElements.define("expand-children", ExpandChildren);
+
     </script>
     <script type="module">
         import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor } from "./colors.js";
@@ -53,7 +106,7 @@
             }
         }
 
-        customElements.define("color-swatch", ColorSwatch);
+        customElements.define("color-swatch", ColorSwatch);        
 
         function pickColorful(colors) {
             while (true) {
@@ -81,39 +134,100 @@
         console.log(all);
         console.log(colors);
 
-        document.body.innerHTML = `<a href="?primary=${primary.id}"><div class="primary"><color-swatch data-color="${primary.id}"></color-swatch></div></a>` + Object.keys(fns).map(key => {
+        document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
             const colors = all[key].colors;
             if (colors.length === 0) {
                 return "";
             }
             const color = pick(colors);
-            return `<a href="?primary=${color.id}"><div class="${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch></div></a>`;
+            return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
         }).join("\n") + 
         `<a href="?"><div class="random">Random</div></a>`
         ;
         
     </script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         :root {
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         }
+    
         color-swatch {
             display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .swatch {
+            position: relative;
             width: 16vh;
             height: 10vh;
         }
+
+        color-swatch + a {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            height: 100%;
+            width: 100%;
+        }
+
         .title {
             padding: 0.5rem;
         }
+
         .number {
             display: none;
         }
+
         a {
             text-decoration: none;
+        }
+        
+        expand-children {
+            background-color: pink;
+            position: relative;
+            display: block;
+            width: 132px;
+            height: 100px;
+            transition: width 0.6s ease;
+        }
+
+        expand-children > * {
+            position: absolute;
+            display: block;
+            background-color: red;
+            top: 0;
+            left: 0; /* Explicit for first-time animation */
+            width: 100px;
+            height: 100px;
+            transition: left 0.6s ease;
+        }
+
+        /* The last child is the control */
+        expand-children > *:last-child {
+            width: 32px;
+            height: 25px;
+            top: unset;
+            bottom: 0px;
+            left: 100px;
+            background: none;
+            padding-left: 6px;
+            padding-right: 6px;
         }
     </style>
 </head>
 <body>
-    
+    <!-- <expand-children id="e">
+        <div>One</div>
+        <div style="background-color: yellow; z-index: 1;"><a style="width: 100%; height: 100%;" href="#">Two</a></div>
+        <div>Three</div>
+        <div style="background-color: bisque;">Four</div>
+        <div><a href='javascript: document.querySelector("#e").toggle()'>◉</a></div>
+    </expand-children> -->
 </body>
 </html>
