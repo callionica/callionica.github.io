@@ -26,10 +26,12 @@
         class ColorSwatch extends HTMLElement {
 
             connectedCallback() {
-                const color = toColor(this.dataset.color); 
+                const color = toColor(this.dataset.color) ?? toColor("cerys"); 
                 this.dataset.colorJSON = JSON.stringify(color, null, 2);
 
                 this.style.backgroundColor = color.color;
+                this.style.fill = color.color;
+                this.style.color = color.hsl.l > 70 ? "black" : "white";
 
                 let title = this.querySelector(".title") ?? undefined;
                 if (title === undefined) {
@@ -40,9 +42,14 @@
 
                 title.innerText = color.title.replaceAll(/[™®]/g, "");
 
-                title.style.fill = color.color;
-                title.style.backgroundColor = color.color;
-                title.style.color = color.hsl.l > 70 ? "black" : "white";
+                let num = this.querySelector(".number") ?? undefined;
+                if (num === undefined) {
+                    num = this.ownerDocument.createElement("div");
+                    num.classList.add("number");
+                    this.append(num);
+                }
+
+                num.innerText = color.number;
             }
         }
 
@@ -67,7 +74,7 @@
         console.log(all);
         console.log(colors);
 
-        document.body.innerHTML = `<color-swatch data-color="${primary.id}"></color-swatch>`;
+        document.body.innerHTML = `<div class="primary"><color-swatch data-color="${primary.id}"></color-swatch></primary>`;
     </script>
     <style>
         color-swatch {
