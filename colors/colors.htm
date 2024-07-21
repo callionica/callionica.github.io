@@ -21,7 +21,32 @@
         }
     </script>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks } from "./colors.js";
+        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor } from "./colors.js";
+
+        class ColorSwatch extends HTMLElement {
+
+            connectedCallback() {
+                const color = toColor(this.dataset.color); 
+                this.dataset.colorJSON = JSON.stringify(color, null, 2);
+
+                this.style.backgroundColor = color.color;
+
+                let title = this.querySelector(".title") ?? undefined;
+                if (title === undefined) {
+                    title = this.ownerDocument.createElement("div");
+                    title.classList.add("title");
+                    this.append(title);
+                }
+
+                title.innerText = this.color.title.replaceAll(/[™®]/g, "");
+
+                title.style.fill = color.color;
+                title.style.backgroundColor = color.color;
+                title.style.color = color.hsl.l > 70 ? "black" : "white";
+            }
+        }
+
+        customElements.define("color-swatch", ColorSwatch);
 
         function pickColorful(colors) {
             while (true) {
@@ -41,6 +66,8 @@
 
         console.log(all);
         console.log(colors);
+
+        document.body.innerHTML = `<color-swatch data-color="Cerys"></color-swatch>`;
     </script>
 </head>
 <body>

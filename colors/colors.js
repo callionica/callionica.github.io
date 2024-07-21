@@ -20927,11 +20927,11 @@ export const colors = [
   }
 ];
 
-function toID(text) {
+export function toID(text) {
   return text.replaceAll(/[:™®]/g, "").replaceAll(/[- ’'&]+/g, " ").replaceAll(" ", "-").toLowerCase();
 }
 
-function toColor(color) {
+export function toColor(color) {
   if (typeof color == "string") {
     const id = toID(color);
     const byID = colors.find(c => c.id == id);
