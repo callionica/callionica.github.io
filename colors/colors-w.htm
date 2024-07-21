@@ -23,8 +23,11 @@
         class ExpandChildren extends HTMLElement {
             
             connectedCallback() {
-                const last = this.lastElementChild;
+                const last = this.lastElementChild ?? undefined;
                 console.log("last", last);
+                if (last !== undefined) {
+                    last.onclick = (e) => this.toggle();
+                }
             }
 
             itemWidth() {
@@ -145,7 +148,7 @@
             if (colors.length > 1) {
                 return `<expand-children>
                     ${colors.map(color => `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`).join("\n")}
-                    <div><a href='javascript: document.querySelector("#e").toggle()'>◉</a></div>
+                    <div>◉</div>
                 </expand-children>`;
             }
 
