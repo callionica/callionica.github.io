@@ -23,7 +23,8 @@
         class ExpandChildren extends HTMLElement {
             
             connectedCallback() {
-                // this.contract();
+                const last = this.lastElementChild;
+                console.log("last", last);
             }
 
             itemWidth() {
