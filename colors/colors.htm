@@ -63,7 +63,11 @@
                 }
             }
         }
-        const primary = pickColorful(colors);
+
+        const params = new URLSearchParams(document.location.search);
+        const fixedPrimary = params.get("primary") ?? undefined;
+
+        const primary = fixedPrimary !== undefined ? toColor(fixedPrimary.trim()) : pickColorful(colors);
         const fns = { coordinating, contrasting, darks, neutrals, whites };
 
         const all = { primary };
@@ -79,7 +83,8 @@
             if (colors.length === 0) {
                 return "";
             }
-            return `<div class="${key}" title="${key}"><color-swatch data-color="${pick(colors).id}"></color-swatch></div>`;
+            const color = pick(colors);
+            return `<div class="${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch></div>`;
         }).join("\n");
         
     </script>
