@@ -145,14 +145,18 @@
                 return "";
             }
 
+            const color = pick(colors);
+
             if (colors.length > 1) {
                 return `<expand-children>
-                    ${colors.map(color => `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`).join("\n")}
+                    ${colors.map(clr => {
+                        const selected = clr === color ? "selected" : "";
+                        return `<div class="swatch ${key} ${selected}" title="${key}"><color-swatch data-color="${clr.id}"></color-swatch><a href="?primary=${clr.id}"></a></div>`;
+                    }).join("\n")}
                     <div>◉</div>
                 </expand-children>`;
             }
 
-            const color = pick(colors);
             return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
         }).join("\n") + 
         `<a href="?"><div class="random">Random</div></a>`
@@ -178,6 +182,10 @@
             position: relative;
             width: 16vh;
             height: 10vh;
+        }
+
+        .swatch.selected {
+            z-index: 1;
         }
 
         color-swatch + a {
