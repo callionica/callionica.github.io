@@ -33,11 +33,10 @@
         }
         const primary = pickColorful(colors);
         const fns = { coordinating, contrasting, neutrals, whites, darks };
-        const types = ["coordinating", "contrasting", "neutrals", "whites", "darks"];
 
         const all = { primary };
-        for (const type of types) {
-            all[type] = fns[type](primary);
+        for (const key of Object.keys(fns)) {
+            all[key] = fns[key](primary);
         }
 
         console.log(all);
