@@ -78,7 +78,7 @@
         console.log(all);
         console.log(colors);
 
-        document.body.innerHTML = `<div class="primary"><color-swatch data-color="${primary.id}"></color-swatch></div>` + Object.keys(fns).map(key => {
+        document.body.innerHTML = `<a href="?primary=${primary.id}"><div class="primary"><color-swatch data-color="${primary.id}"></color-swatch></div></a>` + Object.keys(fns).map(key => {
             const colors = all[key].colors;
             if (colors.length === 0) {
                 return "";
@@ -104,7 +104,7 @@
             display: none;
         }
         a {
-            text-decoration: none;;
+            text-decoration: none;
         }
     </style>
 </head>
