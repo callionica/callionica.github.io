@@ -255,12 +255,14 @@
             top: 0;
             left: 0; /* Explicit for first-time animation */
             transition: left 0.6s ease;
+            scroll-snap-align: start end;
         }
 
         expand-children > .scroller {
             max-width: calc(16vh * 3.5);
             overflow-y: hidden;
             overflow-x: scroll;
+            scroll-snap-type: x mandatory;
         }
 
         expand-children > .swatch {
