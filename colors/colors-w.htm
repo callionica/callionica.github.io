@@ -93,6 +93,8 @@
             contract() {
                 delete this.dataset.expanded;
 
+                this.scroller.scrollLeft = 0;
+
                 // const width = this.itemWidth();
                 // this.container.style.width = `${width}px`;
                 this.container.style.width = ``;
