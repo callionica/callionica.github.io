@@ -23,28 +23,29 @@
         class ExpandChildren extends HTMLElement {
             
             connectedCallback() {
-                if (this.scroller === undefined) {
-                    this.scroller = this.querySelector(".scroller") ?? undefined;
-                    if (this.scroller === undefined) {
-                        this.scroller = this.ownerDocument.createElement("div");
-                        this.scroller.classList.add("scroller");
-                        this.append(this.scroller);
-                    }
-                }
 
                 if (this.container === undefined) {
-                    this.container = this.scroller.querySelector(".container") ?? undefined;
+                    this.container = this.scroller?.querySelector("& > .container") ?? undefined;
                     if (this.container === undefined) {
                         const children = [...this.children];
                         this.container = this.ownerDocument.createElement("div");
                         this.container.classList.add("container");
                         this.container.append(...children);
+                    }
+                }
+
+                if (this.scroller === undefined) {
+                    this.scroller = this.querySelector("& > .scroller") ?? undefined;
+                    if (this.scroller === undefined) {
+                        this.scroller = this.ownerDocument.createElement("div");
+                        this.scroller.classList.add("scroller");
                         this.scroller.append(this.container);
+                        this.append(this.scroller);
                     }
                 }
 
                 if (this.clicker === undefined) {
-                    this.clicker = this.querySelector(".clicker") ?? undefined;
+                    this.clicker = this.querySelector("& > .clicker") ?? undefined;
                     if (this.clicker === undefined) {
                         const clicker = this.ownerDocument.createElement("div");
                         clicker.classList.add("clicker");
