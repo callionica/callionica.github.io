@@ -68,6 +68,11 @@
             }
 
             toggle() {
+                if (this.scroller.scrollLeft !== 0) {
+                    this.scroller.scrollLeft = 0;
+                    return;
+                }
+                
                 if (this.dataset.expanded) {
                     this.contract();
                 } else {
