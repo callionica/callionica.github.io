@@ -68,10 +68,10 @@
             }
 
             toggle() {
-                if (this.scroller.scrollLeft !== 0) {
-                    this.scroller.scrollLeft = 0;
-                    return;
-                }
+                // if (this.scroller.scrollLeft !== 0) {
+                //     this.scroller.scrollLeft = 0;
+                //     return;
+                // }
                 
                 if (this.dataset.expanded) {
                     this.contract();
@@ -98,7 +98,7 @@
             contract() {
                 delete this.dataset.expanded;
 
-                this.scroller.scrollLeft = 0;
+                this.scroller.scroll({ left: 0, behavior: "smooth" });
 
                 // const width = this.itemWidth();
                 // this.container.style.width = `${width}px`;
