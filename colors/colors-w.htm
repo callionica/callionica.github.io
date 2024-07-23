@@ -32,6 +32,19 @@
                         this.container.classList.add("container");
                         this.container.append(...children);
                     }
+
+                    this.container.onclick = (evt) => {
+                        if (this.dataset.expanded) {
+                            const item = [...document.elementsFromPoint(evt.clientX, evt.clientY)].filter(e => e.parentElement === this.container)[0];
+                            if (item !== undefined) {
+                                this.select(item);
+
+                                evt.stopImmediatePropagation();
+                                evt.stopPropagation();
+                                evt.preventDefault();
+                            }
+                        }
+                    };
                 }
 
                 if (this.scroller === undefined) {
@@ -57,6 +70,14 @@
                         this.clicker = clicker;
                     }
                 }
+            }
+
+            select(item) {
+                for (const child of this.container.children) {
+                    child.classList.remove("selected");
+                }
+
+                item.classList.add("selected");
             }
 
             itemWidth() {
