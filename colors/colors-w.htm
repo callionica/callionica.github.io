@@ -38,6 +38,7 @@
                             const item = [...document.elementsFromPoint(evt.clientX, evt.clientY)].filter(e => e.parentElement === this.container)[0];
                             if (item !== undefined) {
                                 this.select(item);
+                                this.contract();
 
                                 evt.stopImmediatePropagation();
                                 evt.stopPropagation();
