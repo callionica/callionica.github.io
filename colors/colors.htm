@@ -23,22 +23,78 @@
         class ExpandChildren extends HTMLElement {
             
             connectedCallback() {
-                const last = this.lastElementChild ?? undefined;
-                console.log("last", last);
-                if (last !== undefined) {
-                    last.onclick = (e) => this.toggle();
+
+                if (this.container === undefined) {
+                    this.container = this.scroller?.querySelector("& > .container") ?? undefined;
+                    if (this.container === undefined) {
+                        const children = [...this.children];
+                        this.container = this.ownerDocument.createElement("div");
+                        this.container.classList.add("container");
+                        this.container.append(...children);
+                    }
+
+                    this.container.onclick = (evt) => {
+                        if (this.dataset.expanded) {
+                            const item = [...document.elementsFromPoint(evt.clientX, evt.clientY)].filter(e => e.parentElement === this.container)[0];
+                            if (item !== undefined) {
+                                this.select(item);
+                                this.contract();
+
+                                evt.stopImmediatePropagation();
+                                evt.stopPropagation();
+                                evt.preventDefault();
+                            }
+                        }
+                    };
+                }
+
+                if (this.scroller === undefined) {
+                    this.scroller = this.querySelector("& > .scroller") ?? undefined;
+                    if (this.scroller === undefined) {
+                        this.scroller = this.ownerDocument.createElement("div");
+                        this.scroller.classList.add("scroller");
+                        this.scroller.append(this.container);
+                        this.append(this.scroller);
+                    }
+                }
+
+                if (this.clicker === undefined) {
+                    this.clicker = this.querySelector("& > .clicker") ?? undefined;
+                    if (this.clicker === undefined) {
+                        const clicker = this.ownerDocument.createElement("div");
+                        clicker.classList.add("clicker");
+                        clicker.innerText = "◉";
+                        this.append(clicker);
+
+                        clicker.onclick = (e) => this.toggle();
+
+                        this.clicker = clicker;
+                    }
                 }
             }
 
-            itemWidth() {
-                return this.firstElementChild?.getBoundingClientRect().width ?? 120;
+            select(item) {
+                for (const child of this.container.children) {
+                    child.classList.remove("selected");
+                }
+
+                item.classList.add("selected");
             }
 
-            lastItemWidth() {
-                return this.lastElementChild?.getBoundingClientRect().width ?? 120;
+            itemWidth() {
+                return this.container.firstElementChild?.getBoundingClientRect().width ?? 128;
+            }
+
+            clickerWidth() {
+                return this.clicker.getBoundingClientRect().width ?? 128;
             }
 
             toggle() {
+                // if (this.scroller.scrollLeft !== 0) {
+                //     this.scroller.scrollLeft = 0;
+                //     return;
+                // }
+                
                 if (this.dataset.expanded) {
                     this.contract();
                 } else {
@@ -49,12 +105,12 @@
             expand() {
                 this.dataset.expanded = true;
 
-                const count = this.childElementCount;
+                const count = this.container.childElementCount;
                 const width = this.itemWidth();
-                this.style.width = `${(width * (count - 1)) + this.lastItemWidth()}px`;
+                this.container.style.width = `${(width * count)}px`;
 
                 let index = 0;
-                for (const child of [...this.children]) {
+                for (const child of [...this.container.children]) {
                     console.log(child);
                     child.style.left = `${index * width}px`;
                     ++index;
@@ -64,13 +120,14 @@
             contract() {
                 delete this.dataset.expanded;
 
-                const width = this.itemWidth();
-                this.style.width = ``;
+                this.scroller.scroll({ left: 0, behavior: "smooth" });
 
-                let index = 0;
-                for (const child of [...this.children]) {
+                // const width = this.itemWidth();
+                // this.container.style.width = `${width}px`;
+                this.container.style.width = ``;
+
+                for (const child of [...this.container.children]) {
                     child.style.left = ``;
-                    ++index;
                 }
             }
         }
@@ -153,7 +210,6 @@
                         const selected = clr === color ? "selected" : "";
                         return `<div class="swatch ${key} ${selected}" title="${key}"><color-swatch data-color="${clr.id}"></color-swatch><a href="?primary=${clr.id}"></a></div>`;
                     }).join("\n")}
-                    <div>◉</div>
                 </expand-children>`;
             }
 
@@ -210,20 +266,32 @@
         }
         
         expand-children {
+            display: flex;
+        }
+
+        expand-children > .scroller > .container {
             /* background-color: pink; */
             position: relative;
             display: block;
-            width: calc(16vh + 32px);
+            width: calc(16vh);
             height: 10vh;
             transition: width 0.6s ease;
         }
 
-        expand-children > * {
+        expand-children > .scroller > .container > * {
             position: absolute;
             display: block;
             top: 0;
             left: 0; /* Explicit for first-time animation */
             transition: left 0.6s ease;
+            scroll-snap-align: start;
+        }
+
+        expand-children > .scroller {
+            max-width: calc(16vh * 4);
+            overflow-y: hidden;
+            overflow-x: scroll;
+            scroll-snap-type: x mandatory;
         }
 
         expand-children > .swatch {
