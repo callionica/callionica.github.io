@@ -234,6 +234,18 @@
                 return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
             }
 
+            /**
+             * @param { string } text
+             **/
+            function nav(text) {
+                const url = new URL(`?colors=${encodeURIComponent(text.replaceAll("\n", ","))}`, document.location);
+                document.location = url;
+            }
+
+            async function pasteNav() {
+                nav(await navigator.clipboard.readText());
+            }
+
             const params = new URLSearchParams(document.location.search);
 
             const fixedColors = params.get("colors") ?? undefined;
@@ -247,7 +259,10 @@
 
                 document.title = `Colors - ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
-                `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>`;
+                `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
+                <div class="pasteNav">Show clipboard</div>`;
+
+                document.querySelector(".pasteNav").onclick = () => pasteNav();
 
                 // const paletteElement = document.body.querySelector("& > .palette") ?? undefined;
                 // const shuffleElement = document.body.querySelector("& > .shuffle") ?? undefined;
