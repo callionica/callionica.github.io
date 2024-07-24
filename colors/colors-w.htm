@@ -139,10 +139,18 @@
         import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor } from "./colors.js";
 
         (function () {
+            function toColorDefault(name, fallback) {
+                const color = toColor(name);
+                if (typeof color === "string") {
+                    return toColor(fallback ?? "Carys");
+                }
+                return color;
+            }
+
             class ColorSwatch extends HTMLElement {
 
                 connectedCallback() {
-                    const color = toColor(this.dataset.color) ?? toColor("Carys");
+                    const color = toColorDefault(this.dataset.color);
                     this.dataset.colorJSON = JSON.stringify(color, null, 2);
 
                     this.style.backgroundColor = color.color;
@@ -215,7 +223,7 @@
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
-                const palette = fixedColors.split(",").map(name => [toColor(name.trim()) ?? toColor("Carys")]);
+                const palette = fixedColors.split(",").map(name => [toColorDefault(name.trim())]);
                 document.title = `Colors - Palette of ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = paletteHTML(palette);
                 return;
@@ -223,7 +231,7 @@
 
             const fixedPrimary = params.get("primary") ?? undefined;
 
-            const primary = fixedPrimary !== undefined ? toColor(fixedPrimary.trim()) : pickColorful(colors);
+            const primary = fixedPrimary !== undefined ? toColorDefault(fixedPrimary.trim()) : pickColorful(colors);
 
             document.title = `Colors - ${primary.title.replaceAll(/[™®]/g, "")}`;
 
