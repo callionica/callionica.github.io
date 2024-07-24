@@ -176,6 +176,10 @@
                     return "";
                 }
 
+                if (selectedColor === undefined) {
+                    selectedColor = colors[0];
+                }
+
                 if (colors.length > 1) {
                     let isSelected = false;
                     return `<expand-children>
