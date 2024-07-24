@@ -30,6 +30,7 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
+            return array;
         }
 
         class ExpandChildren extends HTMLElement {
@@ -235,19 +236,21 @@
 
             if (fixedColors !== undefined) {
                 const palette = fixedColors.split(",").map(name => [toColorDefault(name.trim())]);
+                const shuffledPalette = shuffle([...palette]);
+                const shuffledQuery = shuffledPalette.map(color => color.id).join(",");
                 document.title = `Colors - Palette of ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
-                `<div class="shuffle">Shuffle</div>`;
+                `<a href="?${shuffledQuery}"><div class="shuffle">Shuffle</div></a>`;
 
-                const paletteElement = document.body.querySelector("& > .palette") ?? undefined;
-                const shuffleElement = document.body.querySelector("& > .shuffle") ?? undefined;
-                if (shuffleElement !== undefined && paletteElement !== undefined) {
-                    shuffleElement.onclick = () => {
-                        const children = [...paletteElement.children];
-                        shuffle(children);
-                        paletteElement.append(...children);
-                    };
-                }
+                // const paletteElement = document.body.querySelector("& > .palette") ?? undefined;
+                // const shuffleElement = document.body.querySelector("& > .shuffle") ?? undefined;
+                // if (shuffleElement !== undefined && paletteElement !== undefined) {
+                //     shuffleElement.onclick = () => {
+                //         const children = [...paletteElement.children];
+                //         shuffle(children);
+                //         paletteElement.append(...children);
+                //     };
+                // }
                 return;
             }
 
