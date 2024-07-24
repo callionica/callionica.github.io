@@ -215,7 +215,7 @@
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
-                const palette = fixedColors.split(",").map(name => [toColor(name.trim())]);
+                const palette = fixedColors.split(",").map(name => [toColor(name.trim()) ?? toColor("Carys")]);
                 document.title = `Colors - Palette of ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = paletteHTML(palette);
                 return;
