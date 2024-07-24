@@ -236,11 +236,14 @@
 
             if (fixedColors !== undefined) {
                 const palette = fixedColors.split(",").map(name => [toColorDefault(name.trim())]);
+                const query = palette.map(color => color.id).join(",");
+
                 const shuffledPalette = shuffle([...palette]);
                 const shuffledQuery = shuffledPalette.map(color => color.id).join(",");
+
                 document.title = `Colors - Palette of ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
-                `<a href="?${shuffledQuery}"><div class="shuffle">Shuffle</div></a>`;
+                `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>`;
 
                 // const paletteElement = document.body.querySelector("& > .palette") ?? undefined;
                 // const shuffleElement = document.body.querySelector("& > .shuffle") ?? undefined;
