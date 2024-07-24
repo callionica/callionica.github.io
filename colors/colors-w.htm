@@ -245,7 +245,7 @@
                 const shuffledPalette = shuffle([...palette]);
                 const shuffledQuery = paletteToQuery(shuffledPalette);
 
-                document.title = `Colors - Palette of ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
+                document.title = `Colors - ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
                 `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>`;
 
