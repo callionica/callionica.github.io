@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +22,7 @@
         }
 
         class ExpandChildren extends HTMLElement {
-            
+
             connectedCallback() {
 
                 if (this.container === undefined) {
@@ -94,7 +95,7 @@
                 //     this.scroller.scrollLeft = 0;
                 //     return;
                 // }
-                
+
                 if (this.dataset.expanded) {
                     this.contract();
                 } else {
@@ -137,46 +138,47 @@
     <script type="module">
         import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor } from "./colors.js";
 
-        class ColorSwatch extends HTMLElement {
+        (function () {
+            class ColorSwatch extends HTMLElement {
 
-            connectedCallback() {
-                const color = toColor(this.dataset.color) ?? toColor("Carys"); 
-                this.dataset.colorJSON = JSON.stringify(color, null, 2);
+                connectedCallback() {
+                    const color = toColor(this.dataset.color) ?? toColor("Carys");
+                    this.dataset.colorJSON = JSON.stringify(color, null, 2);
 
-                this.style.backgroundColor = color.color;
-                this.style.fill = color.color;
-                this.style.color = color.hsl.l > 70 ? "black" : "white";
+                    this.style.backgroundColor = color.color;
+                    this.style.fill = color.color;
+                    this.style.color = color.hsl.l > 70 ? "black" : "white";
 
-                let title = this.querySelector(".title") ?? undefined;
-                if (title === undefined) {
-                    title = this.ownerDocument.createElement("div");
-                    title.classList.add("title");
-                    this.append(title);
+                    let title = this.querySelector(".title") ?? undefined;
+                    if (title === undefined) {
+                        title = this.ownerDocument.createElement("div");
+                        title.classList.add("title");
+                        this.append(title);
+                    }
+
+                    title.innerText = color.title.replaceAll(/[™®]/g, "");
+
+                    let num = this.querySelector(".number") ?? undefined;
+                    if (num === undefined) {
+                        num = this.ownerDocument.createElement("div");
+                        num.classList.add("number");
+                        this.append(num);
+                    }
+
+                    num.innerText = color.number ?? "";
                 }
-
-                title.innerText = color.title.replaceAll(/[™®]/g, "");
-
-                let num = this.querySelector(".number") ?? undefined;
-                if (num === undefined) {
-                    num = this.ownerDocument.createElement("div");
-                    num.classList.add("number");
-                    this.append(num);
-                }
-
-                num.innerText = color.number ?? "";
-            }
-        }
-
-        customElements.define("color-swatch", ColorSwatch);
-
-        function multiSwatchHTML(colors, selectedColor) {
-            if (colors.length === 0) {
-                return "";
             }
 
-            if (colors.length > 1) {
-                let isSelected = false;
-                return `<expand-children>
+            customElements.define("color-swatch", ColorSwatch);
+
+            function multiSwatchHTML(colors, selectedColor) {
+                if (colors.length === 0) {
+                    return "";
+                }
+
+                if (colors.length > 1) {
+                    let isSelected = false;
+                    return `<expand-children>
                     ${colors.map(color => {
                         let selected = "";
                         if (!isSelected && ((color === selectedColor) || (selectedColor === undefined))) {
@@ -186,74 +188,74 @@
                         return `<div class="swatch ${selected}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
                     }).join("\n")}
                 </expand-children>`;
+                }
+
+                return `<div class="swatch"><color-swatch data-color="${selectedColor.id}"></color-swatch><a href="?primary=${selectedColor.id}"></a></div>`;
             }
 
-            return `<div class="swatch"><color-swatch data-color="${selectedColor.id}"></color-swatch><a href="?primary=${selectedColor.id}"></a></div>`;
-        }
+            function paletteHTML(palette) {
+                return palette.map(colors => multiSwatchHTML(colors)).join("\n");
+            }
 
-        function paletteHTML(palette) {
-            return palette.map(colors => multiSwatchHTML(colors)).join("\n");
-        }
-
-        function pickColorful(colors) {
-            while (true) {
-                const result = pick(colors);
-                if (isColorful(result)) {
-                    return result;
+            function pickColorful(colors) {
+                while (true) {
+                    const result = pick(colors);
+                    if (isColorful(result)) {
+                        return result;
+                    }
                 }
             }
-        }
 
-        const params = new URLSearchParams(document.location.search);
+            const params = new URLSearchParams(document.location.search);
 
-        const fixedColors = params.get("colors") ?? undefined;
+            const fixedColors = params.get("colors") ?? undefined;
 
-        if (fixedColors !== undefined) {
-            const palette = fixedColors.split(",").map(name => [toColor(name.trim())]);
-            document.title = `Colors - Palette`;
-            document.body.innerHTML = paletteHTML(palette);
-            return;
-        }
-
-        const fixedPrimary = params.get("primary") ?? undefined;
-
-        const primary = fixedPrimary !== undefined ? toColor(fixedPrimary.trim()) : pickColorful(colors);
-
-        document.title = `Colors - ${primary.title.replaceAll(/[™®]/g, "")}`;
-
-        const fns = { coordinating, contrasting, darks, neutrals, whites };
-
-        const all = { primary };
-        for (const key of Object.keys(fns)) {
-            all[key] = fns[key](primary);
-        }
-
-        console.log(all);
-        console.log(colors);
-
-        document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
-            const colors = all[key].colors;
-
-            if (colors.length === 0) {
-                return "";
+            if (fixedColors !== undefined) {
+                const palette = fixedColors.split(",").map(name => [toColor(name.trim())]);
+                document.title = `Colors - Palette`;
+                document.body.innerHTML = paletteHTML(palette);
+                return;
             }
 
-            const color = pick(colors);
+            const fixedPrimary = params.get("primary") ?? undefined;
 
-            if (colors.length > 1) {
-                return `<expand-children>
+            const primary = fixedPrimary !== undefined ? toColor(fixedPrimary.trim()) : pickColorful(colors);
+
+            document.title = `Colors - ${primary.title.replaceAll(/[™®]/g, "")}`;
+
+            const fns = { coordinating, contrasting, darks, neutrals, whites };
+
+            const all = { primary };
+            for (const key of Object.keys(fns)) {
+                all[key] = fns[key](primary);
+            }
+
+            console.log(all);
+            console.log(colors);
+
+            document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
+                const colors = all[key].colors;
+
+                if (colors.length === 0) {
+                    return "";
+                }
+
+                const color = pick(colors);
+
+                if (colors.length > 1) {
+                    return `<expand-children>
                     ${colors.map(clr => {
                         const selected = clr === color ? "selected" : "";
                         return `<div class="swatch ${key} ${selected}" title="${key}"><color-swatch data-color="${clr.id}"></color-swatch><a href="?primary=${clr.id}"></a></div>`;
                     }).join("\n")}
                 </expand-children>`;
-            }
+                }
 
-            return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
-        }).join("\n") + 
-        `<a href="?"><div class="random">Random</div></a>`
-        ;
-        
+                return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
+            }).join("\n") +
+                `<a href="?"><div class="random">Random</div></a>`
+                ;
+        })();
     </script>
     <style>
         * {
@@ -263,7 +265,7 @@
         :root {
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         }
-    
+
         color-swatch {
             display: block;
             width: 100%;
@@ -280,7 +282,7 @@
             z-index: 1;
         }
 
-        color-swatch + a {
+        color-swatch+a {
             position: absolute;
             top: 0;
             left: 0;
@@ -300,12 +302,12 @@
         a {
             text-decoration: none;
         }
-        
+
         expand-children {
             display: flex;
         }
 
-        expand-children > .scroller > .container {
+        expand-children>.scroller>.container {
             /* background-color: pink; */
             position: relative;
             display: block;
@@ -314,28 +316,29 @@
             transition: width 0.6s ease;
         }
 
-        expand-children > .scroller > .container > * {
+        expand-children>.scroller>.container>* {
             position: absolute;
             display: block;
             top: 0;
-            left: 0; /* Explicit for first-time animation */
+            left: 0;
+            /* Explicit for first-time animation */
             transition: left 0.6s ease;
             scroll-snap-align: start;
         }
 
-        expand-children > .scroller {
+        expand-children>.scroller {
             max-width: calc(16vh * 4);
             overflow-y: hidden;
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
         }
 
-        expand-children > .swatch {
+        expand-children>.swatch {
             position: absolute;
         }
 
         /* The last child is the control */
-        expand-children > *:last-child {
+        expand-children>*:last-child {
             width: 32px;
             height: 25px;
             top: unset;
@@ -347,6 +350,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- <expand-children id="e">
         <div>One</div>
@@ -356,4 +360,5 @@
         <div><a href='javascript: document.querySelector("#e").toggle()'>◉</a></div>
     </expand-children> -->
 </body>
+
 </html>
