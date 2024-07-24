@@ -230,16 +230,20 @@
                 }
             }
 
+            function paletteToQuery(palette) {
+                return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
+            }
+
             const params = new URLSearchParams(document.location.search);
 
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
-                const palette = fixedColors.split(",").map(name => [toColorDefault(name.trim())]);
-                const query = palette.map(color => color.id).join(",");
+                const palette = fixedColors.split(",").map(line => line.split("|").map(name => toColorDefault(name.trim())));
+                const query = paletteToQuery(palette);
 
                 const shuffledPalette = shuffle([...palette]);
-                const shuffledQuery = shuffledPalette.map(color => color.id).join(",");
+                const shuffledQuery = paletteToQuery(shuffledPalette);
 
                 document.title = `Colors - Palette of ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
