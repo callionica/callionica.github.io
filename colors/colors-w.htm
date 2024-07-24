@@ -85,9 +85,9 @@
                 return this.container.firstElementChild?.getBoundingClientRect().width ?? 128;
             }
 
-            clickerWidth() {
-                return this.clicker.getBoundingClientRect().width ?? 128;
-            }
+            // clickerWidth() {
+            //     return this.clicker.getBoundingClientRect().width ?? 128;
+            // }
 
             toggle() {
                 // if (this.scroller.scrollLeft !== 0) {
@@ -167,7 +167,33 @@
             }
         }
 
-        customElements.define("color-swatch", ColorSwatch);        
+        customElements.define("color-swatch", ColorSwatch);
+
+        function multiSwatchHTML(colors, selectedColor) {
+            if (colors.length === 0) {
+                return "";
+            }
+
+            if (colors.length > 1) {
+                let isSelected = false;
+                return `<expand-children>
+                    ${colors.map(color => {
+                        let selected = "";
+                        if (!isSelected && ((color === selectedColor) || (selectedColor === undefined))) {
+                            selected = "selected";
+                            isSelected = true;
+                        }
+                        return `<div class="swatch ${selected}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
+                    }).join("\n")}
+                </expand-children>`;
+            }
+
+            return `<div class="swatch"><color-swatch data-color="${selectedColor.id}"></color-swatch><a href="?primary=${selectedColor.id}"></a></div>`;
+        }
+
+        function paletteHTML(palette) {
+            return palette.map(colors => multiSwatchHTML(colors)).join("\n");
+        }
 
         function pickColorful(colors) {
             while (true) {
@@ -179,6 +205,16 @@
         }
 
         const params = new URLSearchParams(document.location.search);
+
+        const fixedColors = params.get("colors") ?? undefined;
+
+        if (fixedColors !== undefined) {
+            const palette = fixedColors.split(",").map(name => [toColor(name.trim())]);
+            document.title = `Colors - Palette`;
+            document.body.innerHTML = paletteHTML(palette);
+            return;
+        }
+
         const fixedPrimary = params.get("primary") ?? undefined;
 
         const primary = fixedPrimary !== undefined ? toColor(fixedPrimary.trim()) : pickColorful(colors);
