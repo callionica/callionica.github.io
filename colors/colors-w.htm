@@ -251,7 +251,7 @@
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
-                const palette = fixedColors.trim().split(",").map(line => line.trim().split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColorDefault(name)));
+                const palette = fixedColors.trim().split(",").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColorDefault(name)));
                 const query = paletteToQuery(palette);
 
                 const shuffledPalette = shuffle([...palette]);
