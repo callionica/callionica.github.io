@@ -20941,7 +20941,7 @@ export function toID(text) {
 }
 
 /**
- * A complete match on the ID or alias of a color
+ * A complete match on the ID or number or alias of a color
  * @param { string } color 
  * @returns 
  */
@@ -20951,6 +20951,11 @@ export function toColor(color) {
     const byID = colors.find(c => c.id == id);
     if (byID !== undefined) {
       return byID;
+    }
+
+    const byNumber = colors.find(c => c.number == id);
+    if (byNumber !== undefined) {
+      return byNumber;
     }
 
     const byAlias = colors.find(c => c.aliases && c.aliases.map(a => toID(a)).includes(id));
