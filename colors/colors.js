@@ -14497,6 +14497,9 @@ export const colors = [
     },
     "categories": [
       "Archive"
+    ],
+    "aliases": [
+      "Edith's Eye"
     ]
   },
   {
