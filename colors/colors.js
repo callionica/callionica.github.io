@@ -20929,7 +20929,7 @@ export const colors = [
 ];
 
 export function toID(text) {
-  return text.replaceAll(/[:™®]/g, "").replaceAll(/[- ’'&]+/g, " ").replaceAll(" ", "-").toLowerCase();
+  return text.replaceAll(/[:™®']/g, "").replaceAll(/[- &’]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
 }
 
 export function toColor(color) {
