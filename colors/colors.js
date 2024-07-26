@@ -14450,6 +14450,7 @@ export const colors = [
     ]
   },
   {
+    "id": "edith-s-eye",
     "title": "Edith’s Eye™",
     "number": "301",
     "lightness": 45,
@@ -20929,7 +20930,7 @@ export const colors = [
 ];
 
 export function toID(text) {
-  return text.replaceAll(/[:™®']/g, "").replaceAll(/[- &’]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
+  return text.replaceAll(/[:™®'’]/g, "").replaceAll(/[- &]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
 }
 
 export function toColor(color) {
