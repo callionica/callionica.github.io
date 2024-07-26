@@ -153,8 +153,11 @@
         (function () {
             function toColorDefault(name, fallback) {
                 const color = toColor(name);
-                if (typeof color === "string") {
-                    return toColor(fallback ?? "Carys");
+                if (color === undefined) {
+                    color = toColorByPrefix(name);
+                }
+                if (color === undefined) {
+                    color = toColor(fallback ?? "Carys");
                 }
                 return color;
             }

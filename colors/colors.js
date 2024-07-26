@@ -20942,8 +20942,8 @@ export function toID(text) {
 
 /**
  * A complete match on the ID or number or alias of a color
- * @param { string } color 
- * @returns 
+ * @param { string | number } color 
+ * @returns object | undefined
  */
 export function toColor(color) {
   if (typeof color === "number") {
@@ -20965,6 +20965,8 @@ export function toColor(color) {
     if (byAlias !== undefined) {
       return byAlias;
     }
+
+    return undefined;
   }
 
   return color;
