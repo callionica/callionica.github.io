@@ -152,7 +152,7 @@
 
         (function () {
             function toColorDefault(name, fallback) {
-                const color = toColor(name);
+                let color = toColor(name);
                 if (color === undefined) {
                     color = toColorByPrefix(name);
                 }
