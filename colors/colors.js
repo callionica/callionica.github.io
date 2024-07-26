@@ -8099,6 +8099,7 @@ export const colors = [
     ]
   },
   {
+    "id": "cordoba",
     "title": "Córdoba™",
     "number": "277",
     "lightness": 6,
@@ -20949,7 +20950,9 @@ export function toColor(color) {
 }
 
 for (const color of colors) {
-  color.id = toID(color.title);
+  if (color.id === undefined) {
+    color.id = toID(color.title);
+  }
 }
 
 export function isNeutral(color) {
