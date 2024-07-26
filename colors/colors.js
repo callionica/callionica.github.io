@@ -8148,6 +8148,10 @@ export const colors = [
       "Red & Pink",
       "Black",
       "Colours of England"
+    ],
+    "aliases": [
+      "Cordoba",
+      "Córdoba"
     ]
   },
   {
