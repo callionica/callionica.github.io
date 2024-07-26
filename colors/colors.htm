@@ -148,13 +148,16 @@
 
     </script>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor } from "./colors.js";
+        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, toColorByPrefix } from "./colors.js";
 
         (function () {
             function toColorDefault(name, fallback) {
-                const color = toColor(name);
-                if (typeof color === "string") {
-                    return toColor(fallback ?? "Carys");
+                let color = toColor(name);
+                if (color === undefined) {
+                    color = toColorByPrefix(name);
+                }
+                if (color === undefined) {
+                    color = toColor(fallback ?? "Carys");
                 }
                 return color;
             }
@@ -234,20 +237,35 @@
                 return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
             }
 
+            /**
+             * @param { string } text
+             **/
+            function nav(text) {
+                const url = new URL(`?colors=${encodeURIComponent(text.replaceAll("\n", ","))}`, document.location);
+                document.location = url;
+            }
+
+            async function pasteNav() {
+                nav(await navigator.clipboard.readText());
+            }
+
             const params = new URLSearchParams(document.location.search);
 
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
-                const palette = fixedColors.split(",").map(line => line.split("|").map(name => toColorDefault(name.trim())));
+                const palette = fixedColors.trim().split(",").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColorDefault(name)));
                 const query = paletteToQuery(palette);
 
                 const shuffledPalette = shuffle([...palette]);
                 const shuffledQuery = paletteToQuery(shuffledPalette);
 
-                document.title = `Colors - Palette of ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
+                document.title = `Colors - ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
-                `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>`;
+                `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
+                <div class="pasteNav">Show clipboard</div>`;
+
+                document.querySelector(".pasteNav").onclick = () => pasteNav();
 
                 // const paletteElement = document.body.querySelector("& > .palette") ?? undefined;
                 // const shuffleElement = document.body.querySelector("& > .shuffle") ?? undefined;
