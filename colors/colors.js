@@ -20947,7 +20947,7 @@ export function toID(text) {
  */
 export function toColor(color) {
   if (typeof color === "number") {
-    color = `{color}`;
+    color = `${color}`;
   }
   if (typeof color == "string") {
     const id = toID(color);
