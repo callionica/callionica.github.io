@@ -20940,6 +20940,11 @@ export function toID(text) {
   return text.replaceAll(/[:™®'’]/g, "").replaceAll(/[- &]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
 }
 
+/**
+ * A complete match on the ID or alias of a color
+ * @param { string } color 
+ * @returns 
+ */
 export function toColor(color) {
   if (typeof color == "string") {
     const id = toID(color);
@@ -20957,6 +20962,7 @@ export function toColor(color) {
   return color;
 }
 
+// Create IDs from titles if an ID not already present
 for (const color of colors) {
   if (color.id === undefined) {
     color.id = toID(color.title);
@@ -21022,4 +21028,14 @@ export function whites(color) {
 
 export function darks(color) {
   return connecting(color, "Related Darks", "Coordinating Colours", (clr) => isDark(clr));
+}
+
+export function toColorByPrefix(prefix) {
+  const prefixID = toID(prefix);
+  for (const color of colors) {
+    if (color.id.startsWith(prefixID)) {
+      return color;
+    }
+  }
+  return undefined;
 }
