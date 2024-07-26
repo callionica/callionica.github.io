@@ -20946,6 +20946,9 @@ export function toID(text) {
  * @returns 
  */
 export function toColor(color) {
+  if (typeof color === "number") {
+    color = `{color}`;
+  }
   if (typeof color == "string") {
     const id = toID(color);
     const byID = colors.find(c => c.id == id);
