@@ -20984,7 +20984,7 @@ for (const color of colors) {
   if (color.id === undefined) {
     color.id = toID(color.title);
   }
-  color.keys = [toKey(color.id), ...color.aliases?.map(a => toKey(a))];
+  color.keys = [toKey(color.id), ...(color.aliases ?? []).map(a => toKey(a))];
 }
 
 // Sort colors by length of ID
