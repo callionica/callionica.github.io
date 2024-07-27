@@ -20,8 +20,15 @@
                 return;
             }
 
+            const frame = document.querySelector("iframe") ?? undefined;
+            if (frame === undefined) {
+                return;
+            }
+
             input.oninput = () => {
-                output.value = paletteToText(textToPalette(input.value));
+                const palette = textToPalette(input.value);
+                output.value = paletteToText(palette);
+                frame.src = `?colors=${paletterToQuery(palette)}`
             };
 
             input.oninput();
@@ -42,6 +49,11 @@
             height: 50vh;
             width: 25vw;
         }
+
+        iframe {
+            height: 50vh;
+            width: 100vw;
+        }
         
     </style>
 </head>
@@ -58,6 +70,8 @@
     <textarea class="output">
 
     </textarea>
+
+    <iframe></iframe>
 </body>
 
 </html>
