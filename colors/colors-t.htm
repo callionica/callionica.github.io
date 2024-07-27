@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colors T</title>
+    <script type="module">
+        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
+
+        (function () {
+            
+            function toColorDefault(name, fallback) {
+                let color = toColor(name);
+                if (color !== undefined) {
+                    return color;
+                }
+
+                for (const clr of colorsByPrefix(name)) {
+                    return clr;
+                }
+
+                for (const clr of colorsBySuffix(name)) {
+                    return clr;
+                }
+
+                for (const clr of colorsByIncludes(name)) {
+                    return clr;
+                }
+
+                if (color === undefined) {
+                    color = toColor(fallback ?? "Carys");
+                }
+                return color;
+            }
+
+        })();
+            
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        
+    </style>
+</head>
+
+<body>
+    <textarea>
+        Carys
+        Arq
+        First Light
+        Silent white
+        French gray
+    </textarea>
+</body>
+
+</html>

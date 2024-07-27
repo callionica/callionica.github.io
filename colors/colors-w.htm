@@ -250,6 +250,14 @@
                 return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
             }
 
+            function paletteToText(palette) {
+                return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "")).join(" | ")).join("\n");
+            }
+
+            function textToPalette(text, toColor) {
+                return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColor(name)));    
+            }
+
             /**
              * @param { string } text
              **/
@@ -267,7 +275,7 @@
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
-                const palette = fixedColors.trim().split(",").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColorDefault(name)));
+                const palette = textToPalette(fixedColors, toColorDefault);
                 const query = paletteToQuery(palette);
 
                 const shuffledPalette = shuffle([...palette]);
