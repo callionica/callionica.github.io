@@ -21137,17 +21137,28 @@ export function paletteToText(palette) {
 }
 
 /**
+ * 
+ * @param { string } line 
+ * @returns { ColorChoice }
+ */
+function lineToColorChoice(line) {
+  let seenSelected = false;
+  return line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => {
+    let clr = textToColor(name);
+    if (!seenSelected && name.endsWith("*")) {
+      seenSelected = true;
+      clr = Object.create(clr);
+      clr.selected = true;
+    }
+    return clr;
+  });
+}
+
+/**
  * @param { string } text 
  * @param { (string) => Color } textToColor 
  * @returns { Palette }
  */
 export function textToPalette(text, textToColor = toColorDefault) {
-  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => {
-    let clr = textToColor(name);
-    if (name.endsWith("*")) {
-      clr = Object.create(clr);
-      clr.selected = true;
-    }
-    return clr;
-  }));
+  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(lineToColorChoice);
 }
