@@ -38,7 +38,7 @@
             connectedCallback() {
 
                 if (this.container === undefined) {
-                    this.container = this.scroller?.querySelector("& > .container") ?? undefined;
+                    this.container = this.scroller?.querySelector(":scope > .container") ?? undefined;
                     if (this.container === undefined) {
                         const children = [...this.children];
                         this.container = this.ownerDocument.createElement("div");
@@ -62,7 +62,7 @@
                 }
 
                 if (this.scroller === undefined) {
-                    this.scroller = this.querySelector("& > .scroller") ?? undefined;
+                    this.scroller = this.querySelector(":scope > .scroller") ?? undefined;
                     if (this.scroller === undefined) {
                         this.scroller = this.ownerDocument.createElement("div");
                         this.scroller.classList.add("scroller");
@@ -72,7 +72,7 @@
                 }
 
                 if (this.clicker === undefined) {
-                    this.clicker = this.querySelector("& > .clicker") ?? undefined;
+                    this.clicker = this.querySelector(":scope > .clicker") ?? undefined;
                     if (this.clicker === undefined) {
                         const clicker = this.ownerDocument.createElement("div");
                         clicker.classList.add("clicker");
@@ -253,8 +253,8 @@
 
                 document.querySelector(".pasteNav").onclick = () => pasteNav();
 
-                // const paletteElement = document.body.querySelector("& > .palette") ?? undefined;
-                // const shuffleElement = document.body.querySelector("& > .shuffle") ?? undefined;
+                // const paletteElement = document.body.querySelector(":scope > .palette") ?? undefined;
+                // const shuffleElement = document.body.querySelector(":scope > .shuffle") ?? undefined;
                 // if (shuffleElement !== undefined && paletteElement !== undefined) {
                 //     shuffleElement.onclick = () => {
                 //         const children = [...paletteElement.children];
