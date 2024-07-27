@@ -21133,7 +21133,7 @@ export function paletteToQuery(palette) {
  * @returns { string }
  */
 export function paletteToText(palette) {
-  return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "")).join(" | ")).join("\n");
+  return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "") + (color.selected ? "*" : "")).join(" | ")).join("\n");
 }
 
 /**
@@ -21142,5 +21142,11 @@ export function paletteToText(palette) {
  * @returns { Palette }
  */
 export function textToPalette(text, textToColor = toColorDefault) {
-  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => textToColor(name)));
+  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => {
+    const clr = textToColor(name);
+    if (name.endsWith("*")) {
+      clr = Object.create({ selected: true }, clr);
+    }
+    return clr;
+  }));
 }
