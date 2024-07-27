@@ -20947,6 +20947,9 @@ export function toID(text) {
 }
 
 export function toKey(text) {
+  if (text === undefined) {
+    return undefined;
+  }
   return toID(text).replaceAll(/[-.aeiou]/g, "");
 }
 
