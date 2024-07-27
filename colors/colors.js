@@ -21143,7 +21143,7 @@ export function paletteToText(palette) {
  */
 export function textToPalette(text, textToColor = toColorDefault) {
   return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => {
-    const clr = textToColor(name);
+    let clr = textToColor(name);
     if (name.endsWith("*")) {
       clr = Object.create(clr);
       clr.selected = true;
