@@ -21054,14 +21054,13 @@ export function darks(color) {
   return connecting(color, "Related Darks", "Coordinating Colours", (clr) => isDark(clr));
 }
 
-export function toColorByPrefix(prefix) {
+export function* colorsByPrefix(prefix) {
   const prefixID = toID(prefix);
   for (const color of colors) {
     if (color.id.startsWith(prefixID)) {
-      return color;
+      yield color;
     }
   }
-  return undefined;
 }
 
 export function toColorBySuffix(suffix) {

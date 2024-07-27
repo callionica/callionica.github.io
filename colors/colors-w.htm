@@ -148,14 +148,19 @@
 
     </script>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, toColorByPrefix, toColorBySuffix, toColorByIncludes } from "./colors.js";
+        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, toColorBySuffix, toColorByIncludes } from "./colors.js";
 
         (function () {
             function toColorDefault(name, fallback) {
                 let color = toColor(name);
-                if (color === undefined) {
-                    color = toColorByPrefix(name);
+                if (color !== undefined) {
+                    return color;
                 }
+
+                for (const clr of colorsByPrefix(name)) {
+                    return clr;
+                }
+
                 if (color === undefined) {
                     color = toColorBySuffix(name);
                 }
@@ -268,7 +273,7 @@
 
                 document.title = `Colors - ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
-                `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
+                    `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
                 <div class="pasteNav">Show clipboard</div>`;
 
                 document.querySelector(".pasteNav").onclick = () => pasteNav();
