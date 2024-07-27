@@ -9015,6 +9015,9 @@ export const colors = [
     "categories": [
       "Yellow",
       "Colours of England"
+    ],
+    "aliases": [
+      "Mr David"
     ]
   },
   {
@@ -20981,7 +20984,7 @@ for (const color of colors) {
   if (color.id === undefined) {
     color.id = toID(color.title);
   }
-  color.key = toKey(color.id);
+  color.keys = [toKey(color.id), ...color.aliases?.map(a => toKey(a))];
 }
 
 // Sort colors by length of ID
@@ -21071,8 +21074,10 @@ export function toColorBySuffix(suffix) {
 export function toColorByIncludes(text) {
   const id = toKey(text);
   for (const color of colors) {
-    if (color.key.includes(id)) {
-      return color;
+    for (const key of color.keys) {
+      if (key.includes(id)) {
+        return color;
+      }
     }
   }
   return undefined;
