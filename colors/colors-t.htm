@@ -6,34 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Colors T</title>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
+        import { colors, toColorDefault, textToPalette, paletteToQuery, paletteToText, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
 
         (function () {
             
-            function toColorDefault(name, fallback) {
-                let color = toColor(name);
-                if (color !== undefined) {
-                    return color;
-                }
-
-                for (const clr of colorsByPrefix(name)) {
-                    return clr;
-                }
-
-                for (const clr of colorsBySuffix(name)) {
-                    return clr;
-                }
-
-                for (const clr of colorsByIncludes(name)) {
-                    return clr;
-                }
-
-                if (color === undefined) {
-                    color = toColor(fallback ?? "Carys");
-                }
-                return color;
+            const input = document.querySelector("textarea.input") ?? undefined;
+            if (input === undefined) {
+                return;
             }
 
+            const output = document.querySelector("textarea.output") ?? undefined;
+            if (output === undefined) {
+                return;
+            }
+
+            input.onchange = () => {
+                output.value = paletteToText(textToPalette(input.value));
+            };
+
+            input.onchange();
+            
         })();
             
     </script>
@@ -51,12 +43,16 @@
 </head>
 
 <body>
-    <textarea>
+    <textarea class="input">
         Carys
         Arq
         First Light
         Silent white
         French gray
+    </textarea>
+
+    <textarea class="output">
+
     </textarea>
 </body>
 
