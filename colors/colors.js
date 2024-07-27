@@ -20956,7 +20956,6 @@ export function toKey(text) {
 /**
  * A complete match on the ID or number or alias of a color
  * @param { string | number } color 
- * @returns object | undefined
  */
 export function toColor(color) {
   if (typeof color === "number") {
@@ -20995,6 +20994,14 @@ for (const color of colors) {
 
 // Sort colors by length of ID
 colors.sort((a, b) => a.id.length - b.id.length);
+
+////////////////////////////////////////////////////////////////////////////////////
+
+/** @typedef { { id: string, title: string, color: string } } Color */
+/** @typedef { Color[] } ColorChoice */
+/** @typedef { ColorChoice[] } Palette */
+
+////////////////////////////////////////////////////////////////////////////////////
 
 export function isNeutral(color) {
   return color.categories.includes("Neutral");
@@ -21084,4 +21091,29 @@ export function* colorsByIncludes(text) {
       }
     }
   }
+}
+
+/**
+ * @param { Palette } palette 
+ * @returns { string }
+ */
+export function paletteToQuery(palette) {
+  return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
+}
+
+/**
+ * @param { Palette } palette 
+ * @returns { string }
+ */
+export function paletteToText(palette) {
+  return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "")).join(" | ")).join("\n");
+}
+
+/**
+ * @param { string } text 
+ * @param { (string) => Color } toColor 
+ * @returns { Palette }
+ */
+export function textToPalette(text, toColor) {
+  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColor(name)));
 }

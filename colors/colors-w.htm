@@ -148,7 +148,7 @@
 
     </script>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
+        import { colors, textToPalette, paletteToQuery, paletteToText, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
 
         (function () {
             function toColorDefault(name, fallback) {
@@ -244,18 +244,6 @@
                         return result;
                     }
                 }
-            }
-
-            function paletteToQuery(palette) {
-                return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
-            }
-
-            function paletteToText(palette) {
-                return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "")).join(" | ")).join("\n");
-            }
-
-            function textToPalette(text, toColor) {
-                return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColor(name)));
             }
 
             /**
