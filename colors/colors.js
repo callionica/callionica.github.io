@@ -21139,6 +21139,7 @@ export function paletteToText(palette) {
 /**
  * 
  * @param { string } line 
+ * @param { (string) => Color } textToColor 
  * @returns { ColorChoice }
  */
 function lineToColorChoice(line, textToColor = toColorDefault) {
