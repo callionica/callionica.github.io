@@ -21145,8 +21145,14 @@ export function paletteToText(palette) {
 function lineToColorChoice(line, textToColor = toColorDefault) {
   let seenSelected = false;
   return line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => {
+    const isMarkedSelected = false;
+    if (name.endsWith("*")) {
+      name = name.substring(0, name.length - 1);
+      isMarkedSelected = true;
+    }
+
     let clr = textToColor(name);
-    if (!seenSelected && name.endsWith("*")) {
+    if (!seenSelected && isMarkedSelected) {
       seenSelected = true;
       clr = Object.create(clr);
       clr.selected = true;
