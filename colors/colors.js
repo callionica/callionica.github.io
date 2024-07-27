@@ -21062,3 +21062,13 @@ export function toColorBySuffix(suffix) {
   }
   return undefined;
 }
+
+export function toColorByIncludes(text) {
+  const id = toID(text);
+  for (const color of colors) {
+    if (color.id.includes(id)) {
+      return color;
+    }
+  }
+  return undefined;
+}

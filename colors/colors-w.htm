@@ -148,7 +148,7 @@
 
     </script>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, toColorByPrefix, toColorBySuffix } from "./colors.js";
+        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, toColorByPrefix, toColorBySuffix, toColorByIncludes } from "./colors.js";
 
         (function () {
             function toColorDefault(name, fallback) {
@@ -158,6 +158,9 @@
                 }
                 if (color === undefined) {
                     color = toColorBySuffix(name);
+                }
+                if (color === undefined) {
+                    color = toColorByIncludes(name);
                 }
                 if (color === undefined) {
                     color = toColor(fallback ?? "Carys");
