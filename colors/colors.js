@@ -21141,7 +21141,7 @@ export function paletteToText(palette) {
  * @param { string } line 
  * @returns { ColorChoice }
  */
-function lineToColorChoice(line) {
+function lineToColorChoice(line, textToColor = toColorDefault) {
   let seenSelected = false;
   return line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => {
     let clr = textToColor(name);
@@ -21160,5 +21160,5 @@ function lineToColorChoice(line) {
  * @returns { Palette }
  */
 export function textToPalette(text, textToColor = toColorDefault) {
-  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(lineToColorChoice);
+  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => lineToColorChoice(line, textToColor));
 }
