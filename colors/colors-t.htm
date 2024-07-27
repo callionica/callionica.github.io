@@ -20,11 +20,11 @@
                 return;
             }
 
-            input.onchange = () => {
+            input.oninput = () => {
                 output.value = paletteToText(textToPalette(input.value));
             };
 
-            input.onchange();
+            input.oninput();
             
         })();
             
