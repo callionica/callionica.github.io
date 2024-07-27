@@ -28,7 +28,7 @@
             input.oninput = () => {
                 const palette = textToPalette(input.value);
                 output.value = paletteToText(palette);
-                frame.src = `?colors=${paletteToQuery(palette)}`
+                frame.src = `colors-w.htm?colors=${paletteToQuery(palette)}`
             };
 
             input.oninput();
