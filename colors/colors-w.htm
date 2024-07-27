@@ -190,7 +190,7 @@
                 }
 
                 if (selectedColor === undefined) {
-                    selectedColor = colors[0];
+                    selectedColor = colors.find(clr => clr.selected) ?? colors[0];
                 }
 
                 if (colors.length > 1) {
