@@ -20997,7 +20997,7 @@ colors.sort((a, b) => a.id.length - b.id.length);
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-/** @typedef { { id: string, title: string, color: string } } Color */
+/** @typedef { { selected?: boolean; id: string; title: string; color: string; } } Color */
 /** @typedef { Color[] } ColorChoice */
 /** @typedef { ColorChoice[] } Palette */
 
@@ -21125,7 +21125,7 @@ export function toColorDefault(name, fallback) {
  * @returns { string }
  */
 export function paletteToQuery(palette) {
-  return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
+  return palette.map(colors => colors.map(color => color.id + (color.selected ? "*" : "")).join("|")).join(",");
 }
 
 /**
