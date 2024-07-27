@@ -21094,6 +21094,11 @@ export function* colorsByIncludes(text) {
 }
 
 export function toColorDefault(name, fallback) {
+
+  if (name === undefined || name.length === 0) {
+    return toColor(fallback ?? "Carys");
+  }
+
   let color = toColor(name);
   if (color !== undefined) {
     return color;
@@ -21111,10 +21116,8 @@ export function toColorDefault(name, fallback) {
     return clr;
   }
 
-  if (color === undefined) {
-    color = toColor(fallback ?? "Carys");
-  }
-  return color;
+  // Use shorter string if we don't find anything
+  return toColorDefault(name.substring(0, name.length - 1), fallback);
 }
 
 /**
