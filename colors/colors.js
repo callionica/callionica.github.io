@@ -11646,6 +11646,9 @@ export const colors = [
     },
     "categories": [
       "Archive"
+    ],
+    "aliases": [
+      "Four AM"
     ]
   },
   {
