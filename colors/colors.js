@@ -20979,6 +20979,9 @@ for (const color of colors) {
   }
 }
 
+// Sort colors by length of ID
+colors.sort((a, b) => a.id.length - b.id.length);
+
 export function isNeutral(color) {
   return color.categories.includes("Neutral");
 }
@@ -21044,6 +21047,16 @@ export function toColorByPrefix(prefix) {
   const prefixID = toID(prefix);
   for (const color of colors) {
     if (color.id.startsWith(prefixID)) {
+      return color;
+    }
+  }
+  return undefined;
+}
+
+export function toColorBySuffix(suffix) {
+  const suffixID = toID(suffix);
+  for (const color of colors) {
+    if (color.id.endsWith(suffixID)) {
       return color;
     }
   }

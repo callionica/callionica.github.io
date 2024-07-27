@@ -157,6 +157,9 @@
                     color = toColorByPrefix(name);
                 }
                 if (color === undefined) {
+                    color = toColorBySuffix(name);
+                }
+                if (color === undefined) {
                     color = toColor(fallback ?? "Carys");
                 }
                 return color;
