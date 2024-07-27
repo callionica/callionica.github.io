@@ -21093,6 +21093,30 @@ export function* colorsByIncludes(text) {
   }
 }
 
+export function toColorDefault(name, fallback) {
+  let color = toColor(name);
+  if (color !== undefined) {
+    return color;
+  }
+
+  for (const clr of colorsByPrefix(name)) {
+    return clr;
+  }
+
+  for (const clr of colorsBySuffix(name)) {
+    return clr;
+  }
+
+  for (const clr of colorsByIncludes(name)) {
+    return clr;
+  }
+
+  if (color === undefined) {
+    color = toColor(fallback ?? "Carys");
+  }
+  return color;
+}
+
 /**
  * @param { Palette } palette 
  * @returns { string }
@@ -21114,6 +21138,6 @@ export function paletteToText(palette) {
  * @param { (string) => Color } textToColor 
  * @returns { Palette }
  */
-export function textToPalette(text, textToColor = toColor) {
+export function textToPalette(text, textToColor = toColorDefault) {
   return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => textToColor(name)));
 }

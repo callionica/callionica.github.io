@@ -148,32 +148,9 @@
 
     </script>
     <script type="module">
-        import { colors, textToPalette, paletteToQuery, paletteToText, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
+        import { colors, toColorDefault, textToPalette, paletteToQuery, paletteToText, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
 
         (function () {
-            function toColorDefault(name, fallback) {
-                let color = toColor(name);
-                if (color !== undefined) {
-                    return color;
-                }
-
-                for (const clr of colorsByPrefix(name)) {
-                    return clr;
-                }
-
-                for (const clr of colorsBySuffix(name)) {
-                    return clr;
-                }
-
-                for (const clr of colorsByIncludes(name)) {
-                    return clr;
-                }
-
-                if (color === undefined) {
-                    color = toColor(fallback ?? "Carys");
-                }
-                return color;
-            }
 
             class ColorSwatch extends HTMLElement {
 
