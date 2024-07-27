@@ -20940,6 +20940,10 @@ export function toID(text) {
   return text.replaceAll(/[:™®'’]/g, "").replaceAll(/[- &]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
 }
 
+export function toKey(text) {
+  return toID(text).replaceAll(/[-aeiou]/g, "");
+}
+
 /**
  * A complete match on the ID or number or alias of a color
  * @param { string | number } color 
@@ -20977,6 +20981,7 @@ for (const color of colors) {
   if (color.id === undefined) {
     color.id = toID(color.title);
   }
+  color.key = toKey(color.id);
 }
 
 // Sort colors by length of ID
@@ -21064,9 +21069,9 @@ export function toColorBySuffix(suffix) {
 }
 
 export function toColorByIncludes(text) {
-  const id = toID(text);
+  const id = toKey(text);
   for (const color of colors) {
-    if (color.id.includes(id)) {
+    if (color.key.includes(id)) {
       return color;
     }
   }
