@@ -148,7 +148,7 @@
 
     </script>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, toColorBySuffix, toColorByIncludes } from "./colors.js";
+        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
 
         (function () {
             function toColorDefault(name, fallback) {
@@ -161,12 +161,14 @@
                     return clr;
                 }
 
-                if (color === undefined) {
-                    color = toColorBySuffix(name);
+                for (const clr of colorsBySuffix(name)) {
+                    return clr;
                 }
-                if (color === undefined) {
-                    color = toColorByIncludes(name);
+
+                for (const clr of colorsByIncludes(name)) {
+                    return clr;
                 }
+
                 if (color === undefined) {
                     color = toColor(fallback ?? "Carys");
                 }

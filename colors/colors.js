@@ -21063,24 +21063,22 @@ export function* colorsByPrefix(prefix) {
   }
 }
 
-export function toColorBySuffix(suffix) {
+export function* colorsBySuffix(suffix) {
   const suffixID = toID(suffix);
   for (const color of colors) {
     if (color.id.endsWith(suffixID)) {
-      return color;
+      yield color;
     }
   }
-  return undefined;
 }
 
-export function toColorByIncludes(text) {
+export function* colorsByIncludes(text) {
   const id = toKey(text);
   for (const color of colors) {
     for (const key of color.keys) {
       if (key.includes(id)) {
-        return color;
+        yield color;
       }
     }
   }
-  return undefined;
 }
