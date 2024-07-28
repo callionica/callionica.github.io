@@ -20965,21 +20965,22 @@ export function toColor(color) {
     color = `${color}`;
   }
   if (typeof color == "string") {
+    // The ids collection now includes explicit ids, and IDs generated from title, aliases, and number.
     const id = toID(color);
-    const byID = colors.find(c => c.id == id);
+    const byID = colors.find(c => c.ids.include(id));
     if (byID !== undefined) {
       return byID;
     }
 
-    const byNumber = colors.find(c => c.number == id);
-    if (byNumber !== undefined) {
-      return byNumber;
-    }
+    // const byNumber = colors.find(c => c.number == id);
+    // if (byNumber !== undefined) {
+    //   return byNumber;
+    // }
 
-    const byAlias = colors.find(c => c.aliases && c.aliases.map(a => toID(a)).includes(id));
-    if (byAlias !== undefined) {
-      return byAlias;
-    }
+    // const byAlias = colors.find(c => c.aliases && c.aliases.map(a => toID(a)).includes(id));
+    // if (byAlias !== undefined) {
+    //   return byAlias;
+    // }
 
     return undefined;
   }
@@ -20992,6 +20993,7 @@ for (const color of colors) {
   if (color.id === undefined) {
     color.id = toID(color.title);
   }
+  color.ids = [...(new Set([toID(color.id), toID(color.number), toID(color.title), ...(color.aliases ?? []).map(a => toID(a))].filter(x => x !== undefined)))];
   color.keys = [...(new Set([toKey(color.id), toKey(color.number), toKey(color.title), ...(color.aliases ?? []).map(a => toKey(a))].filter(x => x !== undefined)))];
 }
 
@@ -21070,8 +21072,10 @@ export function darks(color) {
 export function* colorsByPrefix(prefix) {
   const prefixID = toID(prefix);
   for (const color of colors) {
-    if (color.id.startsWith(prefixID)) {
-      yield color;
+    for (const id of color.ids) {
+      if (id.startsWith(prefixID)) {
+        yield color;
+      }
     }
   }
 }
@@ -21079,8 +21083,10 @@ export function* colorsByPrefix(prefix) {
 export function* colorsBySuffix(suffix) {
   const suffixID = toID(suffix);
   for (const color of colors) {
-    if (color.id.endsWith(suffixID)) {
-      yield color;
+    for (const id of color.ids) {
+      if (id.endsWith(suffixID)) {
+        yield color;
+      }
     }
   }
 }
