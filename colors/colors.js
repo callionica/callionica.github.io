@@ -20951,8 +20951,8 @@ export function toKey(text) {
     return undefined;
   }
   const id = toID(text);
-  const initialVowel = ["a", "e", "i", "o", "u"].includes(id[0]) ? "e" : "";
-  return initialVowel + id.replaceAll(/[-.aeiou]/g, "");
+  // const initialVowel = ["a", "e", "i", "o", "u"].includes(id[0]) ? "e" : "";
+  return /*initialVowel +*/ id.replaceAll(/[-.aeiou]/g, "");
 }
 
 /**
