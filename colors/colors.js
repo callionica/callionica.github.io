@@ -20944,6 +20944,9 @@ export const colors = [
 ];
 
 export function toID(text) {
+  if (text === undefined) {
+    return undefined;
+  }
   return text.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
 }
 
