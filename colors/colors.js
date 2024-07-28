@@ -11601,6 +11601,7 @@ export const colors = [
     ]
   },
   {
+    "id": "4-00",
     "title": "4 AM™",
     "lightness": 45,
     "connections": [
