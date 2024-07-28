@@ -21121,9 +21121,9 @@ export function toColorDefault(name, fallback) {
     return clr;
   }
 
-  for (const clr of colorsBySuffix(name)) {
-    return clr;
-  }
+  // for (const clr of colorsBySuffix(name)) {
+  //   return clr;
+  // }
 
   for (const clr of colorsByIncludes(name)) {
     return clr;
