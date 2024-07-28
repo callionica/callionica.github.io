@@ -20970,7 +20970,7 @@ export function toColor(color) {
   if (typeof color == "string") {
     // The ids collection now includes explicit ids, and IDs generated from title, aliases, and number.
     const id = toID(color);
-    const byID = colors.find(c => c.ids.include(id));
+    const byID = colors.find(c => c.ids.includes(id));
     if (byID !== undefined) {
       return byID;
     }
