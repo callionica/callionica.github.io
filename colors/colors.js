@@ -11649,6 +11649,7 @@ export const colors = [
       "Archive"
     ],
     "aliases": [
+      "4AM",
       "Four AM"
     ]
   },
