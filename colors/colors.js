@@ -20943,7 +20943,7 @@ export const colors = [
 ];
 
 export function toID(text) {
-  return text.replaceAll(/[:™®'’]/g, "").replaceAll(/[- &]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
+  return text.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " ").replaceAll(" ", "-").toLowerCase().replaceAll("color", "colour").replaceAll("gray", "grey");
 }
 
 export function toKey(text) {
