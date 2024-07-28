@@ -20950,7 +20950,9 @@ export function toKey(text) {
   if (text === undefined) {
     return undefined;
   }
-  return toID(text).replaceAll(/[-.aeiou]/g, "");
+  const id = toID(text);
+  const initialVowel = ["a", "e", "i", "o", "u"].includes(id[0]) ? "e" : "";
+  return initialVowel + id.replaceAll(/[-.aeiou]/g, "");
 }
 
 /**
