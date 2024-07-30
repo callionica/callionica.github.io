@@ -21218,3 +21218,44 @@ export function parseTitle(text) {
 
   return { title, selected };
 }
+
+export function toSoundKey(text) {
+  if (text === undefined) {
+    return undefined;
+  }
+  text = text.trim().toLowerCase();
+  const replacements = [
+    [/c([iey])/g, "s$1"],
+    [/ch([iey])/g, "sh$1"],
+    [/y$/g, "e"],
+    [/[aeiou]+/g, "e"],
+    [/mb$/g, "m"],
+    [/gned$/g, "ned"],
+    [/gn$/g, "ne"],
+    [/^[kgp]n/g, "n"],
+    [/^wh/g, "w"],
+    // ["sche", "ske"],
+    // ["sch", "sh"],
+    ["ch", "k"],
+    ["eght", "ete"],
+    ["wre", "re"],
+    ["th", "f"],
+    ["ph", "f"],
+    [/[bfv]+/g, "b"],
+    [/[ckq]+/g, "k"],
+    [/[dt]+/g, "d"],
+    [/[mn]+/g, "n"],
+    ["z", "s"],
+  ];
+
+  for (const replacement of replacements) {
+    text = text.replaceAll(replacement[0], replacement[1]);
+    // console.log(replacement, text);
+  }
+  return text;
+}
+
+// colors.map(clr => [clr.title, toSoundKey(clr.title.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " "))]);
+
+// toSoundKey("Ceviche");
+// toSoundKey("Arras");
