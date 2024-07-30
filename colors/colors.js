@@ -5131,6 +5131,9 @@ export const colors = [
       "Green",
       "Colours of England",
       "Regency"
+    ],
+    "aliases": [
+      "Verditer Green"
     ]
   },
   {
