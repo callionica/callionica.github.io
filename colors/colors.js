@@ -21252,6 +21252,7 @@ export function toSoundKey(text) {
     [/[dt]+/g, "d"],
     [/[mn]+/g, "n"],
     ["z", "s"],
+    ["j", "y"],
     ["kh", "k"],
   ];
 
