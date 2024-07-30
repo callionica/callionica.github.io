@@ -21146,7 +21146,7 @@ export function paletteToQuery(palette) {
  * @returns { string }
  */
 export function paletteToText(palette) {
-  return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "") + (color.selected ? "*" : "")).join(" | ")).join("\n");
+  return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "") + (color.number !== undefined ? ` (${color.number})` : "") + (color.selected ? "*" : "")).join(" | ")).join("\n");
 }
 
 /**
