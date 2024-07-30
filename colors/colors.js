@@ -21225,8 +21225,8 @@ export function toSoundKey(text) {
   }
   text = text.trim().toLowerCase();
   const replacements = [
-    [/c([iey])/g, "s$1"],
-    [/ch([iey])/g, "sh$1"],
+    [/c([eiy])/g, "s$1"],
+    [/ch([aeiy])/g, "sh$1"],
     [/y$/g, "e"],
     [/[aeiou]+/g, "e"],
     [/mb$/g, "m"],
@@ -21246,6 +21246,7 @@ export function toSoundKey(text) {
     [/[dt]+/g, "d"],
     [/[mn]+/g, "n"],
     ["z", "s"],
+    ["kh", "k"],
   ];
 
   for (const replacement of replacements) {
