@@ -6777,6 +6777,9 @@ export const colors = [
       "Blue",
       "Colours of England",
       "Regency"
+    ],
+    "aliases": [
+      "Verditer Blue"
     ]
   },
   {
