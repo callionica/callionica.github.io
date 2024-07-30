@@ -21227,6 +21227,7 @@ export function toSoundKey(text) {
   const replacements = [
     [/c([eiy])/g, "s$1"],
     [/ch([aeiy])/g, "sh$1"],
+    [/re$/g, "er"],
     [/y$/g, "e"],
     [/[aeiou]+/g, "e"],
     [/mb$/g, "m"],
