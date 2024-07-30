@@ -21186,10 +21186,13 @@ export function textToPalette(text, textToColor = toColorDefault) {
 export const colorExpression = /^\s*(?<title>[^*()]*[^*() ])\s*(?<selected1>[*])?\s*([(](?<number>\d+)[)])?\s*(?<selected>[*])?\s*$/;
 
 export function parseTitle(text) {
+  const selected = text.includes("*");
+  text = text.replaceAll("*", "");
+
   const m = colorExpression.exec(text) ?? undefined;
   if (m !== undefined) {
     const g = m.groups;
-    return { title: g.title, number: g.number, selected: (g.selected1 ?? g.selected) !== undefined };
+    return { title: g.title, number: g.number, selected };
   }
-  return { title: text, number: undefined, selected: text.includes("*") };
+  return { title: text, number: undefined, selected };
 }
