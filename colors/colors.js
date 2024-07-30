@@ -21252,7 +21252,7 @@ export function toSoundKey(text) {
     [/[ckq]+/g, "k"],
     [/[dt]+/g, "d"],
     [/[mn]+/g, "n"],
-    ["z", "s"],
+    [/[sz]+/g, "s"],
     ["j", "y"],
     ["kh", "k"],
   ];
