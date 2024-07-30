@@ -21243,7 +21243,7 @@ export function toSoundKey(text) {
     // ["sche", "ske"],
     // ["sch", "sh"],
     ["ch", "k"],
-    ["eght", "ete"],
+    ["eght", "et"],
     ["wre", "re"],
     ["th", "f"],
     ["ph", "f"],
