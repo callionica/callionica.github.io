@@ -21184,3 +21184,12 @@ export function textToPalette(text, textToColor = toColorDefault) {
 }
 
 export const colorExpression = /^\s*(?<title>[^*()]*[^*() ])\s*(?<selected1>[*])?\s*([(](?<number>\d+)[)])?\s*(?<selected>[*])?\s*$/;
+
+export function parseTitle(text) {
+  const m = colorExpression.exec(text) ?? undefined;
+  if (m !== undefined) {
+    const g = m.groups;
+    return { title: g.title, number: g.number, selected: (g.selected1 ?? g.selected) !== undefined };
+  }
+  return { title: text };
+}
