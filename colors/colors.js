@@ -21084,6 +21084,17 @@ export function* colorsByPrefix(prefix) {
   }
 }
 
+export function* colorsByPrefixKey(prefix) {
+  const prefixID = toKey(prefix);
+  for (const color of colors) {
+    for (const id of color.keys) {
+      if (id.startsWith(prefixID)) {
+        yield color;
+      }
+    }
+  }
+}
+
 export function* colorsBySuffix(suffix) {
   const suffixID = toID(suffix);
   for (const color of colors) {
@@ -21125,6 +21136,10 @@ export function toColorDefault(name, fallback) {
     return clr;
   }
 
+  for (const clr of colorsByPrefixKey(name)) {
+    return clr;
+  }
+  
   for (const clr of colorsByIncludes(name)) {
     return clr;
   }
