@@ -20956,8 +20956,8 @@ export function toKey(text) {
     return undefined;
   }
   const id = toID(text);
-  // const initialVowel = ["a", "e", "i", "o", "u"].includes(id[0]) ? "e" : "";
-  return /*initialVowel +*/ id.replaceAll(/[-.aeiou]/g, "");
+  const initialVowel = ["a", "e", "i", "o", "u"].includes(id[0]) ? "e" : "";
+  return initialVowel + id.replaceAll(/[-.aeiou]/g, "");
 }
 
 /**
@@ -21107,7 +21107,10 @@ export function* colorsBySuffix(suffix) {
 }
 
 export function* colorsByIncludes(text) {
-  const id = toKey(text);
+  let id = toKey(text);
+  if (id[0] === "e") {
+    id = id.substring(1);
+  }
   for (const color of colors) {
     for (const key of color.keys) {
       if (key.includes(id)) {
