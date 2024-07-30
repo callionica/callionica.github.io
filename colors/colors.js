@@ -21191,5 +21191,5 @@ export function parseTitle(text) {
     const g = m.groups;
     return { title: g.title, number: g.number, selected: (g.selected1 ?? g.selected) !== undefined };
   }
-  return { title: text };
+  return { title: text, number: undefined, selected: text.includes("*") };
 }
