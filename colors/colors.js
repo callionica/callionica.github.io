@@ -21227,6 +21227,8 @@ export function toSoundKey(text) {
   const replacements = [
     [/((boro(ug)?)|(b[eu]rg))h?\b/g, "bro"],
     [/rq(u?)/g, "rk"],
+    [/qui(s?)\b/g, "ky"],
+    
     [/d?ge\b/g, "tch"],
     [/([in])ch\b/g, "$1tch"],
     ["ć", "tch"],
