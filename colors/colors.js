@@ -21254,24 +21254,29 @@ export function toSoundKey(text) {
     [/se\b/g, "s"], // already converted c to s
     [/([lr])e\b/g, "e$1"],
     //[/mble([^s])/g, "mbel$1"], // wimbledon but not thumbless
-    [/e\b/g, ""], // remove e from end of word
-    [/y\b/g, "e"],
-    [/\bx([aiou])/g, "sh$1"],
+
+    [/\bx([aiou])/g, "sh$1"], // chinese X
+    [/\bx([ey])/g, "z$1"], // greek X
+
+    [/\bwho/g, "ho"],
+    [/\bwh/g, "w"],
+
+    ///////////////////// VOWEL COMPRESSION ////////////////////////////////////
+    [/e\b/g, ""],        // remove e from end of word (in English it typically changes preceding vowel, not pronounced independently)
+    [/[aeiou]+/g, "e"],  // aeiou are vowels
+    [/y([^e])/g, "e$1"], // y followed by consonant is a vowel
+    [/y\b/g, "e"],       // word-ending y is a vowel
+    ///////////////////////////////////////////////////////////////////////////
     
-    [/[aeiou]+/g, "e"],
-    
+    [/([^e])wh/g, "$1w"], // w binds to following h when preceded by a consonant
+    [/w([^eh])/g, "$1"],  // w followed by consonant is unnecessary
+
     [/mb\b/g, "m"],
     [/gned\b/g, "ned"],
     [/gn\b/g, "ne"],
     [/\b[kgp]n/g, "n"],
-    [/\bwho/g, "ho"],
-    [/\bwh/g, "w"],
-    [/\bxe/g, "ze"],
     
-    // [/\bzh/g, "sh"], // handled by z-s later
     ["x", "ks"],
-    // ["sche", "ske"],
-    // ["sch", "sh"],
     ["ch", "k"],
     ["eght", "et"],
     ["wre", "re"],
@@ -21282,10 +21287,10 @@ export function toSoundKey(text) {
     [/[dt]+/g, "d"],
     [/[mn]+/g, "n"],
     [/[sz]+/g, "s"],
-    [/y([^e])/g, "e$1"], // y followed by consonant is a vowel
-    [/w([^eh])/g, "$1"], // w followed by consonant is unnecessary
+
     ["j", "y"],
-    ["kh", "k"],
+
+    ["kh", "k"], // remove unnecessary h
     
     [/(.)\1+/g, "$1"], // condense runs
   ];
