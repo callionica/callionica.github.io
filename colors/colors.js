@@ -21238,6 +21238,7 @@ export function toSoundKey(text) {
     [/gned$/g, "ned"],
     [/gn$/g, "ne"],
     [/^[kgp]n/g, "n"],
+    [/^who/g, "ho"],
     [/^wh/g, "w"],
     [/^xe/g, "ze"],
     ["x", "ks"],
