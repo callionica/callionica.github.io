@@ -21274,8 +21274,9 @@ export function toSoundKey(text) {
     [/[dt]+/g, "d"],
     [/[mn]+/g, "n"],
     [/[sz]+/g, "s"],
+    [/y[^e]/g, "e"], // y followed by consonant is a vowel
     ["j", "y"],
-    ["kh", "k"],
+    ["kh", "k"],=
     
     [/(.)\1+/g, "$1"], // condense runs
   ];
