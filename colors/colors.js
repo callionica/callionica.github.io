@@ -21242,6 +21242,7 @@ export function toSoundKey(text) {
     [/a[ei]\b/g, "y"],
     [/se\b/g, "s"], // already converted c to s
     [/([lr])e\b/g, "e$1"],
+    //[/mble([^s])/g, "mbel$1"], // wimbledon but not thumbless
     [/e\b/g, ""], // remove e from end of word
     [/y\b/g, "e"],
     [/\bx([aiou])/g, "sh$1"],
