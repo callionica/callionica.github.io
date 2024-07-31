@@ -26,6 +26,9 @@
             }
 
             input.oninput = () => {
+                output.value = toSoundKey(input.value);
+                return;
+                
                 const palette = textToPalette(input.value);
                 output.value = paletteToText(palette);
                 frame.src = `colors-w.htm?colors=${paletteToQuery(palette)}`
