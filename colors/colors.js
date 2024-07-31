@@ -21256,9 +21256,6 @@ export function toSoundKey(text) {
     [/se\b/g, "s"], // already converted c to s
     [/([^l])le\b/g, "$1el"],
     [/re\b/g, "er"],
-      
-    // [/([lr])e\b/g, "e$1"],
-    //[/mble([^s])/g, "mbel$1"], // wimbledon but not thumbless
 
     [/\bx([aiou])/g, "sh$1"], // chinese X
     [/\bx([ey])/g, "z$1"], // greek X
@@ -21287,7 +21284,7 @@ export function toSoundKey(text) {
     ["wre", "re"],
     ["th", "f"],
     ["ph", "f"],
-    // [/[bfv]+/g, "b"],
+    
     [/[bp]+/g, "b"],
     [/[fv]+/g, "v"],
     [/[cgkq]+/g, "k"],
