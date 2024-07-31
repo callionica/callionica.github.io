@@ -21228,7 +21228,7 @@ export function toSoundKey(text) {
     [/((boro(ug)?)|(b[eu]rg))h?\b/g, "bro"],
     [/rq(u?)/g, "rk"],
     [/d?ge\b/g, "tch"],
-    [/ich\b/g, "itch"],
+    [/([in])ch\b/g, "$1tch"],
     ["ć", "tch"],
     ["cz", "tch"],
     ["š", "sh"],
