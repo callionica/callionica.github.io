@@ -21242,7 +21242,10 @@ export function toSoundKey(text) {
     [/se\b/g, "s"],
     [/re\b/g, "er"],
     [/y\b/g, "e"],
+    [/\bx([aiou])/g, "sh$1"],
+    
     [/[aeiou]+/g, "e"],
+    
     [/mb\b/g, "m"],
     [/gned\b/g, "ned"],
     [/gn\b/g, "ne"],
@@ -21250,6 +21253,7 @@ export function toSoundKey(text) {
     [/\bwho/g, "ho"],
     [/\bwh/g, "w"],
     [/\bxe/g, "ze"],
+    
     // [/\bzh/g, "sh"], // handled by z-s later
     ["x", "ks"],
     // ["sche", "ske"],
