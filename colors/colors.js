@@ -21229,6 +21229,7 @@ export function toSoundKey(text) {
     [/rq(u?)/g, "rk"],
     [/qui(s?)\b/g, "ky"],
     [/\bmc/g, "mak"],
+    [/\bmac[ei]l/g, "makil"],
 
     [/d?ge\b/g, "tch"],
     [/dg([eiy])/g, "tch$1"],
