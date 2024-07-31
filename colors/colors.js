@@ -21283,6 +21283,7 @@ export function toSoundKey(text) {
     [/[mn]+/g, "n"],
     [/[sz]+/g, "s"],
     [/y([^e])/g, "e$1"], // y followed by consonant is a vowel
+    [/w([^e])/g, "$1"], // w followed by consonant is unnecessary
     ["j", "y"],
     ["kh", "k"],
     
