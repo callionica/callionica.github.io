@@ -21226,6 +21226,7 @@ export function toSoundKey(text) {
   text = text.trim().toLowerCase();
   const replacements = [
     [/d?ge$/g, "tch"],
+    [/ich$/g, "itch"],
     ["ć", "tch"],
     ["cz", "tch"],
     ["š", "sh"],
