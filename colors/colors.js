@@ -21230,6 +21230,7 @@ export function toSoundKey(text) {
     ["ć", "tch"],
     ["cz", "tch"],
     ["š", "sh"],
+    ["sz", "sh"],
     ["tch", "sh"],
     [/c([eiy])/g, "s$1"],
     [/ch([aeiy])/g, "sh$1"],
