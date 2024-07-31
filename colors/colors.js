@@ -21230,19 +21230,26 @@ export function toSoundKey(text) {
     [/qui(s?)\b/g, "ky"],
     
     [/d?ge\b/g, "tch"],
+    [/dg([eiy])/g, "tch$1"],
+    [/j\b/g, "tch"],
+    [/v[i]c\b/g, "vitch"],
     [/([in])ch\b/g, "$1tch"],
     ["ć", "tch"],
     ["cz", "tch"],
+    [/cek\b/g, "tchek"],
+
+    ["tch", "sh"],
+
     ["š", "sh"],
     ["sz", "sh"],
-    ["tch", "sh"],
-    [/c([eiy])/g, "s$1"],
     [/ch([aeiy])/g, "sh$1"],
-    [/dg([eiy])/g, "sh$1"],
+
     [/g([eiy])/g, "sh$1"],
     [/[st](i[oa])/g, "sh$1"],
+
     [/e[ae]\b/g, "y"],
     [/a[ei]\b/g, "y"],
+    [/c([eiy])/g, "s$1"],
     [/se\b/g, "s"], // already converted c to s
     [/([lr])e\b/g, "e$1"],
     //[/mble([^s])/g, "mbel$1"], // wimbledon but not thumbless
