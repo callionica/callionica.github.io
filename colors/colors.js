@@ -21278,7 +21278,7 @@ export function toSoundKey(text) {
 
     [/mb\b/g, "m"],
     [/gned\b/g, "ned"],
-    [/gn\b/g, "ne"],
+    [/gn\b/g, "n"],
     [/\b[kgp]n/g, "n"],
     
     ["x", "ks"],
