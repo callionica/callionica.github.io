@@ -21239,8 +21239,9 @@ export function toSoundKey(text) {
     [/[st](i[oa])/g, "sh$1"],
     [/e[ae]\b/g, "y"],
     [/a[ei]\b/g, "y"],
-    [/se\b/g, "s"],
+    [/se\b/g, "s"], // already converted c to s
     [/re\b/g, "er"],
+    [/e\b/g, ""], // remove e from end of word
     [/y\b/g, "e"],
     [/\bx([aiou])/g, "sh$1"],
     
