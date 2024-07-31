@@ -21271,6 +21271,8 @@ export function toSoundKey(text) {
     [/[sz]+/g, "s"],
     ["j", "y"],
     ["kh", "k"],
+    
+    [/(.)\1+/g, "$1"], // condense runs
   ];
 
   for (const replacement of replacements) {
