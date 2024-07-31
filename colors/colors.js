@@ -21277,7 +21277,7 @@ export function toSoundKey(text) {
     [/w([^eh]|\b)/g, "$1"],  // w followed by consonant or end of word is unnecessary
 
     [/mb\b/g, "m"],
-    [/gned\b/g, "ned"],
+    [/gne([^e]+)\b/g, "ne$1"],
     [/gn\b/g, "n"],
     [/\b[kgp]n/g, "n"],
     
