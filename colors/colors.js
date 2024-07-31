@@ -21252,6 +21252,7 @@ export function toSoundKey(text) {
     [/a[ei]\b/g, "y"],
     [/c([eiy])/g, "s$1"],
     [/se\b/g, "s"], // already converted c to s
+    [/lle\b/g, "l"], // for next rule
     [/([lr])e\b/g, "e$1"],
     //[/mble([^s])/g, "mbel$1"], // wimbledon but not thumbless
 
