@@ -21274,7 +21274,7 @@ export function toSoundKey(text) {
     ///////////////////////////////////////////////////////////////////////////
     
     [/([^e])wh/g, "$1w"], // w binds to following h when preceded by a consonant
-    [/w([^eh])/g, "$1"],  // w followed by consonant is unnecessary
+    [/w([^eh]|\b)/g, "$1"],  // w followed by consonant or end of word is unnecessary
 
     [/mb\b/g, "m"],
     [/gned\b/g, "ned"],
