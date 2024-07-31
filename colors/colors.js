@@ -21225,12 +21225,14 @@ export function toSoundKey(text) {
   }
   text = text.trim().toLowerCase();
   const replacements = [
+    [/d?ge$/g, "tch"],
     ["tch", "sh"],
     [/c([eiy])/g, "s$1"],
     [/ch([aeiy])/g, "sh$1"],
     [/dg([eiy])/g, "sh$1"],
     [/g([eiy])/g, "sh$1"],
     [/[st](i[oa])/g, "sh$1"],
+    [/([cs])e$/g, "$1"],
     [/re$/g, "er"],
     [/y$/g, "e"],
     [/[aeiou]+/g, "e"],
