@@ -21294,6 +21294,7 @@ export function toSoundKey(text) {
 
     ["j", "y"],
 
+    [/eh\b/g, "e"], // remove unnecessary h
     ["kh", "k"], // remove unnecessary h
     
     [/(.)\1+/g, "$1"], // condense runs
