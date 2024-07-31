@@ -21289,7 +21289,7 @@ export function toSoundKey(text) {
     ["ph", "f"],
     // [/[bfv]+/g, "b"],
     [/[bp]+/g, "b"],
-    [/[fv]+/g, "f"],
+    [/[fv]+/g, "v"],
     [/[cgkq]+/g, "k"],
     [/[dt]+/g, "d"],
     [/[mn]+/g, "n"],
