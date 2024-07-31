@@ -21226,6 +21226,7 @@ export function toSoundKey(text) {
   text = text.trim().toLowerCase();
   const replacements = [
     [/((boro(ug)?)|(b[eu]rg))h?\b/g, "bro"],
+    ["rq(u?)", "rk"],
     [/d?ge\b/g, "tch"],
     [/ich\b/g, "itch"],
     ["ć", "tch"],
