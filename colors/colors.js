@@ -21233,7 +21233,7 @@ export function toSoundKey(text) {
     [/dg([eiy])/g, "tch$1"],
     [/j\b/g, "tch"],
     ["slavic", "slavik"], // because of following rule
-    [/v[i]c\b/g, "vitch"],
+    [/(.)[vw]i[ct][sz]?\b/g, "$1vitch"],
     [/([in])s?ch\b/g, "$1tch"],
     ["ć", "tch"],
     ["cz", "tch"],
