@@ -20998,13 +20998,18 @@ export function toColor(color) {
   return color;
 }
 
+function getKeys(color, toK) {
+  return [...(new Set([toK(color.id), toK(color.number), toK(color.title), ...(color.aliases ?? []).map(a => toK(a))].filter(x => x !== undefined)))];
+}
+
 // Create IDs from titles if an ID not already present
 for (const color of colors) {
   if (color.id === undefined) {
     color.id = toID(color.title);
   }
-  color.ids = [...(new Set([toID(color.id), toID(color.number), toID(color.title), ...(color.aliases ?? []).map(a => toID(a))].filter(x => x !== undefined)))];
-  color.keys = [...(new Set([toKey(color.id), toKey(color.number), toKey(color.title), ...(color.aliases ?? []).map(a => toKey(a))].filter(x => x !== undefined)))];
+  color.ids = getKeys(color, toID); //[...(new Set([toID(color.id), toID(color.number), toID(color.title), ...(color.aliases ?? []).map(a => toID(a))].filter(x => x !== undefined)))];
+  color.keys = getKeys(color, toKey); //[...(new Set([toKey(color.id), toKey(color.number), toKey(color.title), ...(color.aliases ?? []).map(a => toKey(a))].filter(x => x !== undefined)))];
+  color.soundKeys = getKeys(color, toSoundKey);
 }
 
 // Sort colors by length of ID
@@ -21223,7 +21228,7 @@ export function toSoundKey(text) {
   if (text === undefined) {
     return undefined;
   }
-  text = text.trim().toLowerCase();
+  text = text.trim().toLowerCase().replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " ");
 
   const sound_G = "k";
 
@@ -21322,7 +21327,7 @@ export function toSoundKey(text) {
 
   for (const replacement of replacements) {
     text = text.replaceAll(replacement[0], replacement[1]);
-    console.log(replacement, text);
+    // console.log(replacement, text);
   }
   return text;
 }
