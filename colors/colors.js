@@ -21302,6 +21302,8 @@ export function toSoundKey(text) {
     ["kh", "k"], // remove unnecessary h
     
     [/(.)\1+/g, "$1"], // condense runs
+
+    [/\b[^e]\b/g, "$0e"], // single letter consonant gets a vowel
   ];
 
   for (const replacement of replacements) {
