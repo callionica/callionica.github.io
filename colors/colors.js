@@ -21265,7 +21265,7 @@ export function toSoundKey(text) {
     [/\bwho/g, "ho"],
     [/\bwh/g, "w"],
 
-    [/([aeiouy])red\b/g, "$1rd"], // bothered -> botherd
+    [/([aeiouy])([^td\r\n\t ])ed\b/g, "$1$2d"], // bothered -> botherd
 
     ///////////////////// VOWEL COMPRESSION ////////////////////////////////////
     [/e\b/g, ""],        // remove e from end of word (in English it typically changes preceding vowel, not pronounced independently)
