@@ -21269,6 +21269,8 @@ export function toSoundKey(text) {
     [/([^lrwyaeiou\r\n\t ])le\b/g, "$1el"],
     [/re\b/g, "er"],
 
+    [/([aeiouy])([^ey\r\n\t ]+)es\b/g, "$1$2s"], // anes -> ens
+
     [/\bx([aiou])/g, "sh$1"], // chinese X
     [/\bx([ey])/g, "z$1"], // greek X
 
@@ -21286,8 +21288,7 @@ export function toSoundKey(text) {
     [/w([^e\r\n\t h]|\b)/g, "$1"],  // w followed by consonant or end of word is unnecessary
 
     [/([aeiouy])([^td\r\n\t ])ed\b/g, "$1$2d"], // bawled -> bald, bothered -> botherd (but patted/padded unchanged)
-    [/([aeiouy])([^ey\r\n\t ]+)es\b/g, "$1$2s"], // anes -> ens
-
+    
     [/mb\b/g, "m"],
     [/gne([^e\r\n\t ]+)\b/g, "ne$1"],
     [/gn\b/g, "n"],
@@ -21321,7 +21322,7 @@ export function toSoundKey(text) {
 
   for (const replacement of replacements) {
     text = text.replaceAll(replacement[0], replacement[1]);
-    // console.log(replacement, text);
+    console.log(replacement, text);
   }
   return text;
 }
