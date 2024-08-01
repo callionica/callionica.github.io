@@ -20999,7 +20999,7 @@ export function toColor(color) {
 }
 
 function getKeys(color, toK) {
-  return [...(new Set([toK(color.id), toK(color.number), toK(color.title), ...(color.aliases ?? []).map(a => toK(a))].filter(x => x !== undefined)))];
+  return [...(new Set([toK(color.id), color.number, toK(color.title), ...(color.aliases ?? []).map(a => toK(a))].filter(x => x !== undefined)))];
 }
 
 // Create IDs from titles if an ID not already present
