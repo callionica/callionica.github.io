@@ -21252,9 +21252,10 @@ export function toSoundKey(text) {
 
     [/([aeiouy])gg([aeiouy])/g, "$1k$2"], // too early for this, but can't use lookbehind in the next rule (for old browser support), so here it is
     [/gei/g, "gay"],
-    [/giv/g, "g_v"],
+    [/giv/g, "kiv"], // too soon
+    [/get/g, "ket"], // too soon
     [/g([eiy])/g, "sh$1"], // g followed by softening vowel, but not double g
-    [/g_v/g, "giv"],
+    
     [/[st](i[oa])/g, "sh$1"],
 
     [/e[ae]\b/g, "y"],
