@@ -21309,7 +21309,7 @@ export function toSoundKey(text) {
 
     ["j", "y"],
     
-    [/er([^e\r\n\t ]|\b)/g, "e$1"], // remove insignificant R
+    [/er([^ey\r\n\t ]|\b)/g, "e$1"], // remove insignificant R
 
     [/eh\b/g, "e"], // remove unnecessary h
     ["kh", "k"], // remove unnecessary h
