@@ -21256,7 +21256,7 @@ export function toSoundKey(text) {
     [/a[ei]\b/g, "y"],
     [/c([eiy])/g, "s$1"],
     [/se\b/g, "s"], // already converted c to s
-    [/([^l])le\b/g, "$1el"],
+    [/([^l\r\n\t ])le\b/g, "$1el"],
     [/re\b/g, "er"],
 
     [/\bx([aiou])/g, "sh$1"], // chinese X
