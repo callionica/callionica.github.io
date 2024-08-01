@@ -21238,7 +21238,7 @@ export function toSoundKey(text) {
     [/\bczar/g, "zar"],
     ["slavic", "slavik"], // because of following rule
     [/(.)[vw]i[ct][sz]?\b/g, "$1vitch"],
-    [/([in])s?ch\b/g, "$1tch"],
+    [/([aeiouyn])t?s?ch\b/g, "$1tch"],
     ["ć", "tch"],
     ["cz", "tch"],
     [/cek\b/g, "tchek"],
