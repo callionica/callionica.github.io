@@ -21286,6 +21286,7 @@ export function toSoundKey(text) {
     [/w([^e\r\n\t h]|\b)/g, "$1"],  // w followed by consonant or end of word is unnecessary
 
     [/([aeiouy])([^td\r\n\t ])ed\b/g, "$1$2d"], // bawled -> bald, bothered -> botherd (but patted/padded unchanged)
+    [/([aeiouy])([^e\r\n\t ]+)es\b/g, "$1$2s"], // anes -> ens
 
     [/mb\b/g, "m"],
     [/gne([^e\r\n\t ]+)\b/g, "ne$1"],
