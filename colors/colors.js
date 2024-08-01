@@ -21303,7 +21303,7 @@ export function toSoundKey(text) {
     
     [/(.)\1+/g, "$1"], // condense runs
 
-    [/\b[^e]\b/g, "$0e"], // single letter consonant gets a vowel
+    [/\b([^e])\b/g, "$1e"], // single letter consonant gets a vowel
   ];
 
   for (const replacement of replacements) {
