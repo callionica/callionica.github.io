@@ -21250,7 +21250,7 @@ export function toSoundKey(text) {
     ["sz", "sh"],
     [/ch([aeiy])/g, "sh$1"],
 
-    [/g([eiy])/g, "sh$1"],
+    [/(?<!g)g([eiy])/g, "sh$1"], // g followed by softening vowel, but not double g
     [/[st](i[oa])/g, "sh$1"],
 
     [/e[ae]\b/g, "y"],
