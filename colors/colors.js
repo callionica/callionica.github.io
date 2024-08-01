@@ -21322,7 +21322,7 @@ export function toSoundKey(text) {
     
     [/(.)\1+/g, "$1"], // condense runs
 
-    [/\b([^e\r\n\t ])\b/g, "$1e"], // single letter consonant gets a vowel
+    [/\b([bcdfghjklmnpqrstvwxyz])\b/g, "$1e"], // single letter consonant gets a vowel
   ];
 
   for (const replacement of replacements) {
