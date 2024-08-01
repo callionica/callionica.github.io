@@ -10064,6 +10064,9 @@ export const colors = [
     },
     "categories": [
       "Grey"
+    ],
+    "aliases": [
+      "Arkwright"
     ]
   },
   {
