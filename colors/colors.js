@@ -21119,11 +21119,23 @@ export function* colorsBySuffix(suffix) {
 
 export function* colorsByIncludes(text) {
   let id = toKey(text);
+  // keys only have a vowel at the beginning, remove it for an includes search
   if (id[0] === "e") {
     id = id.substring(1);
   }
   for (const color of colors) {
     for (const key of color.keys) {
+      if (key.includes(id)) {
+        yield color;
+      }
+    }
+  }
+}
+
+export function* colorsBySound(text) {
+  let id = toSoundKey(text);
+  for (const color of colors) {
+    for (const key of color.soundKeys) {
       if (key.includes(id)) {
         yield color;
       }
@@ -21151,6 +21163,11 @@ export function toColorDefault(name, fallback) {
   }
 
   for (const clr of colorsByPrefixKey(name)) {
+    return clr;
+  }
+
+  for (const clr of colorsBySound(name)) {
+    console.log("SOUND", name);
     return clr;
   }
   
