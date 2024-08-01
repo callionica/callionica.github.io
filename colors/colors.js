@@ -21282,7 +21282,7 @@ export function toSoundKey(text) {
     
     ["x", "ks"],
     ["ch", "k"],
-    ["eght", "et"],
+    ["egh(t?)([^e]|\b)", "e$1$2"],
     ["wre", "re"],
     ["th", "f"],
     ["ph", "f"],
