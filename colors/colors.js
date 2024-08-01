@@ -21268,21 +21268,21 @@ export function toSoundKey(text) {
     ///////////////////// VOWEL COMPRESSION ////////////////////////////////////
     [/e\b/g, ""],        // remove e from end of word (in English it typically changes preceding vowel, not pronounced independently)
     [/[aeiou]+/g, "e"],  // aeiou are vowels
-    [/y([^e])/g, "e$1"], // y followed by consonant is a vowel
+    [/y([^e\r\n\t ])/g, "e$1"], // y followed by consonant is a vowel
     [/y\b/g, "e"],       // word-ending y is a vowel
     ///////////////////////////////////////////////////////////////////////////
     
-    [/([^e])wh/g, "$1w"], // w binds to following h when preceded by a consonant
-    [/w([^eh]|\b)/g, "$1"],  // w followed by consonant or end of word is unnecessary
+    [/([^e\r\n\t ])wh/g, "$1w"], // w binds to following h when preceded by a consonant
+    [/w([^e\r\n\t h]|\b)/g, "$1"],  // w followed by consonant or end of word is unnecessary
 
     [/mb\b/g, "m"],
-    [/gne([^e]+)\b/g, "ne$1"],
+    [/gne([^e\r\n\t ]+)\b/g, "ne$1"],
     [/gn\b/g, "n"],
     [/\b[kgp]n/g, "n"],
     
     ["x", "ks"],
     ["ch", "k"],
-    [/egh([^e]|\b)/g, "e$1"], // high, light
+    [/egh([^e\r\n\t ]|\b)/g, "e$1"], // high, light
     ["wre", "re"],
     ["th", "f"],
     ["ph", "f"],
@@ -21296,14 +21296,14 @@ export function toSoundKey(text) {
 
     ["j", "y"],
     
-    [/er([^e]|\b)/g, "e$1"], // remove insignificant R
+    [/er([^e\r\n\t ]|\b)/g, "e$1"], // remove insignificant R
 
     [/eh\b/g, "e"], // remove unnecessary h
     ["kh", "k"], // remove unnecessary h
     
     [/(.)\1+/g, "$1"], // condense runs
 
-    //[/\b([^e])\b/g, "$1e"], // single letter consonant gets a vowel
+    [/\b([^e\r\n\t ])\b/g, "$1e"], // single letter consonant gets a vowel
   ];
 
   for (const replacement of replacements) {
