@@ -21265,8 +21265,6 @@ export function toSoundKey(text) {
     [/\bwho/g, "ho"],
     [/\bwh/g, "w"],
 
-    [/([aeiouy])([^td\r\n\t ])ed\b/g, "$1$2d"], // bothered -> botherd
-
     ///////////////////// VOWEL COMPRESSION ////////////////////////////////////
     [/e\b/g, ""],        // remove e from end of word (in English it typically changes preceding vowel, not pronounced independently)
     [/[aeiou]+/g, "e"],  // aeiou are vowels
@@ -21276,6 +21274,8 @@ export function toSoundKey(text) {
     
     [/([^e\r\n\t ])wh/g, "$1w"], // w binds to following h when preceded by a consonant
     [/w([^e\r\n\t h]|\b)/g, "$1"],  // w followed by consonant or end of word is unnecessary
+
+    [/([aeiouy])([^td\r\n\t ])ed\b/g, "$1$2d"], // bawled -> bald, bothered -> botherd (but patted/padded unchanged)
 
     [/mb\b/g, "m"],
     [/gne([^e\r\n\t ]+)\b/g, "ne$1"],
