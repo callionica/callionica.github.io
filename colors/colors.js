@@ -21234,7 +21234,8 @@ export function toSoundKey(text) {
 
     [/d?ge\b/g, "tch"],
     [/dg([eiy])/g, "tch$1"],
-    [/j\b/g, "tch"],
+    //[/j\b/g, "tch"],
+    [/j/g, "tch"],
     [/\btsar/g, "zar"],
     [/\bczar/g, "zar"],
     ["slavic", "slavik"], // because of following rule
@@ -21255,7 +21256,7 @@ export function toSoundKey(text) {
     [/giv/g, "kiv"], // too soon
     [/get/g, "ket"], // too soon
     [/g([eiy])/g, "sh$1"], // g followed by softening vowel, but not double g
-    
+
     [/[st](i[oa])/g, "sh$1"],
 
     [/e[ae]\b/g, "y"],
