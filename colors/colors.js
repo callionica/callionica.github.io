@@ -21224,6 +21224,9 @@ export function toSoundKey(text) {
     return undefined;
   }
   text = text.trim().toLowerCase();
+
+  const sound_G = "k";
+
   const replacements = [
     [/((boro(ug)?)|(b[eu]rg))h?\b/g, "bro"],
     [/rq(u?)/g, "rk"],
@@ -21251,10 +21254,10 @@ export function toSoundKey(text) {
     ["sz", "sh"],
     [/ch([aeiy])/g, "sh$1"],
 
-    [/([aeiouy])gg([aeiouy])/g, "$1k$2"], // too early for this, but can't use lookbehind in the next rule (for old browser support), so here it is
+    [/([aeiouy])gg([aeiouy])/g, `$1${sound_G}$2`], // too early for this, but can't use lookbehind in the next rule (for old browser support), so here it is
     [/g[ae]i/g, "gay"],
-    [/giv/g, "kiv"], // too soon
-    [/get/g, "ket"], // too soon
+    [/giv/g, `${sound_G}iv`], // too soon
+    [/get/g, `${sound_G}et`], // too soon
     [/g([eiy])/g, "sh$1"], // g followed by softening vowel, but not double g
 
     [/[st](i[oa])/g, "sh$1"],
