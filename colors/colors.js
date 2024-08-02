@@ -21432,7 +21432,7 @@ export function getPrefixMatches(text) {
   const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
   const result = {};
   
-  checkMap(words, "word", 1.0);
+  checkMap(words, "word", 1.2);
   if (text.length > 2) {
     checkMap(sounds, "sound", 1.0);
   }
