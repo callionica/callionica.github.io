@@ -20985,16 +20985,6 @@ export function toColor(color) {
       return byID;
     }
 
-    // const byNumber = colors.find(c => c.number == id);
-    // if (byNumber !== undefined) {
-    //   return byNumber;
-    // }
-
-    // const byAlias = colors.find(c => c.aliases && c.aliases.map(a => toID(a)).includes(id));
-    // if (byAlias !== undefined) {
-    //   return byAlias;
-    // }
-
     return undefined;
   }
 
@@ -21351,6 +21341,28 @@ export function toSoundKey(text) {
   }
   return text;
 }
+
+/**
+ * 
+ * @param { Map } map 
+ * @param { object } item 
+ * @param { string[] } keys
+ */
+export function addToMultimap(map, item, keys) {
+  for (const key of keys) {
+    let list = map.get(key);
+    if (list === undefined) {
+      list = [item];
+      map.set(key, list);
+    } else {
+      list.push(item);
+    }
+  }
+  return map;
+}
+
+export const words = new Map();
+colors.map(color => color.ids.map(id => addToMultimap(words, color, id.split("-"))));
 
 // colors.map(clr => [clr.title, toSoundKey(clr.title.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " "))]);
 
