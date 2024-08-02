@@ -21006,12 +21006,19 @@ for (const color of colors) {
 }
 
 // Sort colors by length of ID and then alphabetically
-colors.sort((a, b) => {
+/**
+ * @param { Color } a 
+ * @param { Color } b 
+ * @returns number
+ */
+export function colorCompare(a, b) {
   if (a.id.length !== b.id.length) {
     return a.id.length - b.id.length;
   }
   return a.id.localeCompare(b.id);
-});
+};
+
+colors.sort(colorCompare);
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -21410,10 +21417,10 @@ export function getSoundMatches(text) {
       }
     }
   }
-  return Object.entries(result).sort(([id, count], [id2, count2]) => {
+  return Object.entries(result).map(([id, count]) => [toColor(id), count]).sort(([color, count], [color2, count2]) => {
     if (count > count2) return -1;
     if (count < count2) return +1;
-    return id.length - id2.length;
+    return colorCompare(color, color2);
   });
 }
 // colors.map(clr => [clr.title, toSoundKey(clr.title.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " "))]);
