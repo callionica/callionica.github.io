@@ -21396,9 +21396,10 @@ export function getSoundMatches(text) {
   for (const [sound, list] of soundList) {
     for (const querySound of querySounds) {
       if (sound.startsWith(querySound)) {
+        const increment = querySound.length / sound.length;
         for (const color of list) {
           let count = result[color.id] ?? 0;
-          ++count;
+          count += increment;
           result[color.id] = count;
         }
       }
