@@ -21466,6 +21466,47 @@ export function getPrefixMatches(text) {
     }
   }
 }
+
+
+/** @typedef { { key: string; items: Set } } LetterNode */
+
+/**
+ * 
+ * @param { LetterNode } root 
+ * @param { string } word 
+ * @param { object[] } items 
+ */
+export function setWord(root, word, items) {
+  let current = root;
+  for (const letter of word) {
+    /** @type LetterNode */
+    let next = current[letter];
+    if (next === undefined) {
+      next = { key, items: new Set(items) };
+      current[letter] = next;
+    } else {
+      for (const item of items) {
+        next.items.add(item)
+      }
+    }
+    current = next;
+  }
+}
+
+export function getWord(root, word) {
+  const result = [];
+  let current = root;
+  for (const letter of word) {
+    let next = current[letter];
+    if (next === undefined) {
+      return result;
+    }
+    result.push(next);
+    current = next;
+  }
+}
+
+
 // colors.map(clr => [clr.title, toSoundKey(clr.title.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " "))]);
 
 // toSoundKey("Ceviche");
