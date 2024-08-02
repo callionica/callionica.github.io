@@ -21222,6 +21222,11 @@ export function textToPalette(text, textToColor = toColorDefault) {
 
 export const colorExpression = /^\s*(?<title>[^*()]*[^*() ])\s*(?<selected1>[*])?\s*([(](?<number>\d+)[)])?\s*(?<selected>[*])?\s*$/;
 
+/**
+ * 
+ * @param { string } text 
+ * @returns 
+ */
 export function parseTitle(text) {
   const selected = text.includes("*");
   text = text.replaceAll("*", "");
@@ -21234,6 +21239,11 @@ export function parseTitle(text) {
   return { title, selected };
 }
 
+/**
+ * 
+ * @param { string } text 
+ * @returns 
+ */
 export function toSoundKey(text) {
   if (text === undefined) {
     return undefined;
@@ -21365,6 +21375,9 @@ export function addToMultimap(map, item, keys) {
 
 export const words = new Map();
 colors.map(color => color.ids.map(id => addToMultimap(words, color, id.split("-"))));
+
+export const sounds = new Map();
+colors.map(color => color.soundKeys.map(soundKey => addToMultimap(sounds, color, soundKey.split(" "))));
 
 // colors.map(clr => [clr.title, toSoundKey(clr.title.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " "))]);
 
