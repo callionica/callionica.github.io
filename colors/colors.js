@@ -21415,30 +21415,36 @@ function hasWordPrefix(color, input) {
   return false;
 }
 
-export function getSoundMatches(text) {
+export function getPrefixMatches(text) {
   const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
   const result = {};
   
-  const soundList = [...sounds.entries()];
+  checkMap(words, "word");
+  checkMap(sounds, "sound");
 
-  for (const [sound, list] of soundList) {
-    for (const input of inputs) {
-      if (sound.startsWith(input.sound)) {
-        const soundIncrement = input.sound.length / sound.length;
-        for (const color of list) {
-          const wordIncrement = hasWordPrefix(color, input.word) ? 0.1 : 0;
-          let count = result[color.id] ?? 0;
-          count += (soundIncrement + wordIncrement);
-          result[color.id] = count;
-        }
-      }
-    }
-  }
   return Object.entries(result).map(([id, count]) => [toColor(id), count]).sort(([color, count], [color2, count2]) => {
     if (count > count2) return -1;
     if (count < count2) return +1;
     return colorCompare(color, color2);
   });
+
+  function checkMap(map, prop) {
+    const entries = [...map.entries()];
+
+    for (const [key, list] of entries) {
+      for (const input of inputs) {
+        const value = input[prop];
+        if (key.startsWith(value)) {
+          const increment = value.length / key.length;
+          for (const color of list) {
+            let count = result[color.id] ?? 0;
+            count += increment;
+            result[color.id] = count;
+          }
+        }
+      }
+    }
+  }
 }
 // colors.map(clr => [clr.title, toSoundKey(clr.title.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " "))]);
 
