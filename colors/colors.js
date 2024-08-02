@@ -21375,7 +21375,7 @@ export function toSoundKey(text) {
  * 
  * @param { Map } map 
  * @param { object } item 
- * @param { string[] } keys
+ * @param { Iterable<string> } keys
  */
 export function addToMultimap(map, item, keys) {
   for (const key of keys) {
@@ -21393,7 +21393,7 @@ export function addToMultimap(map, item, keys) {
 }
 
 export const words = new Map();
-colors.map(color => color.ids.map(id => addToMultimap(words, color, id.split("-"))));
+colors.map(color => addToMultimap(words, color, color.words));
 
 export const sounds = new Map();
 colors.map(color => color.soundKeys.map(soundKey => addToMultimap(sounds, color, soundKey.split(" "))));
