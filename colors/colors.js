@@ -21419,7 +21419,7 @@ export function getPrefixMatches(text) {
   const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
   const result = {};
   
-  checkMap(words, "word", 2.0);
+  checkMap(words, "word", 2.1);
   checkMap(sounds, "sound", 1.0);
 
   return Object.entries(result).map(([id, count]) => [toColor(id), count]).sort(([color, count], [color2, count2]) => {
