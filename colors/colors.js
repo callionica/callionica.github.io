@@ -21005,8 +21005,13 @@ for (const color of colors) {
   color.soundKeys = getKeys(color, toSoundKey);
 }
 
-// Sort colors by length of ID
-colors.sort((a, b) => a.id.length - b.id.length);
+// Sort colors by length of ID and then alphabetically
+colors.sort((a, b) => {
+  if (a.id.length === b.id.length) {
+    return a.id.length - b.id.length;
+  }
+  return a.id.localeCompare(b.id);
+});
 
 ////////////////////////////////////////////////////////////////////////////////////
 
