@@ -21007,7 +21007,7 @@ for (const color of colors) {
 
 // Sort colors by length of ID and then alphabetically
 colors.sort((a, b) => {
-  if (a.id.length === b.id.length) {
+  if (a.id.length !== b.id.length) {
     return a.id.length - b.id.length;
   }
   return a.id.localeCompare(b.id);
