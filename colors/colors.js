@@ -21419,8 +21419,8 @@ export function getPrefixMatches(text) {
   const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
   const result = {};
   
-  checkMap(words, "word");
-  checkMap(sounds, "sound");
+  checkMap(words, "word", 2.0);
+  checkMap(sounds, "sound", 1.0);
 
   return Object.entries(result).map(([id, count]) => [toColor(id), count]).sort(([color, count], [color2, count2]) => {
     if (count > count2) return -1;
@@ -21428,14 +21428,14 @@ export function getPrefixMatches(text) {
     return colorCompare(color, color2);
   });
 
-  function checkMap(map, prop) {
+  function checkMap(map, prop, scale) {
     const entries = [...map.entries()];
 
     for (const [key, list] of entries) {
       for (const input of inputs) {
         const value = input[prop];
         if (key.startsWith(value)) {
-          const increment = value.length / key.length;
+          const increment = scale * (value.length / key.length);
           for (const color of list) {
             let count = result[color.id] ?? 0;
             count += increment;
