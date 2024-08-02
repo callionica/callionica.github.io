@@ -21175,6 +21175,10 @@ export function toColorDefault(name, fallback) {
     return clr;
   }
 
+  for (const [clr] of getPrefixMatches(name)) {
+    return clr;
+  }
+
   for (const clr of colorsByPrefixKey(name)) {
     return clr;
   }
