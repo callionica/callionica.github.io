@@ -21355,7 +21355,9 @@ export function addToMultimap(map, item, keys) {
       list = [item];
       map.set(key, list);
     } else {
-      list.push(item);
+      if (!list.includes(item)) {
+        list.push(item);
+      }
     }
   }
   return map;
