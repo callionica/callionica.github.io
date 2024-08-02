@@ -21167,13 +21167,13 @@ export function toColorDefault(name, fallback) {
     return color;
   }
 
-  for (const clr of colorsByPrefix(name)) {
-    return clr;
-  }
+  // for (const clr of colorsByPrefix(name)) {
+  //   return clr;
+  // }
 
-  for (const clr of colorsBySuffix(name)) {
-    return clr;
-  }
+  // for (const clr of colorsBySuffix(name)) {
+  //   return clr;
+  // }
 
   for (const [clr] of getPrefixMatches(name)) {
     return clr;
