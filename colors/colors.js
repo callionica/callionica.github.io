@@ -21471,32 +21471,51 @@ export function getPrefixMatches(text) {
 /** @typedef { { key: string; items: Set } } LetterNode */
 
 /**
- * 
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { object[] } items 
  */
-export function setWord(root, word, items) {
+export function setWord(root, word, items, collectionName = "prefix") {
   let current = root;
   for (const key of word) {
     /** @type LetterNode */
     let next = current[key];
     if (next === undefined) {
-      next = { key, items: new Set(items) };
+      next = { key };
+      next[collectionName] = new Set(items);
       current[key] = next;
     } else {
       for (const item of items) {
-        next.items.add(item)
+        next[collectionName].add(item)
       }
     }
     current = next;
   }
 }
 
+/**
+ * Sets 
+ * @param { LetterNode } root 
+ * @param { string } word 
+ * @param { object[] } items 
+ */
+export function setEveryWord(root, word, items) {
+  for (let index = 0; index < word.length; ++index) {
+    setWord(root, word.substring(index), items, index === 0 ? "prefix" : "internal");
+  }
+}
+
+/**
+ * @param { LetterNode } root 
+ * @param { string } word 
+ * @param { object[] } items 
+ */
 export function getWord(root, word) {
+  /** @type LetterNode[] */
   const result = [];
   let current = root;
   for (const key of word) {
+    /** @type LetterNode */
     let next = current[key];
     if (next === undefined) {
       return result;
