@@ -21379,6 +21379,37 @@ colors.map(color => color.ids.map(id => addToMultimap(words, color, id.split("-"
 export const sounds = new Map();
 colors.map(color => color.soundKeys.map(soundKey => addToMultimap(sounds, color, soundKey.split(" "))));
 
+/**
+ * 
+ * @param { string } text 
+ */
+export function toSounds(text) {
+  return toSoundKey(text).split(" ");
+}
+
+export function getSoundMatches(text) {
+  const querySounds = toSounds(text);
+  const result = {};
+  
+  const soundList = [...sounds.entries()];
+
+  for (const [sound, list] of soundList) {
+    for (const querySound of querySounds) {
+      if (sound.startsWith(querySound)) {
+        for (const color of list) {
+          let count = result[color.id] ?? 0;
+          ++count;
+          result[color.id] = count;
+        }
+      }
+    }
+  }
+  return Object.entries(result).sort(([id, count], [id2, count2]) => {
+    if (count > count2) return -1;
+    if (count < count2) return +1;
+    return id.length - id2.length;
+  });
+}
 // colors.map(clr => [clr.title, toSoundKey(clr.title.replaceAll(/[:™®'’]/g, "").normalize("NFD").replace(/\p{Diacritic}/gu, "").replaceAll(/[- &]+/g, " "))]);
 
 // toSoundKey("Ceviche");
