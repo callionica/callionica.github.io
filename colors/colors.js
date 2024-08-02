@@ -21504,6 +21504,7 @@ export function getWord(root, word) {
     result.push(next);
     current = next;
   }
+  return result;
 }
 
 
