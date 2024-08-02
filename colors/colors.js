@@ -21478,12 +21478,12 @@ export function getPrefixMatches(text) {
  */
 export function setWord(root, word, items) {
   let current = root;
-  for (const letter of word) {
+  for (const key of word) {
     /** @type LetterNode */
-    let next = current[letter];
+    let next = current[key];
     if (next === undefined) {
       next = { key, items: new Set(items) };
-      current[letter] = next;
+      current[key] = next;
     } else {
       for (const item of items) {
         next.items.add(item)
@@ -21496,8 +21496,8 @@ export function setWord(root, word, items) {
 export function getWord(root, word) {
   const result = [];
   let current = root;
-  for (const letter of word) {
-    let next = current[letter];
+  for (const key of word) {
+    let next = current[key];
     if (next === undefined) {
       return result;
     }
