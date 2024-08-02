@@ -21450,7 +21450,7 @@ export function getPrefixMatches(text) {
         const value = input[prop];
         const prefix = commonPrefix(value, key);
         if (prefix.length > 0) {
-          const increment = scale * (prefix.length / key.length);
+          const increment = scale * (prefix.length / value.length) * (prefix.length / key.length);
           for (const color of list) {
             let count = result[color.id] ?? 0;
             count += increment;
