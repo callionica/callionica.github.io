@@ -21432,7 +21432,9 @@ export function getPrefixMatches(text) {
   const result = {};
   
   checkMap(words, "word", 3.0);
-  checkMap(sounds, "sound", 1.0);
+  if (text.length > 3) {
+    checkMap(sounds, "sound", 1.0);
+  }
 
   return Object.entries(result).map(([id, count]) => [toColor(id), count]).sort(([color, count], [color2, count2]) => {
     if (count > count2) return -1;
