@@ -21007,6 +21007,7 @@ for (const color of colors) {
   color.words = new Set();
   for (const id of color.ids) {
     for (const word of id.split("-")) {
+      if (word === "s") { continue; }
       color.words.add(word);
     }
   }
