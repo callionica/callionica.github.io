@@ -21003,6 +21003,13 @@ for (const color of colors) {
   color.ids = getKeys(color, toID); //[...(new Set([toID(color.id), toID(color.number), toID(color.title), ...(color.aliases ?? []).map(a => toID(a))].filter(x => x !== undefined)))];
   color.keys = getKeys(color, toKey); //[...(new Set([toKey(color.id), toKey(color.number), toKey(color.title), ...(color.aliases ?? []).map(a => toKey(a))].filter(x => x !== undefined)))];
   color.soundKeys = getKeys(color, toSoundKey);
+  
+  color.words = new Set();
+  for (const id of color.ids) {
+    for (const word of id.split("-")) {
+      color.words.add(word);
+    }
+  }
 }
 
 // Sort colors by length of ID and then alphabetically
@@ -21399,19 +21406,29 @@ export function toSounds(text) {
   return toSoundKey(text).split(" ");
 }
 
+function hasWordPrefix(color, input) {
+  for (const word of color.words) {
+    if (word.startsWith(input)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function getSoundMatches(text) {
-  const querySounds = toSounds(text);
+  const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
   const result = {};
   
   const soundList = [...sounds.entries()];
 
   for (const [sound, list] of soundList) {
-    for (const querySound of querySounds) {
-      if (sound.startsWith(querySound)) {
-        const increment = querySound.length / sound.length;
+    for (const input of inputs) {
+      if (sound.startsWith(input.sound)) {
+        const soundIncrement = input.sound.length / sound.length;
         for (const color of list) {
+          const wordIncrement = hasWordPrefix(color, input.word) ? 0.1 : 0;
           let count = result[color.id] ?? 0;
-          count += increment;
+          count += (soundIncrement + wordIncrement);
           result[color.id] = count;
         }
       }
