@@ -21415,6 +21415,18 @@ function hasWordPrefix(color, input) {
   return false;
 }
 
+function commonPrefix(t1, t2) {
+  const result = [];
+  for (let index = 0; index < Math.min(t1.length, t2.length); ++index) {
+    if (t1[index] === t2[index]) {
+      result.push(t1[index]);
+    } else {
+      break;
+    }
+  }
+  return result.join("");
+}
+
 export function getPrefixMatches(text) {
   const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
   const result = {};
@@ -21434,8 +21446,9 @@ export function getPrefixMatches(text) {
     for (const [key, list] of entries) {
       for (const input of inputs) {
         const value = input[prop];
-        if (key.startsWith(value)) {
-          const increment = scale * (value.length / key.length);
+        const prefix = commonPrefix(value, key);
+        if (prefix.length > 0) {
+          const increment = scale * (prefix.length / key.length);
           for (const color of list) {
             let count = result[color.id] ?? 0;
             count += increment;
