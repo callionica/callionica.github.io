@@ -21397,7 +21397,7 @@ export const words = new Map();
 colors.map(color => addToMultimap(words, color, color.words));
 
 export const sounds = new Map();
-colors.map(color => addToMultimap(words, color, color.words.map(w => toSoundKey(w))));
+colors.map(color => addToMultimap(words, color, [...color.words].map(w => toSoundKey(w))));
 
 /**
  * 
