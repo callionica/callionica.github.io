@@ -28,6 +28,9 @@
             input.oninput = () => {
                 // output.value = toSoundKey(input.value);
                 // return;
+
+                output.value = JSON.stringify(getPrefixMatches(input.value).map(([clr, cnt])=> [clr.id, cnt]), null, 2);
+                return;
                 
                 const palette = textToPalette(input.value);
                 output.value = paletteToText(palette);
