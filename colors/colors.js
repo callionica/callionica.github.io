@@ -21463,7 +21463,7 @@ export function getPrefixMatches(text) {
     const values = wordPrefixes.getValues(input.word);
     for (const o of values) {
       const score = result[o.value.id] ?? 0;
-      const increment = (o.key.length / input.word.length) + (o.isTerminal ? 1 : 0);
+      const increment = (o.key.length / input.word.length) + (o.isTerminal ? o.key.length : 0);
       result[o.value.id] = score + increment;
     }
   }
