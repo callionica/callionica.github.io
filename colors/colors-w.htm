@@ -256,7 +256,8 @@
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
                     `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
                 <div class="pasteNav"><button>Paste from clipboard</button></div>
-                <div class="copyText"><button>Copy as text</button></div>`;
+                <div class="copyText"><button>Copy as text</button></div>
+                <a href="?"><div class="random">Random</div></a>`;
 
                 document.querySelector(".pasteNav").onclick = () => pasteNav();
                 document.querySelector(".copyText").onclick = () => copyText(text);
@@ -312,8 +313,10 @@
 
                 return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
             }).join("\n") +
-                `<a href="?"><div class="random">Random</div></a>
-                <div class="copyText"><button>Copy as text</button></div>`
+                `
+                <div class="copyText"><button>Copy as text</button></div>
+                <a href="?"><div class="random">Random</div></a>
+                `
                 ;
 
                 document.querySelector(".copyText").onclick = () => copyText(text);
