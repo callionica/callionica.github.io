@@ -21009,7 +21009,7 @@ for (const color of colors) {
   color.words = new Set();
   for (const id of color.ids) {
     for (const word of id.split("-")) {
-      if (word === "s") { continue; }
+      if (["a", "s", "of"].includes(word)) { continue; }
       color.words.add(word);
     }
   }
@@ -21018,7 +21018,7 @@ for (const color of colors) {
 export const wordPrefixes = new Trie();
 colors.map(clr => [...clr.words].map(word => wordPrefixes.setValues(word, [clr])));
 export const soundPrefixes = new Trie();
-colors.map(clr => [...clr.sounds].map(sound => soundPrefixes.setValues(sound, [clr])));
+colors.map(clr => [...clr.words].map(word => soundPrefixes.setValues(toSoundKey(word), [clr])));
 
 // Sort colors by length of ID and then alphabetically
 /**
