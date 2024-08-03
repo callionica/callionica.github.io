@@ -4,7 +4,7 @@
 // (so the values are stored at every node/letter of the word)
 
 /** @typedef { string } Letter */
-/** @typedef { { key: string; values: Set; terminals?: Set; } & Record<Letter, LetterNode> } LetterNode */
+/** @typedef { { key: Letter; values: Set; terminals?: Set; } & Record<Letter, LetterNode> } LetterNode */
 
 /**
  * @param { LetterNode } root 

@@ -1,3 +1,5 @@
+import { Trie } from "try-hard.js";
+
 export const colors = [
   {
     "title": "Silent White - Pale™",
@@ -21012,6 +21014,9 @@ for (const color of colors) {
     }
   }
 }
+
+export const wordPrefixes = new Trie();
+colors.map(clr => clr.words.map(word => wordPrefixes.setValues(word, [clr])));
 
 // Sort colors by length of ID and then alphabetically
 /**
