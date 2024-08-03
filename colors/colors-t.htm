@@ -29,7 +29,7 @@
                 // output.value = toSoundKey(input.value);
                 // return;
 
-                output.value = getPrefixMatches(input.value).map(([clr, cnt])=> [clr.id, cnt, clr.sounds.join(" | ")].join(", ")).join("\n");
+                output.value = getPrefixMatches(input.value).map(([clr, cnt])=> [clr.id, cnt, clr.words.map(toSoundKey).join(" | ")].join(", ")).join("\n");
                 return;
                 
                 const palette = textToPalette(input.value);
