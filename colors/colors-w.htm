@@ -255,8 +255,8 @@
                 document.title = `Colors - ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
                     `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
-                <div class="pasteNav">Paste from clipboard</div>
-                <div class="copyText">Copy as text</div>`;
+                <div class="pasteNav"><button>Paste from clipboard</button></div>
+                <div class="copyText"><button>Copy as text</button></div>`;
 
                 document.querySelector(".pasteNav").onclick = () => pasteNav();
                 document.querySelector(".copyText").onclick = () => copyText(text);
