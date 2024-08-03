@@ -76,7 +76,7 @@ export function getNodes(root, word) {
  * @returns { { key: string; values: Set; }[] }
  */
 export function getValues(root, word) {
-	const nodes = getNodes(root, word);
+  const nodes = getNodes(root, word);
   const fullKey = nodes.map(n => n.key).join("");
   
   const seen = new Set();
@@ -84,9 +84,17 @@ export function getValues(root, word) {
   for (let index = nodes.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
     const node = nodes[index];
+    if (node.terminals !== undefined) {
+    for (const value of node.terminals) {
+      if (!seen.has(value)) {
+        result.push({ key, value, isTerminal: true });
+      }
+      seen.add(value);
+    }
+    }
     for (const value of node.values) {
       if (!seen.has(value)) {
-        result.push({ key, value, isTerminal: node.terminals?.has(value) ?? false });
+        result.push({ key, value, isTerminal: false });
       }
       seen.add(value);
     }
