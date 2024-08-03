@@ -38,7 +38,7 @@
             connectedCallback() {
 
                 if (this.container === undefined) {
-                    this.container = this.scroller?.querySelector("& > .container") ?? undefined;
+                    this.container = this.scroller?.querySelector(":scope > .container") ?? undefined;
                     if (this.container === undefined) {
                         const children = [...this.children];
                         this.container = this.ownerDocument.createElement("div");
@@ -62,7 +62,7 @@
                 }
 
                 if (this.scroller === undefined) {
-                    this.scroller = this.querySelector("& > .scroller") ?? undefined;
+                    this.scroller = this.querySelector(":scope > .scroller") ?? undefined;
                     if (this.scroller === undefined) {
                         this.scroller = this.ownerDocument.createElement("div");
                         this.scroller.classList.add("scroller");
@@ -72,7 +72,7 @@
                 }
 
                 if (this.clicker === undefined) {
-                    this.clicker = this.querySelector("& > .clicker") ?? undefined;
+                    this.clicker = this.querySelector(":scope > .clicker") ?? undefined;
                     if (this.clicker === undefined) {
                         const clicker = this.ownerDocument.createElement("div");
                         clicker.classList.add("clicker");
@@ -148,19 +148,9 @@
 
     </script>
     <script type="module">
-        import { colors, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, toColorByPrefix } from "./colors.js";
+        import { colors, toColorDefault, textToPalette, paletteToQuery, paletteToText, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
 
         (function () {
-            function toColorDefault(name, fallback) {
-                let color = toColor(name);
-                if (color === undefined) {
-                    color = toColorByPrefix(name);
-                }
-                if (color === undefined) {
-                    color = toColor(fallback ?? "Carys");
-                }
-                return color;
-            }
 
             class ColorSwatch extends HTMLElement {
 
@@ -200,7 +190,7 @@
                 }
 
                 if (selectedColor === undefined) {
-                    selectedColor = colors[0];
+                    selectedColor = colors.find(clr => clr.selected) ?? colors[0];
                 }
 
                 if (colors.length > 1) {
@@ -233,10 +223,6 @@
                 }
             }
 
-            function paletteToQuery(palette) {
-                return palette.map(colors => colors.map(color => color.id).join("|")).join(",");
-            }
-
             /**
              * @param { string } text
              **/
@@ -249,12 +235,18 @@
                 nav(await navigator.clipboard.readText());
             }
 
+            async function copyText(text) {
+                await navigator.clipboard.writeText(text);
+                alert("Copied");
+            }
+
             const params = new URLSearchParams(document.location.search);
 
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
-                const palette = fixedColors.trim().split(",").map(line => line.trim()).filter(line => line.length > 0).map(line => line.split("|").map(name => name.trim()).filter(name => name.length > 0).map(name => toColorDefault(name)));
+                const palette = textToPalette(fixedColors, toColorDefault);
+                const text = paletteToText(palette);
                 const query = paletteToQuery(palette);
 
                 const shuffledPalette = shuffle([...palette]);
@@ -262,13 +254,15 @@
 
                 document.title = `Colors - ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
-                `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
-                <div class="pasteNav">Show clipboard</div>`;
+                    `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
+                <div class="pasteNav"><button>Paste from clipboard</button></div>
+                <div class="copyText"><button>Copy as text</button></div>`;
 
                 document.querySelector(".pasteNav").onclick = () => pasteNav();
+                document.querySelector(".copyText").onclick = () => copyText(text);
 
-                // const paletteElement = document.body.querySelector("& > .palette") ?? undefined;
-                // const shuffleElement = document.body.querySelector("& > .shuffle") ?? undefined;
+                // const paletteElement = document.body.querySelector(":scope > .palette") ?? undefined;
+                // const shuffleElement = document.body.querySelector(":scope > .shuffle") ?? undefined;
                 // if (shuffleElement !== undefined && paletteElement !== undefined) {
                 //     shuffleElement.onclick = () => {
                 //         const children = [...paletteElement.children];
@@ -295,6 +289,9 @@
             console.log(all);
             console.log(colors);
 
+            const palette = Object.values(all).map(a => a.colors ?? [a]);
+            const text = paletteToText(palette);
+
             document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
                 const colors = all[key].colors;
 
@@ -315,8 +312,11 @@
 
                 return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
             }).join("\n") +
-                `<a href="?"><div class="random">Random</div></a>`
+                `<a href="?"><div class="random">Random</div></a>
+                <div class="copyText"><button>Copy as text</button></div>`
                 ;
+
+                document.querySelector(".copyText").onclick = () => copyText(text);
         })();
     </script>
     <style>
@@ -324,8 +324,15 @@
             box-sizing: border-box;
         }
 
+        button {
+            font-size: inherit;
+        }
+
         :root {
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+            --width: 160px;
+            --height: 100px;
         }
 
         color-swatch {
@@ -336,8 +343,8 @@
 
         .swatch {
             position: relative;
-            width: 16vh;
-            height: 10vh;
+            width: var(--width);
+            height: var(--height);
         }
 
         .swatch.selected {
@@ -373,8 +380,8 @@
             /* background-color: pink; */
             position: relative;
             display: block;
-            width: calc(16vh);
-            height: 10vh;
+            width: var(--width);
+            height: var(--height);
             transition: width 0.6s ease;
         }
 
@@ -389,7 +396,7 @@
         }
 
         expand-children>.scroller {
-            max-width: calc(16vh * 4);
+            max-width: calc(var(--width) * 4);
             overflow-y: hidden;
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
