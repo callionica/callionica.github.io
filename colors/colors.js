@@ -20471,6 +20471,9 @@ export const colors = [
     "categories": [
       "Archive",
       "1960s"
+    ],
+    "aliases": [
+      "Nightsbridge"
     ]
   },
   {
