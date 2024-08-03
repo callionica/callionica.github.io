@@ -235,12 +235,17 @@
                 nav(await navigator.clipboard.readText());
             }
 
+            async function copyText(text) {
+                await navigator.clipboard.writeText(text);
+            }
+
             const params = new URLSearchParams(document.location.search);
 
             const fixedColors = params.get("colors") ?? undefined;
 
             if (fixedColors !== undefined) {
                 const palette = textToPalette(fixedColors, toColorDefault);
+                const text = paletteToText(palette);
                 const query = paletteToQuery(palette);
 
                 const shuffledPalette = shuffle([...palette]);
@@ -249,9 +254,11 @@
                 document.title = `Colors - ${palette.flatMap(colors => colors.map(color => color.title.replaceAll(/[™®]/g, ""))).join(", ")}`;
                 document.body.innerHTML = `<div class="palette">${paletteHTML(palette)}</div>` +
                     `<a href="?colors=${shuffledQuery}"><div class="shuffle">Shuffle</div></a>
-                <div class="pasteNav">Show clipboard</div>`;
+                <div class="pasteNav">Show clipboard</div>
+                <div class="copyText">Copy as text</div>`;
 
                 document.querySelector(".pasteNav").onclick = () => pasteNav();
+                document.querySelector(".copyText").onclick = () => copyText(text);
 
                 // const paletteElement = document.body.querySelector(":scope > .palette") ?? undefined;
                 // const shuffleElement = document.body.querySelector(":scope > .shuffle") ?? undefined;
