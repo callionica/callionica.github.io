@@ -289,7 +289,7 @@
             console.log(all);
             console.log(colors);
 
-            const palette = Object.values(all);
+            const palette = Object.values(all).map(a => a.colors);
             const text = paletteToText(palette);
 
             document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
