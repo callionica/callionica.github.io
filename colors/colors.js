@@ -1,4 +1,4 @@
-import { Trie } from "try-hard.js";
+import { Trie } from "./try-hard.js";
 
 export const colors = [
   {
