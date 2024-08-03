@@ -71,6 +71,7 @@ export function getNodes(root, word) {
 
 /**
  * Returns each value that matches a prefix of the word, ordered by prefix length
+ * with terminals before non-terminals
  * @param { LetterNode } root 
  * @param { string } word
  * @returns { { key: string; values: Set; }[] }
