@@ -3,33 +3,34 @@
 // A word is like a set of keys: each prefix of the word is a key
 // (so the values are stored at every node/letter of the word)
 
-/** @typedef { { key: string; values: Set; terminals?: Set; } & Record<string, LetterNode> } LetterNode */
+/** @typedef { string } Letter */
+/** @typedef { { key: string; values: Set; terminals?: Set; } & Record<Letter, LetterNode> } LetterNode */
 
 /**
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { object[] } items 
  */
-export function setValues(root, word, items, collectionName = "values", terminalCollectionName = "terminals") {
+export function setValues(root, word, items) {
   let current = root;
   let index = 0;
   const count = word.length;
   for (const key of word) {
-  
+
     /** @type LetterNode */
     const next = current[key] ?? (current[key] = { key });
-    const collection = next[collectionName] ?? (next[collectionName] = new Set());
+    const values = next.values ?? (next.values = new Set());
     for (const item of items) {
-      collection.add(item)
+      values.add(item)
     }
-  
+
     if (index === count - 1) {
-    	const terminalCollection = next[terminalCollectionName] ?? (next[terminalCollectionName] = new Set());
+      const terminals = next.terminals ?? (next.terminals = new Set());
       for (const item of items) {
-        terminalCollection.add(item)
+        terminals.add(item)
       }
     }
-    
+
     current = next;
     ++index;
   }
@@ -74,24 +75,24 @@ export function getNodes(root, word) {
  * with terminals before non-terminals
  * @param { LetterNode } root 
  * @param { string } word
- * @returns { { key: string; values: Set; }[] }
+ * @returns { { key: string; value: T; isTerminal: boolean; }[] }
  */
 export function getValues(root, word) {
   const nodes = getNodes(root, word);
   const fullKey = nodes.map(n => n.key).join("");
-  
+
   const seen = new Set();
   const result = [];
   for (let index = nodes.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
     const node = nodes[index];
     if (node.terminals !== undefined) {
-    for (const value of node.terminals) {
-      if (!seen.has(value)) {
-        result.push({ key, value, isTerminal: true });
+      for (const value of node.terminals) {
+        if (!seen.has(value)) {
+          result.push({ key, value, isTerminal: true });
+        }
+        seen.add(value);
       }
-      seen.add(value);
-    }
     }
     for (const value of node.values) {
       if (!seen.has(value)) {
@@ -101,4 +102,34 @@ export function getValues(root, word) {
     }
   }
   return result;
+}
+
+/**
+ * @template { object } T
+ */
+export class Trie {
+
+  /**
+   * @param { string } word
+   * @returns { { key: string; value: T; isTerminal: boolean; }[] }
+   */
+  getValues(word) {
+    return getValues(this, word);
+  }
+
+  /**
+   * @param { string } word
+   * @param { Iterable<T> } items
+   */
+  setValues(word, items) {
+    setValues(this, word, items);
+  }
+
+  /**
+   * @param { string } word
+   * @param { Iterable<T> } items
+   */
+  setSuffixes(word, items) {
+    setSuffixes(this, word, items);
+  }
 }
