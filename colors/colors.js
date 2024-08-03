@@ -21486,7 +21486,8 @@ export function setWord(root, word, items, collectionName = "prefix") {
       current[key] = next;
     } else {
       for (const item of items) {
-        next[collectionName].add(item)
+        const collection = next[collectionName] ?? (next[collectionName] = new Set());
+        collection.add(item)
       }
     }
     current = next;
