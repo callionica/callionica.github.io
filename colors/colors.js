@@ -21479,7 +21479,7 @@ export function getPrefixMatches(text) {
     const values = collection.getValues(i);
     for (const o of values) {
       const score = result[o.value.id] ?? 0;
-      const increment = o.key.length + (o.isTerminal ? (o.key.length === i.length ? o.key.length : 0.1) : 0);
+      const increment = o.key.length;// + (o.isTerminal ? (o.key.length === i.length ? o.key.length : 0.1) : 0);
       result[o.value.id] = score + scale * increment;
     }
   }
