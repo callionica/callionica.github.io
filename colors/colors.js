@@ -21017,6 +21017,8 @@ for (const color of colors) {
 
 export const wordPrefixes = new Trie();
 colors.map(clr => [...clr.words].map(word => wordPrefixes.setValues(word, [clr])));
+export const soundPrefixes = new Trie();
+colors.map(clr => [...clr.sounds].map(sound => soundPrefixes.setValues(sound, [clr])));
 
 // Sort colors by length of ID and then alphabetically
 /**
@@ -21460,13 +21462,8 @@ export function getPrefixMatches(text) {
   const result = {};
 
   for (const input of inputs) {
-    const values = wordPrefixes.getValues(input.word);
-    for (const o of values) {
-      const score = result[o.value.id] ?? 0;
-      const i = input.word;
-      const increment = o.key.length + (o.isTerminal ? (o.key.length === i.length ? o.key.length : 0.1) : 0);
-      result[o.value.id] = score + increment;
-    }
+    checkPrefixes(input, wordPrefixes, "word", 1.2);
+    checkPrefixes(input, soundPrefixes, "sound", 1.0);
   }
 
   return Object.entries(result).map(([id, score]) => [toColor(id), score]).sort(([color, score], [color2, score2]) => {
@@ -21474,6 +21471,16 @@ export function getPrefixMatches(text) {
     if (score < score2) return +1;
     return colorCompare(color, color2);
   });
+
+  function checkPrefixes(input, collection, prop, scale) {
+    const values = collection.getValues(input.word);
+    for (const o of values) {
+      const score = result[o.value.id] ?? 0;
+      const i = input[prop];
+      const increment = o.key.length + (o.isTerminal ? (o.key.length === i.length ? o.key.length : 0.1) : 0);
+      result[o.value.id] = score + scale * increment;
+    }
+  }
 }
 
 export function getPrefixMatches2(text) {
