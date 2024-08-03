@@ -148,7 +148,7 @@
 
     </script>
     <script type="module">
-        import { colors, toColorDefault, textToPalette, paletteToQuery, paletteToText, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
+        import { colors, matrix, toColorDefault, textToPalette, paletteToQuery, paletteToText, isColorful, coordinating, contrasting, neutrals, whites, darks, toColor, colorsByPrefix, colorsBySuffix, colorsByIncludes } from "./colors.js";
 
         (function () {
 
@@ -240,12 +240,7 @@
                 alert("Copied");
             }
 
-            const params = new URLSearchParams(document.location.search);
-
-            const fixedColors = params.get("colors") ?? undefined;
-
-            if (fixedColors !== undefined) {
-                const palette = textToPalette(fixedColors, toColorDefault);
+            function doPalette(palette) {
                 const text = paletteToText(palette);
                 const query = paletteToQuery(palette);
 
@@ -261,16 +256,22 @@
 
                 document.querySelector(".pasteNav").onclick = () => pasteNav();
                 document.querySelector(".copyText").onclick = () => copyText(text);
+            }
 
-                // const paletteElement = document.body.querySelector(":scope > .palette") ?? undefined;
-                // const shuffleElement = document.body.querySelector(":scope > .shuffle") ?? undefined;
-                // if (shuffleElement !== undefined && paletteElement !== undefined) {
-                //     shuffleElement.onclick = () => {
-                //         const children = [...paletteElement.children];
-                //         shuffle(children);
-                //         paletteElement.append(...children);
-                //     };
-                // }
+            const params = new URLSearchParams(document.location.search);
+
+            const fixedColors = params.get("colors") ?? undefined;
+
+            if (fixedColors !== undefined) {
+                const palette = textToPalette(fixedColors, toColorDefault);
+                doPalette(palette);
+                return;
+            }
+
+            const matrixColors = params.get("matrix") ?? undefined;
+            if (matrixColors !== undefined) {
+                const palette = textToPalette(matrixColors, toColorDefault);
+                doPalette(matrix(palette));
                 return;
             }
 

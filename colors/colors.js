@@ -21244,6 +21244,24 @@ export function textToPalette(text, textToColor = toColorDefault) {
   return text.trim().replaceAll(/([,\r\n]\s*)+/g, "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => lineToColorChoice(line, textToColor));
 }
 
+/**
+ * Takes all the unique colors from the palette and creates a new palette
+ * where every row is the set of unique colors
+ * and the selected color is different on each row
+ * @param { Palette } palette 
+ */
+export function matrix(palette) {
+  const colors = [...new Set(palette.flatMap(line => line.map(color => { delete color.selected; return color; })))];
+  const result = [];
+  for (let index = 0; index < colors.length; ++index) {
+    const line = [...colors];
+    line[index] = Object.create(line[index]);
+    line[index].selected = true;
+    result.push(line);
+  }
+  return result;
+}
+
 export const colorExpression = /^\s*(?<title>[^*()]*[^*() ])\s*(?<selected1>[*])?\s*([(](?<number>\d+)[)])?\s*(?<selected>[*])?\s*$/;
 
 /**
