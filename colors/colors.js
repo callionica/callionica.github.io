@@ -21458,6 +21458,25 @@ function commonPrefix(t1, t2) {
 export function getPrefixMatches(text) {
   const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
   const result = {};
+
+  for (const input of inputs) {
+    for (const o of wordPrefixes.getValues(input.word)){
+      const score = result[o.value.id] ?? 0;
+      const increment = (o.key.length / input.word.length) + o.isTerminal ? 1 : 0;
+      result[o.value.id] = score + increment;
+    }
+  }
+
+  return Object.entries(result).map(([id, score]) => [toColor(id), score]).sort(([color, score], [color2, score2]) => {
+    if (score > score2) return -1;
+    if (score < score2) return +1;
+    return colorCompare(color, color2);
+  });
+}
+
+export function getPrefixMatches2(text) {
+  const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
+  const result = {};
   
   checkMap(words, "word", 1.2);
   if (text.length > 2) {
