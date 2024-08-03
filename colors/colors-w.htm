@@ -289,6 +289,9 @@
             console.log(all);
             console.log(colors);
 
+            const palette = Object.values(all);
+            const text = paletteToText(palette);
+
             document.body.innerHTML = `<div class="swatch primary"><color-swatch data-color="${primary.id}"></color-swatch><a href="?primary=${primary.id}"></a></div>` + Object.keys(fns).map(key => {
                 const colors = all[key].colors;
 
@@ -309,8 +312,11 @@
 
                 return `<div class="swatch ${key}" title="${key}"><color-swatch data-color="${color.id}"></color-swatch><a href="?primary=${color.id}"></a></div>`;
             }).join("\n") +
-                `<a href="?"><div class="random">Random</div></a>`
+                `<a href="?"><div class="random">Random</div></a>
+                <div class="copyText"><button>Copy as text</button></div>`
                 ;
+
+                document.querySelector(".copyText").onclick = () => copyText(text);
         })();
     </script>
     <style>
