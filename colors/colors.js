@@ -21460,9 +21460,10 @@ export function getPrefixMatches(text) {
   const result = {};
 
   for (const input of inputs) {
-    for (const o of wordPrefixes.getValues(input.word)){
+    const values = wordPrefixes.getValues(input.word);
+    for (const o of values) {
       const score = result[o.value.id] ?? 0;
-      const increment = (o.key.length / input.word.length) + o.isTerminal ? 1 : 0;
+      const increment = (o.key.length / input.word.length) + (o.isTerminal ? 1 : 0);
       result[o.value.id] = score + increment;
     }
   }
