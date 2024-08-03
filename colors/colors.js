@@ -21502,7 +21502,7 @@ export function setWord(root, word, items, collectionName = "prefix") {
  */
 export function setEveryWord(root, word, items) {
   for (let index = 0; index < word.length; ++index) {
-    setWord(root, word.substring(index), items, index === 0 ? "prefix" : "internal");
+    setWord(root, word.substring(index), items, index === 0 ? "prefix" : "inner");
   }
 }
 
