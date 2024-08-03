@@ -237,6 +237,7 @@
 
             async function copyText(text) {
                 await navigator.clipboard.writeText(text);
+                alert("Copied");
             }
 
             const params = new URLSearchParams(document.location.search);
