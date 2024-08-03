@@ -21241,7 +21241,7 @@ function lineToColorChoice(line, textToColor = toColorDefault) {
  * @returns { Palette }
  */
 export function textToPalette(text, textToColor = toColorDefault) {
-  return text.trim().replaceAll(/[,\r\n]+/g, "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => lineToColorChoice(line, textToColor));
+  return text.trim().replaceAll(/([,\r\n]\s*)+/g, "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => lineToColorChoice(line, textToColor));
 }
 
 export const colorExpression = /^\s*(?<title>[^*()]*[^*() ])\s*(?<selected1>[*])?\s*([(](?<number>\d+)[)])?\s*(?<selected>[*])?\s*$/;
