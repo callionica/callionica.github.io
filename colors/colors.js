@@ -21209,7 +21209,7 @@ export function paletteToQuery(palette) {
  * @returns { string }
  */
 export function paletteToText(palette) {
-  return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "") + (color.number !== undefined ? ` (${color.number})` : "") + (color.selected ? "*" : "")).join(" | ")).join("\n");
+  return palette.map(colors => colors.map(color => color.title.replaceAll(/[™®]/g, "") + (color.number !== undefined ? ` (${color.number})` : "") + (color.selected ? "*" : "")).join(" | ")).join(",\n");
 }
 
 /**
@@ -21241,7 +21241,7 @@ function lineToColorChoice(line, textToColor = toColorDefault) {
  * @returns { Palette }
  */
 export function textToPalette(text, textToColor = toColorDefault) {
-  return text.trim().replaceAll(",", "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => lineToColorChoice(line, textToColor));
+  return text.trim().replaceAll(/[,\r\n]+/g, "\n").split("\n").map(line => line.trim()).filter(line => line.length > 0).map(line => lineToColorChoice(line, textToColor));
 }
 
 export const colorExpression = /^\s*(?<title>[^*()]*[^*() ])\s*(?<selected1>[*])?\s*([(](?<number>\d+)[)])?\s*(?<selected>[*])?\s*$/;
