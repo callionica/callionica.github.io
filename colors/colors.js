@@ -21468,12 +21468,14 @@ export function getPrefixMatches(text) {
 }
 
 
-/** @typedef { { key: string; items: Set } } LetterNode */
+/** @typedef { { key: string; prefix?: Set; inner?: Set; } & Record<string, LetterNode> } LetterNode */
 
 /**
+ * Adds each character of the `word` from the start to the end as a node in the tree
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { object[] } items 
+ * @param { "prefix" | "inner" } collectionName
  */
 export function setWord(root, word, items, collectionName = "prefix") {
   let current = root;
@@ -21485,8 +21487,10 @@ export function setWord(root, word, items, collectionName = "prefix") {
       next[collectionName] = new Set(items);
       current[key] = next;
     } else {
-      for (const item of items) {
-        const collection = next[collectionName] ?? (next[collectionName] = new Set());
+      /** @type Set */
+      const collection = next[collectionName] ?? (next[collectionName] = new Set());
+
+      for (const item of items) {  
         collection.add(item)
       }
     }
@@ -21495,7 +21499,8 @@ export function setWord(root, word, items, collectionName = "prefix") {
 }
 
 /**
- * Sets 
+ * Adds each character of the `word` as a node in the tree from the start of the string under the `prefix` collection
+ * and adds each substring of the word from position n to the end of the string under the `inner` collection
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { object[] } items 
@@ -21510,6 +21515,7 @@ export function setEveryWord(root, word, items) {
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { object[] } items 
+ * @returns { LetterNode[] }
  */
 export function getWord(root, word) {
   /** @type LetterNode[] */
