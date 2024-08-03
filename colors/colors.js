@@ -21462,8 +21462,8 @@ export function getPrefixMatches(text) {
   const result = {};
 
   for (const input of inputs) {
-    checkPrefixes(input, wordPrefixes, "word", 1.2);
-    checkPrefixes(input, soundPrefixes, "sound", 1.0);
+    checkPrefixes(input, wordPrefixes, "word", 1.0);
+    checkPrefixes(input, soundPrefixes, "sound", 2.0);
   }
 
   return Object.entries(result).map(([id, score]) => [toColor(id), score]).sort(([color, score], [color2, score2]) => {
