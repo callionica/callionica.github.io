@@ -99,7 +99,11 @@ export function getNodesWithWildcards(root, word) {
       // Treat each node as a root then combine the results with the results we had already obtained
       /** @type LetterNode[][] */
       const spreads = roots.flatMap(r => {
-        return getNodesWithWildcards(r, remaining).map(single => [...result, r, ...single]);
+        const subresult = getNodesWithWildcards(r, remaining);
+        if (subresult.length === 0) {
+          return [[...result, r]];
+        }
+        return subresult.map(single => [...result, r, ...single]);
       });
       return spreads;
 
