@@ -143,7 +143,7 @@ export function getNodesWithReplacement(root, word) {
       }
     }
   }
-  return all.sort((a, b) => a.length - b.length);
+  return all.sort((a, b) => b.length - a.length);
 }
 
 /**
@@ -167,7 +167,7 @@ export function getNodesWithSwap(root, word) {
       }
     }
   }
-  return all.sort((a, b) => a.length - b.length);
+  return all.sort((a, b) => b.length - a.length);
 }
 
 /**
