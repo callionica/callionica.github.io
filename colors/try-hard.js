@@ -71,6 +71,7 @@ export function getNodes(root, word) {
 }
 
 const alphabet = [..."abcdefghijklmnopqrstuvwxyz"];
+console.log(alphabet);
 
 /**
  * Returns the longest paths matching a prefix of the input word including wildcards.
