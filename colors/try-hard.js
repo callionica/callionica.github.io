@@ -145,6 +145,28 @@ export function getNodesWithReplacement(root, word) {
 }
 
 /**
+ * Swaps pairs of letters so that single pair swaps can be found
+ * @param { LetterNode } root 
+ * @param { string } word 
+ */
+export function getNodesWithSwap(root, word) {
+  const all = [];
+  for (let index = 0; index < word.length - 1; ++index) {
+    const replacement = [...word];
+    const first = replacement[index];
+    const second = replacement[index + 1];
+    replacement[index] = second;
+    replacement[index + 1] = first;
+
+    const results = getNodesWithWildcards(root, replacement.join(""));
+    for (const result of results) {
+      all.push(result);
+    }
+  }
+  return all;
+}
+
+/**
  * Returns each value that matches a prefix of the word, ordered by prefix length
  * with terminals before non-terminals
  * @param { LetterNode } root 
