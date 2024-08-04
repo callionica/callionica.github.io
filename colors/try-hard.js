@@ -133,7 +133,7 @@ export function getNodesWithWildcards(root, word) {
  */
 export function getNodesWithReplacement(root, word) {
   const all = [];
-  for (index = 0; index < word.length; ++index) {
+  for (let index = 0; index < word.length; ++index) {
     const replacement = [...word];
     replacement[index] = wildcard;
     const results = getNodesWithWildcards(root, replacement.join(""));
