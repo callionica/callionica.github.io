@@ -90,7 +90,7 @@ export function getNodesWithWildcards(root, word) {
       // Get all the possible nodes that can act as roots for the new word
       /** @type LetterNode[] */
       const roots = [..."abcdefghijklmnopqrstuvwxyz"].map(k => current[k]).filter(r => r !== undefined);
-      console.log(roots);
+      // console.log(roots);
 
       // If there aren't any further nodes, just return the result we have
       if (roots.length === 0) {
