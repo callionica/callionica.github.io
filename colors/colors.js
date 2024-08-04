@@ -21020,6 +21020,8 @@ for (const color of colors) {
 
 export const wordPrefixes = new Trie();
 colors.map(clr => [...clr.words].map(word => wordPrefixes.setValues(word, [clr])));
+export const keyPrefixes = new Trie();
+colors.map(clr => [...clr.words].map(word => keyPrefixes.setValues(toKey(word), [clr])));
 export const soundPrefixes = new Trie();
 colors.map(clr => [...clr.words].map(word => soundPrefixes.setValues(toSoundKey(word), [clr])));
 
@@ -21461,12 +21463,13 @@ function commonPrefix(t1, t2) {
 }
 
 export function getPrefixMatches(text) {
-  const inputs = toID(text).split("-").map(word => ({ word, sound: toSoundKey(word) }));
+  const inputs = toID(text).split("-").map(word => ({ word, key: toKey(word), sound: toSoundKey(word) }));
   const result = {};
 
   for (const input of inputs) {
     checkPrefixes(input, wordPrefixes, "word", 1.0);
     if (text.length > 3) {
+      checkPrefixes(input, keyPrefixes, "key", 1.5);
       checkPrefixes(input, soundPrefixes, "sound", 2.0);
     }
   }
