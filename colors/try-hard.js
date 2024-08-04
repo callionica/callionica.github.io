@@ -86,12 +86,12 @@ export function getNodesWithWildcards(root, word) {
     if (key === ".") {
       // Create a word from the unused parts of the current word
       const remaining = word.substring(remainStart);
-
+      console.log(remaining);
       // Get all the possible nodes that can act as roots for the new word
       /** @type LetterNode[] */
       const roots = [..."abcdefghijklmnopqrstuvwxyz"].map(k => current[k]).filter(r => r !== undefined);
-      console.log(remaining, roots);
-      
+      console.log(roots);
+
       // If there aren't any further nodes, just return the result we have
       if (roots.length === 0) {
         return result.length === 0 ? [] : [result];
