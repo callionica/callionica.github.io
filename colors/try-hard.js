@@ -70,6 +70,8 @@ export function getNodes(root, word) {
   return result;
 }
 
+const alphabet = [..."abcdefghijklmnopqrstuvwxyz"];
+
 /**
  * Returns the longest paths matching a prefix of the input word including wildcards.
  * @param { LetterNode } root 
@@ -89,7 +91,7 @@ export function getNodesWithWildcards(root, word) {
       console.log(remaining);
       // Get all the possible nodes that can act as roots for the new word
       /** @type LetterNode[] */
-      const roots = [..."abcdefghijklmnopqrstuvwxyz"].map(k => current[k]).filter(r => r !== undefined);
+      const roots = alphabet.map(k => current[k]).filter(r => r !== undefined);
       // console.log(roots);
 
       // If there aren't any further nodes, just return the result we have
