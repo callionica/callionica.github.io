@@ -116,7 +116,7 @@ export function getNodesWithWildcards(root, word) {
       /** @type LetterNode */
       const next = current[key];
       if (next === undefined) {
-        return result;
+        return result.length === 0 ? [] : [result];
       }
       result.push(next);
       current = next;
