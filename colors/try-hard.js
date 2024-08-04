@@ -104,6 +104,7 @@ export function getNodesWithWildcards(root, word) {
       /** @type LetterNode[][] */
       const spreads = roots.flatMap(r => {
         const subresult = getNodesWithWildcards(r, remaining);
+        console.log("SUB", subresult);
         if (subresult.length === 0) {
           return [[...result, r]];
         }
