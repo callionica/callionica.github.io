@@ -4,7 +4,7 @@
 // (so the values are stored at every node/letter of the word)
 
 /** @typedef { string } Letter */
-/** @typedef { { key: Letter; values: Set; terminals?: Set; } & Record<Letter, LetterNode> } LetterNode */
+/** @typedef { { key: Letter; values: Set; terminals?: Set; } } LetterNode */ // & Record<Letter, LetterNode>
 
 /**
  * @param { LetterNode } root 
@@ -60,7 +60,7 @@ export function getNodes(root, word) {
   let current = root;
   for (const key of word) {
     /** @type LetterNode */
-    let next = current[key];
+    const next = current[key];
     if (next === undefined) {
       return result;
     }
@@ -68,6 +68,53 @@ export function getNodes(root, word) {
     current = next;
   }
   return result;
+}
+
+/**
+ * Returns the longest paths matching a prefix of the input word including wildcards.
+ * @param { LetterNode } root 
+ * @param { string } word 
+ * @returns { LetterNode[][] }
+ */
+export function getNodesWithWildcards(root, word) {
+  /** @type LetterNode[] */
+  const result = [];
+  let current = root;
+  let remainStart = 0; 
+  for (const key of word) {
+    ++remainStart;
+    if (key === ".") {
+      // Create a word from the unused parts of the current word
+      const remaining = word.substring(remainStart);
+
+      // Get all the possible nodes that can act as roots for the new word
+      /** @type LetterNode[] */
+      const roots = [..."abcdefghijklmnopqrstuvwxyz"].map(k => current[k]).filter(r => r !== undefined);
+
+      // If there aren't any further nodes, just return the result we have
+      if (roots.length === 0) {
+        return result.length === 0 ? [] : [result];
+      }
+
+      // Treat each node as a root then combine the results with the results we had already obtained
+      /** @type LetterNode[][] */
+      const spreads = roots.flatMap(r => {
+        return getNodesWithWildcards(r, remaining).map(single => [...result, r, ...single]);
+      });
+      return spreads;
+
+    } else {
+      /** @type LetterNode */
+      const next = current[key];
+      if (next === undefined) {
+        return result;
+      }
+      result.push(next);
+      current = next;
+    }
+  }
+
+  return result.length === 0 ? [] : [result];
 }
 
 /**
@@ -133,3 +180,40 @@ export class Trie {
     setSuffixes(this, word, items);
   }
 }
+
+/*
+
+HIT-SKIP
+
+A structure for finding words with 1 replacement
+GOBLIN ->[{g: v}, {o: v}, ...]
+
+BOBLIN
+initial set: union values from first two positions: BO
+for each position:
+if value from initial set is not present, move to marked set
+if value from marked set is not present, remove it
+
+UNDERBAR
+
+REPLACEMENTS
+Create N keys for a word of length N GOBLIN -> _OBLIN, G_BLIN, GO_LIN, etc
+Create N keys for a query of length N BOBLIN -> _OBLIN, B_BLIN
+Look up by underbar key
+
+SWAPS
+GOBLIN -> OGBLIN GBOLIN GOLBIN GOBILN GOBLNI
+
+DELETIONS
+N keys
+GOBLIN -> OBLIN GBLIN GOLIN GOBIN GOBLN [GOBLI X]
+
+
+=========
+Prefix+Suffix is similar to a single error
+
+=========
+trie should map to word, not object, when multiple objects use same words
+allows scoring against the word being matched
+
+*/
