@@ -71,7 +71,7 @@ export function getNodes(root, word) {
 }
 
 const alphabet = [..."abcdefghijklmnopqrstuvwxyz"];
-console.log(alphabet);
+const wildcard = ".";
 
 /**
  * Returns the longest paths matching a prefix of the input word including wildcards.
@@ -86,7 +86,7 @@ export function getNodesWithWildcards(root, word) {
   let remainStart = 0; 
   for (const key of word) {
     ++remainStart;
-    if (key === ".") {
+    if (key === wildcard) {
       // Create a word from the unused parts of the current word
       const remaining = word.substring(remainStart);
       console.log(remaining);
@@ -124,6 +124,24 @@ export function getNodesWithWildcards(root, word) {
   }
 
   return result.length === 0 ? [] : [result];
+}
+
+/**
+ * Replaces each character in the word with a wildcard so that single character replacements can be found
+ * @param { LetterNode } root 
+ * @param { string } word 
+ */
+export function getNodesWithReplacement(root, word) {
+  const all = [];
+  for (index = 0; index < word.length; ++index) {
+    const replacement = [...word];
+    replacement[index] = wildcard;
+    const results = getNodesWithWildcards(root, replacement.join(""));
+    for (const result of results) {
+      all.push(result);
+    }
+  }
+  return all;
 }
 
 /**
