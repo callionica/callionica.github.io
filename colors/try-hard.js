@@ -138,7 +138,9 @@ export function getNodesWithReplacement(root, word) {
     replacement[index] = wildcard;
     const results = getNodesWithWildcards(root, replacement.join(""));
     for (const result of results) {
-      all.push(result);
+      if (result.length > index) { // Ignore results unaffected by the replacement
+        all.push(result);
+      }
     }
   }
   return all;
@@ -160,7 +162,9 @@ export function getNodesWithSwap(root, word) {
 
     const results = getNodesWithWildcards(root, replacement.join(""));
     for (const result of results) {
-      all.push(result);
+      if (result.length > index) { // Ignore results unaffected by the swap
+        all.push(result);
+      }
     }
   }
   return all;
