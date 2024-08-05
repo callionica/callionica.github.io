@@ -237,7 +237,7 @@ export function getPathsWithError(root, word, result) {
   getPathsWithReplace(root, word, result);
   getPathsWithSwap(root, word, result);
 
-  return result;
+  return normalizePaths(result, word);
 }
 
 
@@ -256,16 +256,25 @@ export function uniquePaths(paths) {
 }
 
 /**
- * Sorts paths longer first
+ * Sorts paths longer first then by name with priority to names matching first letter of word
  * @param { LetterPath[] } paths 
+ * @param { string | undefined } word 
  */
-export function sortPaths(paths) {
+export function sortPaths(paths, word) {
   paths.sort((p1, p2) => {
     if (p1.length !== p2.length) {
       return p2.length - p1.length;
     }
+    
     const k1 = p1.map(n => n.key).join("");
     const k2 = p2.map(n => n.key).join("");
+
+    if (word !== undefined) {
+      const first = word[0];
+      if (k1[0] === first && k2[0] !== first) { return -1; }
+      if (k2[0] === first && k1[0] !== first) { return +1; }
+    }
+
     return k1.localeCompare(k2);
   });
   return paths;
@@ -274,9 +283,10 @@ export function sortPaths(paths) {
 /**
  * Returns a collection of unique, sorted paths
  * @param { LetterPath[] } paths 
+ * @param { string | undefined } word 
  */
-export function normalizePaths(paths) {
-  return sortPaths(uniquePaths(paths));
+export function normalizePaths(paths, word) {
+  return sortPaths(uniquePaths(paths), word);
 }
 
 /**
