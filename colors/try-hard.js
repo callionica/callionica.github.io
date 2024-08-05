@@ -62,7 +62,7 @@ export function getNodes(root, word) {
     /** @type LetterNode */
     const next = current[key];
     if (next === undefined) {
-      return result;
+      break;
     }
     result.push(next);
     current = next;
@@ -97,7 +97,7 @@ export function getNodesWithWildcards(root, word) {
 
       // If there aren't any further nodes, just return the result we have
       if (roots.length === 0) {
-        return result.length === 0 ? [] : [result];
+        break;
       }
 
       // Treat each node as a root then combine the results with the results we had already obtained
