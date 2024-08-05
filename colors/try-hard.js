@@ -268,6 +268,7 @@ export function sortPaths(paths) {
     const k2 = p2.map(n => n.key).join("");
     return k1.localeCompare(k2);
   });
+  return paths;
 }
 
 /**
