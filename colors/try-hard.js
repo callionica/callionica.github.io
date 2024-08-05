@@ -239,7 +239,6 @@ export function getPathsWithError(root, word) {
   return normalizePaths(result, word);
 }
 
-
 /**
  * Returns a new collection of paths with duplicates removed
  * @param { LetterPath[] } paths 
@@ -291,12 +290,11 @@ export function normalizePaths(paths, word) {
 /**
  * @param { LetterPath } path 
  * @param { { key: string; value: T; isTerminal: boolean; }[] | undefined } result 
- * @param { Set | undefined } seen
  */
-function pathToValues(path, result, seen) {
-  seen = seen ?? new Set();
+function pathToValues(path, result) {
   result = result ?? [];
 
+  const seen = new Set();
   const fullKey = path.map(n => n.key).join("");
   for (let index = path.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
@@ -322,14 +320,10 @@ function pathToValues(path, result, seen) {
 /**
  * @param { LetterNode } root 
  * @param { string } word 
- * @param { { key: string; value: T; isTerminal: boolean; }[] | undefined } result 
- * @param { Set | undefined } seen
+ * @returns { { key: string; value: T; isTerminal: boolean; }[] }
  */
-export function getValuesWithError(root, word, result, seen) {
-  result = result ?? [];
-  seen = seen ?? new Set();
-
-  getPathsWithError(root, word).map(path => pathToValues(path, result, seen));
+export function getValuesWithError(root, word) {
+  const result = getPathsWithError(root, word).map(path => pathToValues(path, result));
 
   return result.sort((a, b) => {
     
@@ -376,6 +370,14 @@ export class Trie {
    */
   getValues(word) {
     return getValues(this, word);
+  }
+
+  /**
+   * @param { string } word
+   * @returns { { key: string; value: T; isTerminal: boolean; }[] }
+   */
+  getValuesWithError(word) {
+    return getValuesWithError(this, word);
   }
 
   /**
