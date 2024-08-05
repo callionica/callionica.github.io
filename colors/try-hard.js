@@ -78,7 +78,7 @@ export function getPath(root, word) {
   return result;
 }
 
-const alphabet = [..."abcdefghijklmnopqrstuvwxyz"];
+// const alphabet = [..."abcdefghijklmnopqrstuvwxyz"];
 const wildcard = ".";
 
 /**
@@ -138,6 +138,7 @@ export function getPathsWithWildcards(root, word) {
  * Replaces each character in the word with a wildcard so that single character replacements can be found
  * @param { LetterNode } root 
  * @param { string } word 
+ * @param { LetterPath[] | undefined } result 
  */
 export function getPathsWithReplace(root, word, result) {
   result = result ?? [];
@@ -159,6 +160,7 @@ export function getPathsWithReplace(root, word, result) {
  * (Doesn't require wildcards)
  * @param { LetterNode } root 
  * @param { string } word 
+ * @param { LetterPath[] | undefined } result 
  */
 export function getPathsWithDelete(root, word, result) {
   result = result ?? [];
@@ -178,6 +180,7 @@ export function getPathsWithDelete(root, word, result) {
  * Adds a wildcard between each character in the word so that single character errors can be found
  * @param { LetterNode } root 
  * @param { string } word 
+ * @param { LetterPath[] | undefined } result 
  */
 export function getPathsWithAdd(root, word, result) {
 	result = result ?? [];
@@ -198,6 +201,7 @@ export function getPathsWithAdd(root, word, result) {
  * (Doesn't require wildcards)
  * @param { LetterNode } root 
  * @param { string } word 
+ * @param { LetterPath[] | undefined } result 
  */
 export function getPathsWithSwap(root, word, result) {
   result = result ?? [];
@@ -218,6 +222,12 @@ export function getPathsWithSwap(root, word, result) {
   return result.sort((a, b) => b.length - a.length);
 }
 
+/**
+ * Gets all the paths when the word has been adjusted by a single error of type: add, delete, replace, or swap 
+ * @param { LetterNode } root 
+ * @param { string } word 
+ * @param { LetterPath[] | undefined } result 
+ */
 export function getPathsWithError(root, word, result) {
   result = result ?? [];
   getPathsWithAdd(root, word, result);
@@ -227,22 +237,20 @@ export function getPathsWithError(root, word, result) {
   return result;
 }
 
-/**
- * Returns each value that matches a prefix of the word, ordered by prefix length
- * with terminals before non-terminals
- * @param { LetterNode } root 
- * @param { string } word
- * @returns { { key: string; value: T; isTerminal: boolean; }[] }
- */
-export function getValues(root, word) {
-  const nodes = getPath(root, word);
-  const fullKey = nodes.map(n => n.key).join("");
 
-  const seen = new Set();
-  const result = [];
-  for (let index = nodes.length - 1; index >= 0; --index) {
+/**
+ * @param { LetterPath } path 
+ * @param { { key: string; value: T; isTerminal: boolean; }[] | undefined } result 
+ * @param { Set | undefined } seen
+ */
+function pathToValues(path, result, seen) {
+  seen = seen ?? new Set();
+  result = result ?? [];
+  
+  const fullKey = path.map(n => n.key).join("");
+  for (let index = path.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
-    const node = nodes[index];
+    const node = path[index];
     if (node.terminals !== undefined) {
       for (const value of node.terminals) {
         if (!seen.has(value)) {
@@ -259,6 +267,33 @@ export function getValues(root, word) {
     }
   }
   return result;
+}
+
+/**
+ * @param { LetterNode } root 
+ * @param { string } word 
+ * @param { { key: string; value: T; isTerminal: boolean; }[] | undefined } result 
+ * @param { Set | undefined } seen
+ */
+export function getValuesWithError(root, word, result, seen) {
+  result = result ?? [];
+  seen = seen ?? new Set();
+
+  getPathsWithError(root, word).map(path => pathToValues(path, result, seen));
+
+  return result;
+}
+
+/**
+ * Returns each value that matches a prefix of the word, ordered by prefix length
+ * with terminals before non-terminals
+ * @param { LetterNode } root 
+ * @param { string } word
+ * @returns { { key: string; value: T; isTerminal: boolean; }[] }
+ */
+export function getValues(root, word) {
+  const path = getPath(root, word);
+  return pathToValues(path);
 }
 
 /**
