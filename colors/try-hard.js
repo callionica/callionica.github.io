@@ -167,6 +167,25 @@ export function getNodesWithDelete(root, word) {
 }
 
 /**
+ * Adds a wildcard between each character in the word so that single character errors can be found
+ * @param { LetterNode } root 
+ * @param { string } word 
+ */
+export function getNodesWithAdd(root, word) {
+  const all = [];
+  for (let index = 0; index < word.length; ++index) {
+    const replacement = word.substring(0, index) + wildcard + word.substring(index);
+    const results = getNodesWithWildcards(root, replacement);
+    for (const result of results) {
+      if (result.length > index) { // Ignore results unaffected by the replacement
+        all.push(result);
+      }
+    }
+  }
+  return all.sort((a, b) => b.length - a.length);
+}
+
+/**
  * Swaps pairs of letters so that single pair swaps can be found
  * (Doesn't require wildcards)
  * @param { LetterNode } root 
