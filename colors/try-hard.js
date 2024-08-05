@@ -295,15 +295,28 @@ export function condensePaths(paths) {
  * @param { string | undefined } word 
  */
 export function sortPaths(paths, word) {
+  function lcp(path, word) {
+    let count = 0;
+    for (let index = 0; index < Math.min(path.length, word.length); ++index) {
+      if (path[index].key === word[index]) {
+        ++count;
+      } else {
+        break;
+      }
+    }
+    return count;
+  }
   paths.sort((p1, p2) => {
     if (p1.length !== p2.length) {
       return p2.length - p1.length;
     }
 
     if (word !== undefined) {
-      const first = word[0];
-      if (p1[0].key === first && p2[0].key !== first) { return -1; }
-      if (p2[0].key === first && p1[0].key !== first) { return +1; }
+      const cp1 = lcp(p1, word);
+      const cp2 = lcp(p2, word);
+      if (cp1 !== cp2) {
+        return cp2 - cp1;
+      }
     }
 
     const k1 = p1.map(n => n.key).join("");
