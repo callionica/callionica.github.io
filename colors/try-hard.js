@@ -152,7 +152,7 @@ export function getPathsWithReplace(root, word, result) {
       }
     }
   }
-  return result.sort((a, b) => b.length - a.length);
+  return result; // result.sort((a, b) => b.length - a.length);
 }
 
 /**
@@ -173,7 +173,7 @@ export function getPathsWithDelete(root, word, result) {
       }
     }
   }
-  return result.sort((a, b) => b.length - a.length);
+  return result; // result.sort((a, b) => b.length - a.length);
 }
 
 /**
@@ -193,7 +193,7 @@ export function getPathsWithAdd(root, word, result) {
       }
     }
   }
-  return result.sort((a, b) => b.length - a.length);
+  return result; // result.sort((a, b) => b.length - a.length);
 }
 
 /**
@@ -219,7 +219,7 @@ export function getPathsWithSwap(root, word, result) {
       }
     }
   }
-  return result.sort((a, b) => b.length - a.length);
+  return result; // result.sort((a, b) => b.length - a.length);
 }
 
 /**
