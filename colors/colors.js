@@ -21483,7 +21483,7 @@ export function getPrefixMatches(text) {
 
   function checkPrefixes(input, collection, prop, scale) {
     const i = input[prop];
-    const values = collection.getValues(i);
+    const values = collection.getValuesWithError(i);
     for (const o of values) {
       const score = result[o.value.id] ?? 0;
       const increment = o.key.length;// + (o.isTerminal ? (o.key.length === i.length ? o.key.length : 0.1) : 0);
