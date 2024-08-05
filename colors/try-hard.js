@@ -78,7 +78,7 @@ export function getPath(root, word) {
   return result;
 }
 
-const wildcard = ".";
+const wildcard = "."; // Any single character
 
 /**
  * Returns the longest paths matching a prefix of the input word including wildcards.
