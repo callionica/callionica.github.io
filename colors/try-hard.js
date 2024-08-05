@@ -111,12 +111,12 @@ export function getPathsWithWildcards(root, word) {
       // Treat each node as a root then combine the results with the results we had already obtained
       /** @type LetterPath[] */
       const paths = roots.flatMap(r => {
-        const subresult = getPathsWithWildcards(r, remaining);
+        const paths = getPathsWithWildcards(r, remaining);
         // console.log("SUB", subresult);
-        if (subresult.length === 0) {
+        if (paths.length === 0) {
           return [[...result, r]];
         }
-        return subresult.map(path => [...result, r, ...path]);
+        return paths.map(path => [...result, r, ...path]);
       });
       return paths;
 
@@ -139,19 +139,19 @@ export function getPathsWithWildcards(root, word) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getPathsWithReplace(root, word, all) {
-  all = all ?? [];
+export function getPathsWithReplace(root, word, result) {
+  result = result ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = [...word];
     replacement[index] = wildcard;
-    const results = getPathsWithWildcards(root, replacement.join(""));
-    for (const result of results) {
-      if (result.length > index) { // Ignore results unaffected by the replacement
-        all.push(result);
+    const paths = getPathsWithWildcards(root, replacement.join(""));
+    for (const path of paths) {
+      if (path.length > index) { // Ignore results unaffected by the replacement
+        result.push(path);
       }
     }
   }
-  return all.sort((a, b) => b.length - a.length);
+  return result.sort((a, b) => b.length - a.length);
 }
 
 /**
@@ -160,18 +160,18 @@ export function getPathsWithReplace(root, word, all) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getPathsWithDelete(root, word, all) {
-  all = all ?? [];
+export function getPathsWithDelete(root, word, result) {
+  result = result ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = word.substring(0, index) + word.substring(index + 1);
-    const results = getPathsWithWildcards(root, replacement);
-    for (const result of results) {
-      if (result.length > index) { // Ignore results unaffected by the replacement
-        all.push(result);
+    const paths = getPathsWithWildcards(root, replacement);
+    for (const path of paths) {
+      if (path.length > index) { // Ignore results unaffected by the replacement
+        result.push(path);
       }
     }
   }
-  return all.sort((a, b) => b.length - a.length);
+  return result.sort((a, b) => b.length - a.length);
 }
 
 /**
@@ -179,18 +179,18 @@ export function getPathsWithDelete(root, word, all) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getPathsWithAdd(root, word, all) {
-	all = all ?? [];
+export function getPathsWithAdd(root, word, result) {
+	result = result ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = word.substring(0, index) + wildcard + word.substring(index);
-    const results = getPathsWithWildcards(root, replacement);
-    for (const result of results) {
-      if (result.length > index) { // Ignore results unaffected by the replacement
-        all.push(result);
+    const paths = getPathsWithWildcards(root, replacement);
+    for (const path of paths) {
+      if (path.length > index) { // Ignore results unaffected by the replacement
+        result.push(path);
       }
     }
   }
-  return all.sort((a, b) => b.length - a.length);
+  return result.sort((a, b) => b.length - a.length);
 }
 
 /**
@@ -199,8 +199,8 @@ export function getPathsWithAdd(root, word, all) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getPathsWithSwap(root, word, all) {
-  all = all ?? [];
+export function getPathsWithSwap(root, word, result) {
+  result = result ?? [];
   for (let index = 0; index < word.length - 1; ++index) {
     const replacement = [...word];
     const first = replacement[index];
@@ -208,14 +208,14 @@ export function getPathsWithSwap(root, word, all) {
     replacement[index] = second;
     replacement[index + 1] = first;
 
-    const results = getPathsWithWildcards(root, replacement.join(""));
-    for (const result of results) {
-      if (result.length > index) { // Ignore results unaffected by the swap
-        all.push(result);
+    const paths = getPathsWithWildcards(root, replacement.join(""));
+    for (const path of paths) {
+      if (path.length > index) { // Ignore results unaffected by the swap
+        result.push(path);
       }
     }
   }
-  return all.sort((a, b) => b.length - a.length);
+  return result.sort((a, b) => b.length - a.length);
 }
 
 /**
