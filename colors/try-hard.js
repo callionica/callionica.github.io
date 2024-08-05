@@ -281,7 +281,7 @@ export function getValuesWithError(root, word, result, seen) {
 
   getPathsWithError(root, word).map(path => pathToValues(path, result, seen));
 
-  return result;
+  return result.sort((a, b) => b.key.length - a.key.length);
 }
 
 /**
