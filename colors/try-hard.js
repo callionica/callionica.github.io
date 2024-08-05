@@ -304,7 +304,7 @@ export function sortPaths(paths, word) {
  * @param { string | undefined } word 
  */
 export function normalizePaths(paths, word) {
-  return sortPaths(uniquePaths(paths), word);
+  return sortPaths(expandPaths(paths), word);
 }
 
 /**
