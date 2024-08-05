@@ -280,7 +280,7 @@ export function expandPaths(paths) {
  * @param { LetterPath[] } paths 
  */
 export function condensePaths(paths) {
-  const seenPath = new Set();
+  const seen = new Set();
   return paths.filter(path => {
     const last = path[path.length - 1];
     if (seen.has(last)) { return false; }
