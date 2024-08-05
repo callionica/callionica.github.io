@@ -21468,10 +21468,10 @@ export function getPrefixMatches(text) {
 
   for (const input of inputs) {
     checkPrefixes(input, wordPrefixes, "word", 0.5);
-    checkPrefixes(input, keyPrefixes, "key", 1.0);
+    // checkPrefixes(input, keyPrefixes, "key", 1.0);
 //    if (text.length > 3) {
 
-      checkPrefixes(input, soundPrefixes, "sound", 3.0);
+      // checkPrefixes(input, soundPrefixes, "sound", 3.0);
 //    }
   }
 
