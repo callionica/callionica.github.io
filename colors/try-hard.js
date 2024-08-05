@@ -287,6 +287,14 @@ export function getValuesWithError(root, word, result, seen) {
     if (b.key.length !== a.key.length) {
       return b.key.length - a.key.length;
     }
+
+    if (a.key[0] === word[0] && a.key[0] !== b.key[0]) {
+      return -1;
+    }
+
+    if (b.key[0] === word[0] && a.key[0] !== b.key[0]) {
+      return +1;
+    }
     
     if (a.isTerminal !== b.isTerminal) {
       return a.isTerminal ? -1 : +1;
