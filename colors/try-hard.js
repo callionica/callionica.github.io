@@ -5,6 +5,7 @@
 
 /** @typedef { string } Letter */
 /** @typedef { { key: Letter; values: Set; terminals?: Set; } } LetterNode */ // & Record<Letter, LetterNode>
+/** @typedef { LetterNode[] } LetterPath */
 
 /**
  * @param { LetterNode } root 
@@ -52,7 +53,7 @@ export function setSuffixes(root, word, items) {
  * Returns the longest path matching a prefix of the input word
  * @param { LetterNode } root 
  * @param { string } word 
- * @returns { LetterNode[] }
+ * @returns { LetterPath }
  */
 export function getNodes(root, word) {
   /** @type LetterNode[] */
@@ -77,7 +78,7 @@ const wildcard = ".";
  * Returns the longest paths matching a prefix of the input word including wildcards.
  * @param { LetterNode } root 
  * @param { string } word 
- * @returns { LetterNode[][] }
+ * @returns { LetterPath[] }
  */
 export function getNodesWithWildcards(root, word) {
   /** @type LetterNode[] */
@@ -101,16 +102,16 @@ export function getNodesWithWildcards(root, word) {
       }
 
       // Treat each node as a root then combine the results with the results we had already obtained
-      /** @type LetterNode[][] */
-      const spreads = roots.flatMap(r => {
+      /** @type LetterPath[] */
+      const paths = roots.flatMap(r => {
         const subresult = getNodesWithWildcards(r, remaining);
         // console.log("SUB", subresult);
         if (subresult.length === 0) {
           return [[...result, r]];
         }
-        return subresult.map(single => [...result, r, ...single]);
+        return subresult.map(path => [...result, r, ...path]);
       });
-      return spreads;
+      return paths;
 
     } else {
       /** @type LetterNode */
