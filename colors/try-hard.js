@@ -223,13 +223,14 @@ export function getPathsWithSwap(root, word, result) {
 }
 
 /**
- * Gets all the paths when the word has been adjusted by a single error of type: add, delete, replace, or swap 
+ * Gets the main path and all the paths when the word has been adjusted by a single error of type: add, delete, replace, or swap 
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { LetterPath[] | undefined } result 
  */
 export function getPathsWithError(root, word, result) {
   result = result ?? [];
+  result.push(getPath(root, word));
   getPathsWithAdd(root, word, result);
   getPathsWithDelete(root, word, result);
   getPathsWithReplace(root, word, result);
