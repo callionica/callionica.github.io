@@ -263,7 +263,6 @@ export function sortPaths(paths, word) {
     if (p1.length !== p2.length) {
       return p2.length - p1.length;
     }
-    
 
     if (word !== undefined) {
       const first = word[0];
@@ -323,7 +322,9 @@ function pathToValues(path, result) {
  * @returns { { key: string; value: T; isTerminal: boolean; }[] }
  */
 export function getValuesWithError(root, word) {
-  const result = getPathsWithError(root, word).map(path => pathToValues(path, result));
+  const result = [];
+  
+  getPathsWithError(root, word).map(path => pathToValues(path, result));
 
   return result.sort((a, b) => {
     
