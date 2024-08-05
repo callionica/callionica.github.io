@@ -256,6 +256,29 @@ export function uniquePaths(paths) {
 }
 
 /**
+ * Sorts paths longer first
+ * @param { LetterPath[] } paths 
+ */
+export function sortPaths(paths) {
+  paths.sort((p1, p2) => {
+    if (p1.length !== p2.length) {
+      return p2.length - p1.length;
+    }
+    const k1 = p1.map(n => n.key).join("");
+    const k2 = p2.map(n => n.key).join("");
+    return k1.localeCompare(k2);
+  });
+}
+
+/**
+ * Returns a collection of unique, sorted paths
+ * @param { LetterPath[] } paths 
+ */
+export function normalizePaths(paths) {
+  return sortPaths(uniquePaths(paths));
+}
+
+/**
  * @param { LetterPath } path 
  * @param { { key: string; value: T; isTerminal: boolean; }[] | undefined } result 
  * @param { Set | undefined } seen
