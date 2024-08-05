@@ -131,8 +131,8 @@ export function getNodesWithWildcards(root, word) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithReplace(root, word) {
-  const all = [];
+export function getNodesWithReplace(root, word, all) {
+  all = all ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = [...word];
     replacement[index] = wildcard;
@@ -152,8 +152,8 @@ export function getNodesWithReplace(root, word) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithDelete(root, word) {
-  const all = [];
+export function getNodesWithDelete(root, word, all) {
+  all = all ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = word.substring(0, index) + word.substring(index + 1);
     const results = getNodesWithWildcards(root, replacement);
@@ -171,8 +171,8 @@ export function getNodesWithDelete(root, word) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithAdd(root, word) {
-  const all = [];
+export function getNodesWithAdd(root, word, all) {
+	all = all ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = word.substring(0, index) + wildcard + word.substring(index);
     const results = getNodesWithWildcards(root, replacement);
@@ -191,8 +191,8 @@ export function getNodesWithAdd(root, word) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithSwap(root, word) {
-  const all = [];
+export function getNodesWithSwap(root, word, all) {
+  all = all ?? [];
   for (let index = 0; index < word.length - 1; ++index) {
     const replacement = [...word];
     const first = replacement[index];
