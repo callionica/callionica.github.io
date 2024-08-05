@@ -276,7 +276,7 @@ export function expandPaths(paths) {
 
 /**
  * Removes prefixes from the set of paths (for example, [ABCDE, ABC] -> [ABCDE])
- * Must be sorted by length prior to calling
+ * Must be sorted by longest first prior to calling
  * @param { LetterPath[] } paths 
  */
 export function condensePaths(paths) {
