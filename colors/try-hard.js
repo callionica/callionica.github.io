@@ -62,7 +62,7 @@ export function setSuffixes(root, word, items) {
  * @param { string } word 
  * @returns { LetterPath }
  */
-export function getNodes(root, word) {
+export function getPath(root, word) {
   /** @type LetterNode[] */
   const result = [];
   let current = root;
@@ -87,7 +87,7 @@ const wildcard = ".";
  * @param { string } word 
  * @returns { LetterPath[] }
  */
-export function getNodesWithWildcards(root, word) {
+export function getPathsWithWildcards(root, word) {
   /** @type LetterNode[] */
   const result = [];
   let current = root;
@@ -111,7 +111,7 @@ export function getNodesWithWildcards(root, word) {
       // Treat each node as a root then combine the results with the results we had already obtained
       /** @type LetterPath[] */
       const paths = roots.flatMap(r => {
-        const subresult = getNodesWithWildcards(r, remaining);
+        const subresult = getPathsWithWildcards(r, remaining);
         // console.log("SUB", subresult);
         if (subresult.length === 0) {
           return [[...result, r]];
@@ -139,12 +139,12 @@ export function getNodesWithWildcards(root, word) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithReplace(root, word, all) {
+export function getPathsWithReplace(root, word, all) {
   all = all ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = [...word];
     replacement[index] = wildcard;
-    const results = getNodesWithWildcards(root, replacement.join(""));
+    const results = getPathsWithWildcards(root, replacement.join(""));
     for (const result of results) {
       if (result.length > index) { // Ignore results unaffected by the replacement
         all.push(result);
@@ -160,11 +160,11 @@ export function getNodesWithReplace(root, word, all) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithDelete(root, word, all) {
+export function getPathsWithDelete(root, word, all) {
   all = all ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = word.substring(0, index) + word.substring(index + 1);
-    const results = getNodesWithWildcards(root, replacement);
+    const results = getPathsWithWildcards(root, replacement);
     for (const result of results) {
       if (result.length > index) { // Ignore results unaffected by the replacement
         all.push(result);
@@ -179,11 +179,11 @@ export function getNodesWithDelete(root, word, all) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithAdd(root, word, all) {
+export function getPathsWithAdd(root, word, all) {
 	all = all ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = word.substring(0, index) + wildcard + word.substring(index);
-    const results = getNodesWithWildcards(root, replacement);
+    const results = getPathsWithWildcards(root, replacement);
     for (const result of results) {
       if (result.length > index) { // Ignore results unaffected by the replacement
         all.push(result);
@@ -199,7 +199,7 @@ export function getNodesWithAdd(root, word, all) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithSwap(root, word, all) {
+export function getPathsWithSwap(root, word, all) {
   all = all ?? [];
   for (let index = 0; index < word.length - 1; ++index) {
     const replacement = [...word];
@@ -208,7 +208,7 @@ export function getNodesWithSwap(root, word, all) {
     replacement[index] = second;
     replacement[index + 1] = first;
 
-    const results = getNodesWithWildcards(root, replacement.join(""));
+    const results = getPathsWithWildcards(root, replacement.join(""));
     for (const result of results) {
       if (result.length > index) { // Ignore results unaffected by the swap
         all.push(result);
@@ -226,7 +226,7 @@ export function getNodesWithSwap(root, word, all) {
  * @returns { { key: string; value: T; isTerminal: boolean; }[] }
  */
 export function getValues(root, word) {
-  const nodes = getNodes(root, word);
+  const nodes = getPath(root, word);
   const fullKey = nodes.map(n => n.key).join("");
 
   const seen = new Set();
