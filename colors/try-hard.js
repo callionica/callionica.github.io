@@ -266,15 +266,15 @@ export function sortPaths(paths, word) {
       return p2.length - p1.length;
     }
     
-    const k1 = p1.map(n => n.key).join("");
-    const k2 = p2.map(n => n.key).join("");
 
     if (word !== undefined) {
       const first = word[0];
-      if (k1[0] === first && k2[0] !== first) { return -1; }
-      if (k2[0] === first && k1[0] !== first) { return +1; }
+      if (p1[0].key === first && p2[0].key !== first) { return -1; }
+      if (p2[0].key === first && p1[0].key !== first) { return +1; }
     }
 
+    const k1 = p1.map(n => n.key).join("");
+    const k2 = p2.map(n => n.key).join("");
     return k1.localeCompare(k2);
   });
   return paths;
