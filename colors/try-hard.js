@@ -183,7 +183,7 @@ export function getPathsWithDelete(root, word, result) {
  */
 export function getPathsWithAdd(root, word, result) {
   result = result ?? [];
-  for (let index = 0; index < word.length; ++index) {
+  for (let index = 0; index <= word.length; ++index) {
     const replacement = word.substring(0, index) + wildcard + word.substring(index);
     const paths = getPathsWithWildcards(root, replacement);
     for (const path of paths) {
