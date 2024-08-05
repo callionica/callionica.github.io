@@ -131,7 +131,7 @@ export function getNodesWithWildcards(root, word) {
  * @param { LetterNode } root 
  * @param { string } word 
  */
-export function getNodesWithReplacement(root, word) {
+export function getNodesWithReplace(root, word) {
   const all = [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = [...word];
@@ -147,7 +147,28 @@ export function getNodesWithReplacement(root, word) {
 }
 
 /**
+ * Removes each character in the word so that single character errors can be found
+ * (Doesn't require wildcards)
+ * @param { LetterNode } root 
+ * @param { string } word 
+ */
+export function getNodesWithDelete(root, word) {
+  const all = [];
+  for (let index = 0; index < word.length; ++index) {
+    const replacement = word.substring(0, index) + word.substring(index + 1);
+    const results = getNodesWithWildcards(root, replacement);
+    for (const result of results) {
+      if (result.length > index) { // Ignore results unaffected by the replacement
+        all.push(result);
+      }
+    }
+  }
+  return all.sort((a, b) => b.length - a.length);
+}
+
+/**
  * Swaps pairs of letters so that single pair swaps can be found
+ * (Doesn't require wildcards)
  * @param { LetterNode } root 
  * @param { string } word 
  */
