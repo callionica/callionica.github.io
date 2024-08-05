@@ -218,6 +218,15 @@ export function getPathsWithSwap(root, word, result) {
   return result.sort((a, b) => b.length - a.length);
 }
 
+export function getPathsWithError(root, word, result) {
+  result = result ?? [];
+  getPathsWithAdd(root, word, result);
+  getPathsWithDelete(root, word, result);
+  getPathsWithReplace(root, word, result);
+  getPathsWithSwap(root, word, result);
+  return result;
+}
+
 /**
  * Returns each value that matches a prefix of the word, ordered by prefix length
  * with terminals before non-terminals
