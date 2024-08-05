@@ -91,7 +91,7 @@ export function getPathsWithWildcards(root, word) {
   /** @type LetterNode[] */
   const result = [];
   let current = root;
-  let remainStart = 0; 
+  let remainStart = 0;
   for (const key of word) {
     ++remainStart;
     if (key === wildcard) {
@@ -183,7 +183,7 @@ export function getPathsWithDelete(root, word, result) {
  * @param { LetterPath[] | undefined } result 
  */
 export function getPathsWithAdd(root, word, result) {
-	result = result ?? [];
+  result = result ?? [];
   for (let index = 0; index < word.length; ++index) {
     const replacement = word.substring(0, index) + wildcard + word.substring(index);
     const paths = getPathsWithWildcards(root, replacement);
@@ -247,7 +247,7 @@ export function getPathsWithError(root, word, result) {
 function pathToValues(path, result, seen) {
   seen = seen ?? new Set();
   result = result ?? [];
-  
+
   const fullKey = path.map(n => n.key).join("");
   for (let index = path.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
@@ -282,7 +282,18 @@ export function getValuesWithError(root, word, result, seen) {
 
   getPathsWithError(root, word).map(path => pathToValues(path, result, seen));
 
-  return result.sort((a, b) => b.key.length - a.key.length);
+  return result.sort((a, b) => {
+    
+    if (b.key.length !== a.key.length) {
+      return b.key.length - a.key.length;
+    }
+    
+    if (a.isTerminal !== b.isTerminal) {
+      return a.isTerminal ? -1 : +1;
+    }
+
+    return a.key.localeCompare(b.key);
+  });
 }
 
 /**
