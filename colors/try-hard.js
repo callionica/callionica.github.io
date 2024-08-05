@@ -275,6 +275,21 @@ export function expandPaths(paths) {
 }
 
 /**
+ * Removes prefixes from the set of paths (for example, [ABCDE, ABC] -> [ABCDE])
+ * Must be sorted by length prior to calling
+ * @param { LetterPath[] } paths 
+ */
+export function condensePaths(paths) {
+  const seenPath = new Set();
+  return paths.filter(path => {
+    const last = path[path.length - 1];
+    if (seen.has(last)) { return false; }
+    path.forEach(node => seen.add(node));
+    return true;
+  });
+}
+
+/**
  * Sorts paths longer first then by name with priority to names matching first letter of word
  * @param { LetterPath[] } paths 
  * @param { string | undefined } word 
@@ -304,7 +319,7 @@ export function sortPaths(paths, word) {
  * @param { string | undefined } word 
  */
 export function normalizePaths(paths, word) {
-  return sortPaths(expandPaths(paths), word);
+  return condensePaths(sortPaths(paths, word));
 }
 
 /**
