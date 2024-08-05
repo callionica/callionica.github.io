@@ -8,6 +8,13 @@
 /** @typedef { LetterNode[] } LetterPath */
 
 /**
+ * @param { LetterNode } node
+ */
+function children(node) {
+  return Object.entries(node).filter(([k, v]) => k.length === 1).map(([k, v]) => v);
+}
+
+/**
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { object[] } items 
@@ -93,7 +100,7 @@ export function getNodesWithWildcards(root, word) {
       console.log(remaining);
       // Get all the possible nodes that can act as roots for the new word
       /** @type LetterNode[] */
-      const roots = alphabet.map(k => current[k]).filter(r => r !== undefined);
+      const roots = children(current);
       // console.log(roots);
 
       // If there aren't any further nodes, just return the result we have
