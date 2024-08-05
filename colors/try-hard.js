@@ -254,6 +254,27 @@ export function uniquePaths(paths) {
 }
 
 /**
+ * Expands the paths to include all prefixes
+ * Doesn't sort, but does prevent duplicates
+ * @param { LetterPath[] } paths 
+ */
+export function expandPaths(paths) {
+  const seenPath = new Set();
+  return paths.flatMap(path => {
+    const result = [];
+    let current = path;
+    let last = current[current.length - 1];
+    while (last !== undefined && !seenPath.has(last)) {
+      seenPath.add(last);
+      result.push(current);
+      current = path.slice(0, current.length - 1);
+      last = current[current.length - 1];
+    }
+    return result;
+  });
+}
+
+/**
  * Sorts paths longer first then by name with priority to names matching first letter of word
  * @param { LetterPath[] } paths 
  * @param { string | undefined } word 
