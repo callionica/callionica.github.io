@@ -230,14 +230,30 @@ export function getPathsWithSwap(root, word, result) {
  */
 export function getPathsWithError(root, word, result) {
   result = result ?? [];
+ 
   result.push(getPath(root, word));
   getPathsWithAdd(root, word, result);
   getPathsWithDelete(root, word, result);
   getPathsWithReplace(root, word, result);
   getPathsWithSwap(root, word, result);
+
   return result;
 }
 
+
+/**
+ * Returns a new collection of paths with duplicates removed
+ * @param { LetterPath[] } paths 
+ */
+export function uniquePaths(paths) {
+  const seen = new Set();
+  return paths.filter(path => {
+    const lastNode = path[path.length - 1];
+    const exists = seen.has(lastNode);
+    seen.add(lastNode);
+    return !exists;
+  });
+}
 
 /**
  * @param { LetterPath } path 
