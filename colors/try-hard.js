@@ -78,7 +78,6 @@ export function getPath(root, word) {
   return result;
 }
 
-// const alphabet = [..."abcdefghijklmnopqrstuvwxyz"];
 const wildcard = ".";
 
 /**
