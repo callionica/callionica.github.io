@@ -368,8 +368,6 @@ function pathToValues(path, result, seen) {
     for (const value of node.values) {
       if (!seen.has(value)) {
         result.push({ key, path: currentPath, value, isTerminal: false });
-      } else {
-        console.log("EXCLUDED", value);
       }
       seen.add(value);
     }
@@ -462,9 +460,10 @@ export function combineValueLists(lists) {
 /**
  * @param { LetterNode } root 
  * @param { string } word 
+ * @param { number } limit The maximum number of results to return
  * @returns { Value[] }
  */
-export function getValuesWithError(root, word) {
+export function getValuesWithError(root, word, limit = 20) {
   /** @type Value[] */
   const result = [];
 
@@ -495,7 +494,7 @@ export function getValuesWithError(root, word) {
     }
 
     return a.key.localeCompare(b.key);
-  });
+  }).slice(0, limit);
 }
 
 /**
