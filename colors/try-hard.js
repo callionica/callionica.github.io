@@ -348,10 +348,10 @@ export function normalizePaths(paths, word) {
  * @param { LetterPath } path 
  * @param { { key: string; path: LetterPath; value: T; isTerminal: boolean; }[] | undefined } result 
  */
-function pathToValues(path, result, seen) {
+function pathToValues(path, result) {
   result = result ?? [];
 
-  seen = seen ?? new Set();
+  const seen = new Set();
   const fullKey = path.map(n => n.key).join("");
   for (let index = path.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
@@ -467,13 +467,19 @@ export function getValuesWithError(root, word, limit = 20) {
   /** @type Value[] */
   const result = [];
 
-  // We can pass in `seen` to eliminate duplicate values because our paths are already sorted
-  // (without the sorting, we might eliminate better paths to a value)
-  const seen = new Set();
-  getPathsWithError(root, word).forEach(path => pathToValues(path, result, seen));
+  getPathsWithError(root, word).forEach(path => pathToValues(path, result));
 
   // We need to re-sort the values because pathToValues expands a path back along all its prefixes
   // but doesn't ensure that the result collection is sorted at the end
+
+  // We need to eliminate duplicate values after sorting so that only the best paths are chosen
+
+  // Note that we can't get pathToValues to eliminate dupes across calls
+  // Consider we might have two paths: CORD and CORK
+  // pathToValues on CORD will include COR (Cork) which needs de-duping so that CO (Cork) and C (Cork) are excluded
+  // but calling pathToValues again with CORK and the same de-duper would eliminate CORK (Cork)
+
+  const seen = new Set();
 
   return result.sort((a, b) => {
 
@@ -494,6 +500,12 @@ export function getValuesWithError(root, word, limit = 20) {
     }
 
     return a.key.localeCompare(b.key);
+  }).filter(v => {
+    if (seen.has(v)) {
+      return false;
+    }
+    seen.add(v);
+    return true;
   }).slice(0, limit);
 }
 
