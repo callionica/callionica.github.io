@@ -290,12 +290,11 @@ export function condensePaths(paths) {
 }
 
 /**
- * Sorts paths longer first then by name with priority to names matching first letter of word
- * @param { LetterPath[] } paths 
- * @param { string | undefined } word 
+ * Counts the number of elements in common at the start of both sequences
+ * @param { LetterPath } path
+ * @param { string } word
  */
-export function sortPaths(paths, word) {
-  function lcp(path, word) {
+export function commonPrefixCount(path, word) {
     let count = 0;
     for (let index = 0; index < Math.min(path.length, word.length); ++index) {
       if (path[index].key === word[index]) {
@@ -306,14 +305,22 @@ export function sortPaths(paths, word) {
     }
     return count;
   }
+
+/**
+ * Sorts paths longer first then by name with priority to names with longets prefix match to word
+ * @param { LetterPath[] } paths 
+ * @param { string | undefined } word 
+ */
+export function sortPaths(paths, word) {
+  
   paths.sort((p1, p2) => {
     if (p1.length !== p2.length) {
       return p2.length - p1.length;
     }
 
     if (word !== undefined) {
-      const cp1 = lcp(p1, word);
-      const cp2 = lcp(p2, word);
+      const cp1 = commonPrefixCount(p1, word);
+      const cp2 = commonPrefixCount(p2, word);
       if (cp1 !== cp2) {
         return cp2 - cp1;
       }
@@ -336,6 +343,8 @@ export function normalizePaths(paths, word) {
 }
 
 /**
+ * Expands a path into a list of values covered by any prefix of the path
+ * starting with those that cover the longest prefixes.
  * @param { LetterPath } path 
  * @param { { key: string; value: T; isTerminal: boolean; }[] | undefined } result 
  */
@@ -365,10 +374,33 @@ function pathToValues(path, result) {
   return result;
 }
 
+/** @typedef { { key: string; value: T; isTerminal: boolean; } } Value **/
+/** @typedef { Value[] } ValueList **/
+/** @typedef { { value: T; matches: { key: string; isTerminal: boolean; rank: number; }[] } } MultiValue **/
+
+/**
+ * Given multiple lists of values ordered by preference
+ * (typically from searching on separate words)
+ * we can combine them by ordering by their properties plus the index
+ * within the list
+ * @param { ValueList[] } lists 
+ **/
+export function combineValueLists(lists) {
+  /** @type Map<T, MultiValue> **/
+	const map = new Map();
+  for (const list of lists) {
+    list.forEach((item, index) => {
+      const match = { key: item.key, isTerminal: item.isTerminal, rank: index };
+      const entry = map.get(item.value) ?? map.set(item.value, { value: item.value, matches: [] });
+      entry.matches.push(match);
+    });
+  }
+}
+
 /**
  * @param { LetterNode } root 
  * @param { string } word 
- * @returns { { key: string; value: T; isTerminal: boolean; }[] }
+ * @returns { Value[] }
  */
 export function getValuesWithError(root, word) {
   const result = [];
@@ -381,12 +413,12 @@ export function getValuesWithError(root, word) {
       return b.key.length - a.key.length;
     }
 
-    if (a.key[0] === word[0] && a.key[0] !== b.key[0]) {
-      return -1;
-    }
-
-    if (b.key[0] === word[0] && a.key[0] !== b.key[0]) {
-      return +1;
+    if (word !== undefined) {
+      const cp1 = commonPrefixCount(a, word);
+      const cp2 = commonPrefixCount(b, word);
+      if (cp1 !== cp2) {
+        return cp2 - cp1;
+      }
     }
     
     if (a.isTerminal !== b.isTerminal) {
