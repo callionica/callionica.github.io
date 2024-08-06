@@ -346,7 +346,7 @@ export function normalizePaths(paths, word) {
  * Expands a path into a list of values covered by any prefix of the path
  * starting with those that cover the longest prefixes.
  * @param { LetterPath } path 
- * @param { { key: string; path: LetterPath; value: T; isTerminal: boolean; }[] | undefined } result 
+ * @param { Value[] | undefined } result 
  */
 function pathToValues(path, result) {
   result = result ?? [];
@@ -510,11 +510,20 @@ export function getValuesWithError(root, word, limit = 20) {
 }
 
 /**
+ * @param { LetterNode } root 
+ * @param { string[] } word
+ * @param {number} limit
+ */
+export function getValuesByWords(root, words, limit = 20) {
+  return combineValueLists(words.map(word => getValuesWithError(root, word, limit)));
+}
+
+/**
  * Returns each value that matches a prefix of the word, ordered by prefix length
  * with terminals before non-terminals
  * @param { LetterNode } root 
  * @param { string } word
- * @returns { { key: string; value: T; isTerminal: boolean; }[] }
+ * @returns { Value[] }
  */
 export function getValues(root, word) {
   const path = getPath(root, word);
