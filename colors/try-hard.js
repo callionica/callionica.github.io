@@ -368,6 +368,8 @@ function pathToValues(path, result) {
     for (const value of node.values) {
       if (!seen.has(value)) {
         result.push({ key, path: currentPath, value, isTerminal: false });
+      } else {
+        console.log("EXCLUDED", value);
       }
       seen.add(value);
     }
