@@ -404,6 +404,16 @@ function compareValueMatch(a, b) {
     return b.matches.length - a.matches.length;
   }
 
+  {
+    // Now take the longest individual match path
+    const scoreA = Math.max(...a.matches.map(match => match.path.length));
+    const scoreB = Math.max(...b.matches.map(match => match.path.length));
+    const score = scoreB - scoreA;
+    if (score !== 0) {
+      return score;
+    }
+  }
+
   // If an item has 1st place and 3rd, it comes after 1st place and 2nd
   // (This is where prefix matching of the word comes in because that controls the ranking within a list)
   const rankScore = score(match => match.rank);
