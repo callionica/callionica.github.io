@@ -399,7 +399,6 @@ function compareValueMatch(a, b) {
     return lengthScore;
   }
 
-
   // If we're still equal, we see if one matched more words than the other
   if (a.matches.length !== b.matches.length) {
     return b.matches.length - a.matches.length;
