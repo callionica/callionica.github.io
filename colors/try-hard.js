@@ -376,25 +376,84 @@ function pathToValues(path, result) {
 
 /** @typedef { { key: string; value: T; isTerminal: boolean; } } Value **/
 /** @typedef { Value[] } ValueList **/
-/** @typedef { { value: T; matches: { key: string; isTerminal: boolean; rank: number; }[] } } MultiValue **/
+/** @typedef { { key: string; isTerminal: boolean; listRank: number; rank: number; } } Match **/
+/** @typedef { { value: T; matches: Match[] } } ValueMatch **/
+
+/**
+ * @param { ValueMatch } a 
+ * @param { ValueMatch } b 
+ */
+function compareValueMatch(a, b) {
+
+  function score(fn) {
+    const fn2 = (previous, match) => previous + fn(match);
+    const scoreA = a.matches.reduce(fn2, 0);
+    const scoreB = b.matches.reduce(fn2, 0);
+    return scoreB - scoreA; // higher score ordered first by default
+  }
+
+  // The primary score is how many letters across all words were matched
+  const lengthScore = score(match => match.key.length);
+  if (lengthScore !== 0) {
+    return lengthScore;
+  }
+
+  // If the matched letter count is the same, we count how many matches were complete words
+  const terminalScore = score(match => match.isTerminal ? 1 : 0);
+  if (terminalScore !== 0) {
+    return terminalScore;
+  }
+
+  // If we're still equal, we see if one matched more words than the other
+  if (a.matches.length !== b.matches.length) {
+    return b.matches.length - a.matches.length;
+  }
+
+  // If an item has 1st place and 3rd, it comes after 1st place and 2nd
+  // (This is where prefix matching of the word comes in because that controls the ranking within a list)
+  const rankScore = score(match => match.rank);
+  if (rankScore !== 0) {
+    return -rankScore; // lower rank number is better (note we've already determined same number of matches)
+  }
+
+  // If a match comes from the first list (word), that's better than a match from the 3rd list (word)
+  const listRankScore = score(match => match.listRank);
+  if (listRankScore !== 0) {
+    return -listRankScore; // lower rank number is better (note we've already determined same number of matches)
+  }
+
+  return 0;
+}
 
 /**
  * Given multiple lists of values ordered by preference
  * (typically from searching on separate words)
- * we can combine them by ordering by their properties plus the index
- * within the list
+ * we can combine them by ordering by their properties plus
+ * their index within their source list if necessary
  * @param { ValueList[] } lists 
  **/
 export function combineValueLists(lists) {
-  /** @type Map<T, MultiValue> **/
+  /** @type Map<T, ValueMatch> **/
 	const map = new Map();
-  for (const list of lists) {
-    list.forEach((item, index) => {
-      const match = { key: item.key, isTerminal: item.isTerminal, rank: index };
-      const entry = map.get(item.value) ?? map.set(item.value, { value: item.value, matches: [] });
+
+  /**
+   * @param { T } k 
+   * @param { ValueMatch } v 
+   */
+  function set(k, v) {
+    map.set(k, v);
+    return v;
+  }
+
+  lists.forEach((list, listIndex) => {
+    list.forEach((item, itemIndex) => {
+      const match = { key: item.key, isTerminal: item.isTerminal, listRank: listIndex, rank: itemIndex };
+      const entry = map.get(item.value) ?? set(item.value, { value: item.value, matches: [] });
       entry.matches.push(match);
     });
-  }
+  });
+
+  return [...map.values()].sort(compareValueMatch);
 }
 
 /**
