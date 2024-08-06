@@ -348,10 +348,10 @@ export function normalizePaths(paths, word) {
  * @param { LetterPath } path 
  * @param { { key: string; path: LetterPath; value: T; isTerminal: boolean; }[] | undefined } result 
  */
-function pathToValues(path, result) {
+function pathToValues(path, result, seen) {
   result = result ?? [];
 
-  const seen = new Set();
+  seen = seen ?? new Set();
   const fullKey = path.map(n => n.key).join("");
   for (let index = path.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
@@ -465,19 +465,26 @@ export function combineValueLists(lists) {
  * @returns { Value[] }
  */
 export function getValuesWithError(root, word) {
+  /** @type Value[] */
   const result = [];
-  
-  getPathsWithError(root, word).map(path => pathToValues(path, result));
+
+  // We can pass in `seen` to eliminate duplicate values because our paths are already sorted
+  // (without the sorting, we might eliminate better paths to a value)
+  const seen = new Set();
+  getPathsWithError(root, word).forEach(path => pathToValues(path, result, seen));
+
+  // We need to re-sort the values because pathToValues expands a path back along all its prefixes
+  // but doesn't ensure that the result collection is sorted at the end
 
   return result.sort((a, b) => {
     
-    if (b.key.length !== a.key.length) {
-      return b.key.length - a.key.length;
+    if (b.path.length !== a.path.length) {
+      return b.path.length - a.path.length;
     }
 
     if (word !== undefined) {
-      const cp1 = commonPrefixCount(a, word);
-      const cp2 = commonPrefixCount(b, word);
+      const cp1 = commonPrefixCount(a.path, word);
+      const cp2 = commonPrefixCount(b.path, word);
       if (cp1 !== cp2) {
         return cp2 - cp1;
       }
