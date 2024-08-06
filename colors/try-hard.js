@@ -346,7 +346,7 @@ export function normalizePaths(paths, word) {
  * Expands a path into a list of values covered by any prefix of the path
  * starting with those that cover the longest prefixes.
  * @param { LetterPath } path 
- * @param { { key: string; value: T; isTerminal: boolean; }[] | undefined } result 
+ * @param { { key: string; path: LetterPath; value: T; isTerminal: boolean; }[] | undefined } result 
  */
 function pathToValues(path, result) {
   result = result ?? [];
@@ -355,18 +355,19 @@ function pathToValues(path, result) {
   const fullKey = path.map(n => n.key).join("");
   for (let index = path.length - 1; index >= 0; --index) {
     const key = fullKey.substring(0, index + 1);
+    const currentPath = path.slice(0, index + 1);
     const node = path[index];
     if (node.terminals !== undefined) {
       for (const value of node.terminals) {
         if (!seen.has(value)) {
-          result.push({ key, value, isTerminal: true });
+          result.push({ key, path: currentPath, value, isTerminal: true });
         }
         seen.add(value);
       }
     }
     for (const value of node.values) {
       if (!seen.has(value)) {
-        result.push({ key, value, isTerminal: false });
+        result.push({ key, path: currentPath, value, isTerminal: false });
       }
       seen.add(value);
     }
@@ -374,9 +375,9 @@ function pathToValues(path, result) {
   return result;
 }
 
-/** @typedef { { key: string; value: T; isTerminal: boolean; } } Value **/
+/** @typedef { { path: LetterPath; value: T; isTerminal: boolean; } } Value **/
 /** @typedef { Value[] } ValueList **/
-/** @typedef { { key: string; isTerminal: boolean; listRank: number; rank: number; } } Match **/
+/** @typedef { { path: LetterPath; isTerminal: boolean; listRank: number; rank: number; } } Match **/
 /** @typedef { { value: T; matches: Match[] } } ValueMatch **/
 
 /**
@@ -393,7 +394,7 @@ function compareValueMatch(a, b) {
   }
 
   // The primary score is how many letters across all words were matched
-  const lengthScore = score(match => match.key.length);
+  const lengthScore = score(match => match.path.length);
   if (lengthScore !== 0) {
     return lengthScore;
   }
@@ -447,7 +448,7 @@ export function combineValueLists(lists) {
 
   lists.forEach((list, listIndex) => {
     list.forEach((item, itemIndex) => {
-      const match = { key: item.key, isTerminal: item.isTerminal, listRank: listIndex, rank: itemIndex };
+      const match = { path: item.path, isTerminal: item.isTerminal, listRank: listIndex, rank: itemIndex };
       const entry = map.get(item.value) ?? set(item.value, { value: item.value, matches: [] });
       entry.matches.push(match);
     });
