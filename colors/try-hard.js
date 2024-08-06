@@ -501,10 +501,10 @@ export function getValuesWithError(root, word, limit = 20) {
 
     return a.key.localeCompare(b.key);
   }).filter(v => {
-    if (seen.has(v)) {
+    if (seen.has(v.value)) {
       return false;
     }
-    seen.add(v);
+    seen.add(v.value);
     return true;
   }).slice(0, limit);
 }
