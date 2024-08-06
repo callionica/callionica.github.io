@@ -516,7 +516,7 @@ export function getValuesWithError(root, word, limit = 20) {
     }
     seen.add(v.value);
     return true;
-  }).slice(0, limit);
+  }).slice(0, limit); // TOO
 }
 
 /**
@@ -525,7 +525,7 @@ export function getValuesWithError(root, word, limit = 20) {
  * @param {number} limit
  */
 export function getValuesByWords(root, words, limit = 20) {
-  return combineValueLists(words.map(word => getValuesWithError(root, word, limit)));
+  return combineValueLists(words.map(word => getValuesWithError(root, word, Infinity))).slice(0, limit);
 }
 
 /**
