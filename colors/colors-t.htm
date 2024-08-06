@@ -27,7 +27,7 @@
             }
 
             input.oninput = () => {
-                const words = input.value.trim().toLower().split(" ");
+                const words = toID(input.value).split("-");
                 output.value = JSON.stringify(getValuesByWords(wordPrefixes, words), null, 2);
                 // output.value = getPathsWithError(wordPrefixes, input.value.trim()).map(path => path.map(p => p.key).join("")).join("\n");
                 return;
