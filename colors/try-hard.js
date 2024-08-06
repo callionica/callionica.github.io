@@ -229,7 +229,7 @@ export function getPathsWithSwap(root, word, result) {
 export function getPathsWithError(root, word) {
   /** @type LetterPath[] | undefined */
   const result = [];
- 
+
   result.push(getPath(root, word));
   getPathsWithAdd(root, word, result);
   getPathsWithDelete(root, word, result);
@@ -295,16 +295,16 @@ export function condensePaths(paths) {
  * @param { string } word
  */
 export function commonPrefixCount(path, word) {
-    let count = 0;
-    for (let index = 0; index < Math.min(path.length, word.length); ++index) {
-      if (path[index].key === word[index]) {
-        ++count;
-      } else {
-        break;
-      }
+  let count = 0;
+  for (let index = 0; index < Math.min(path.length, word.length); ++index) {
+    if (path[index].key === word[index]) {
+      ++count;
+    } else {
+      break;
     }
-    return count;
   }
+  return count;
+}
 
 /**
  * Sorts paths longer first then by name with priority to names with longets prefix match to word
@@ -312,7 +312,7 @@ export function commonPrefixCount(path, word) {
  * @param { string | undefined } word 
  */
 export function sortPaths(paths, word) {
-  
+
   paths.sort((p1, p2) => {
     if (p1.length !== p2.length) {
       return p2.length - p1.length;
@@ -399,11 +399,6 @@ function compareValueMatch(a, b) {
     return lengthScore;
   }
 
-  // If the matched letter count is the same, we count how many matches were complete words
-  const terminalScore = score(match => match.isTerminal ? 1 : 0);
-  if (terminalScore !== 0) {
-    return terminalScore;
-  }
 
   // If we're still equal, we see if one matched more words than the other
   if (a.matches.length !== b.matches.length) {
@@ -415,6 +410,12 @@ function compareValueMatch(a, b) {
   const rankScore = score(match => match.rank);
   if (rankScore !== 0) {
     return -rankScore; // lower rank number is better (note we've already determined same number of matches)
+  }
+
+  // If the matched letter count is the same, we count how many matches were complete words
+  const terminalScore = score(match => match.isTerminal ? 1 : 0);
+  if (terminalScore !== 0) {
+    return terminalScore;
   }
 
   // If a match comes from the first list (word), that's better than a match from the 3rd list (word)
@@ -435,7 +436,7 @@ function compareValueMatch(a, b) {
  **/
 export function combineValueLists(lists) {
   /** @type Map<T, ValueMatch> **/
-	const map = new Map();
+  const map = new Map();
 
   /**
    * @param { T } k 
@@ -476,7 +477,7 @@ export function getValuesWithError(root, word, limit = 20) {
   // but doesn't ensure that the result collection is sorted at the end
 
   return result.sort((a, b) => {
-    
+
     if (b.path.length !== a.path.length) {
       return b.path.length - a.path.length;
     }
@@ -488,7 +489,7 @@ export function getValuesWithError(root, word, limit = 20) {
         return cp2 - cp1;
       }
     }
-    
+
     if (a.isTerminal !== b.isTerminal) {
       return a.isTerminal ? -1 : +1;
     }
