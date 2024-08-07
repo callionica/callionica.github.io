@@ -400,16 +400,33 @@ function pathToValues(path, result) {
  */
 function compareValueMatch(a, b) {
 
+  /**
+   * @param { ValueMatch } a 
+   * @returns 
+   */
+  function hasStrongTerminal(a) {
+    return a.matches.some(m => m.isTerminal && m.path.length >= match.word.length - 1);
+  }
+
+  /**
+   * @param { (match: Match) => number } fn 
+   * @returns 
+   */
   function score(fn) {
+    /** @type { (previous: number, match: Match) => number }  */
     const fn2 = (previous, match) => previous + fn(match);
     const scoreA = a.matches.reduce(fn2, 0);
     const scoreB = b.matches.reduce(fn2, 0);
     return scoreB - scoreA; // higher score ordered first by default
   }
 
+  if (hasStrongTerminal(a) !== hasStrongTerminal(b)) {
+    return hasStrongTerminal(a) ? -1 : +1;
+  }
+
   // The primary score is how many letters across all words were matched
   // with a boost for a terminal match
-  const lengthScore = score(match => match.path.length + (match.isTerminal ? 1 : 0));
+  const lengthScore = score(match => match.path.length + (match.isTerminal && (match.path.length >= match.word.length - 1) ? 1 : 0));
   if (lengthScore !== 0) {
     return lengthScore;
   }
