@@ -426,7 +426,7 @@ function compareValueMatch(a, b) {
 
   // The primary score is how many letters across all words were matched
   // with a boost for a terminal match
-  const lengthScore = score(match => match.path.length + (match.isTerminal && (match.path.length >= match.word.length - 1) ? 1 : 0));
+  const lengthScore = score(match => match.path.length /*+ (match.isTerminal && (match.path.length >= match.word.length - 1) ? 1 : 0)*/);
   if (lengthScore !== 0) {
     return lengthScore;
   }
