@@ -506,8 +506,11 @@ export function getValuesWithError(root, word, limit = 20) {
 
   return result.sort((a, b) => {
 
-    if (b.path.length !== a.path.length) {
-      return b.path.length - a.path.length;
+    const scoreA = a.path.length + (a.isTerminal ? 1 : 0);
+    const scoreB = b.path.length + (b.isTerminal ? 1 : 0);
+    const score = scoreB - scoreA;
+    if (score !== 0) {
+      return score;
     }
 
     if (word !== undefined) {
