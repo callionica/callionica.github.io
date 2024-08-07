@@ -307,15 +307,19 @@ export function commonPrefixCount(path, word) {
 }
 
 /**
- * Sorts paths longer first then by name with priority to names with longets prefix match to word
+ * Sorts paths longer first then by name with priority to names with longest prefix match to word
  * @param { LetterPath[] } paths 
  * @param { string | undefined } word 
  */
 export function sortPaths(paths, word) {
 
   paths.sort((p1, p2) => {
-    if (p1.length !== p2.length) {
-      return p2.length - p1.length;
+    // Longer paths are better, but terminals get a boost
+    const l1 = p1.length + (p1.at(-1).terminals !== undefined) ? 1 : 0;
+    const l2 = p2.length + (p2.at(-1).terminals !== undefined) ? 1 : 0;
+    const score = l2 - p2;
+    if (score !== 0) {
+      return score;
     }
 
     if (word !== undefined) {
