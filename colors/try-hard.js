@@ -315,8 +315,8 @@ export function sortPaths(paths, word) {
 
   paths.sort((p1, p2) => {
     // Longer paths are better, but terminals get a boost
-    const l1 = p1.length + ((p1.at(-1).terminals !== undefined) ? 1 : 0);
-    const l2 = p2.length + ((p2.at(-1).terminals !== undefined) ? 1 : 0);
+    const l1 = p1.length + ((p1.at(-1)?.terminals !== undefined) ? 1 : 0);
+    const l2 = p2.length + ((p2.at(-1)?.terminals !== undefined) ? 1 : 0);
     const score = l2 - l1;
     if (score !== 0) {
       return score;
