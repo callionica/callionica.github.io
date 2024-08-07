@@ -307,6 +307,14 @@ export function commonPrefixCount(path, word) {
 }
 
 /**
+ * @param { LetterPath } path 
+ * @returns boolean
+ */
+function hasTerminals(path) {
+  return path.at(-1)?.terminals !== undefined;
+}
+
+/**
  * Sorts paths longer first then by name with priority to names with longest prefix match to word
  * @param { LetterPath[] } paths 
  * @param { string | undefined } word 
@@ -315,8 +323,8 @@ export function sortPaths(paths, word) {
 
   paths.sort((p1, p2) => {
     // Longer paths are better, but terminals get a boost
-    const l1 = p1.length + ((p1.at(-1)?.terminals !== undefined) ? 1 : 0);
-    const l2 = p2.length + ((p2.at(-1)?.terminals !== undefined) ? 1 : 0);
+    const l1 = p1.length + (hasTerminals(p1) ? 1 : 0);
+    const l2 = p2.length + (hasTerminals(p2) ? 1 : 0);
     const score = l2 - l1;
     if (score !== 0) {
       return score;
@@ -398,7 +406,8 @@ function compareValueMatch(a, b) {
   }
 
   // The primary score is how many letters across all words were matched
-  const lengthScore = score(match => match.path.length);
+  // with a boost for a terminal match
+  const lengthScore = score(match => match.path.length + (match.isTerminal ? 1 : 0));
   if (lengthScore !== 0) {
     return lengthScore;
   }
