@@ -490,7 +490,7 @@ export function combineValueLists(lists) {
  */
 export function getValuesWithError(root, word, limit = 20) {
   /** @type Value[] */
-  const results = [];
+  let results = [];
 
   const o = getPathsWithError(root, word);
   o.paths.forEach(path => pathToValues(path, results));
