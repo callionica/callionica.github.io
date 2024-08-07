@@ -220,11 +220,13 @@ export function getPathsWithSwap(root, word, result) {
   }
   return result; // result.sort((a, b) => b.length - a.length);
 }
+/** @typedef { { word: string; paths: LetterPath[]; } } PathResult */
 
 /**
  * Gets the main path and all the paths when the word has been adjusted by a single error of type: add, delete, replace, or swap 
  * @param { LetterNode } root 
  * @param { string } word 
+ * @returns { PathResult }
  */
 export function getPathsWithError(root, word) {
   /** @type LetterPath[] | undefined */
@@ -236,7 +238,7 @@ export function getPathsWithError(root, word) {
   getPathsWithReplace(root, word, result);
   getPathsWithSwap(root, word, result);
 
-  return normalizePaths(result, word);
+  return { word, paths: normalizePaths(result, word) };
 }
 
 /**
@@ -388,8 +390,8 @@ function pathToValues(path, result) {
 }
 
 /** @typedef { { path: LetterPath; value: T; isTerminal: boolean; } } Value **/
-/** @typedef { Value[] } ValueList **/
-/** @typedef { { path: LetterPath; isTerminal: boolean; listRank: number; rank: number; } } Match **/
+/** @typedef { { word: string; results: Value[]; } } ValueList **/
+/** @typedef { { path: LetterPath; isTerminal: boolean; listRank: number; rank: number; word: string; } } Match **/
 /** @typedef { { value: T; matches: Match[] } } ValueMatch **/
 
 /**
@@ -470,8 +472,8 @@ export function combineValueLists(lists) {
   }
 
   lists.forEach((list, listIndex) => {
-    list.forEach((item, itemIndex) => {
-      const match = { path: item.path, isTerminal: item.isTerminal, listRank: listIndex, rank: itemIndex };
+    list.results.forEach((item, itemIndex) => {
+      const match = { path: item.path, isTerminal: item.isTerminal, listRank: listIndex, rank: itemIndex, word: list.word };
       const entry = map.get(item.value) ?? set(item.value, { value: item.value, matches: [] });
       entry.matches.push(match);
     });
@@ -484,13 +486,14 @@ export function combineValueLists(lists) {
  * @param { LetterNode } root 
  * @param { string } word 
  * @param { number } limit The maximum number of results to return
- * @returns { Value[] }
+ * @returns { ValueList }
  */
 export function getValuesWithError(root, word, limit = 20) {
   /** @type Value[] */
-  const result = [];
+  const results = [];
 
-  getPathsWithError(root, word).forEach(path => pathToValues(path, result));
+  const o = getPathsWithError(root, word);
+  o.paths.forEach(path => pathToValues(path, results));
 
   // We need to re-sort the values because pathToValues expands a path back along all its prefixes
   // but doesn't ensure that the result collection is sorted at the end
@@ -504,7 +507,7 @@ export function getValuesWithError(root, word, limit = 20) {
 
   const seen = new Set();
 
-  return result.sort((a, b) => {
+  results = results.sort((a, b) => {
 
     const scoreA = a.path.length + (a.isTerminal ? 1 : 0);
     const scoreB = b.path.length + (b.isTerminal ? 1 : 0);
@@ -533,12 +536,14 @@ export function getValuesWithError(root, word, limit = 20) {
     seen.add(v.value);
     return true;
   }).slice(0, limit); // TOO
+
+  return { word: o.word, results };
 }
 
 /**
  * @param { LetterNode } root 
  * @param { string[] } word
- * @param {number} limit
+ * @param { number } limit
  */
 export function getValuesByWords(root, words, limit = 20) {
   return combineValueLists(words.map(word => getValuesWithError(root, word, Infinity))).slice(0, limit);
