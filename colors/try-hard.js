@@ -405,7 +405,7 @@ function compareValueMatch(a, b) {
    * @returns 
    */
   function hasStrongTerminal(a) {
-    return a.matches.some(match => match.isTerminal && match.path.length >= match.word.length);
+    return a.matches.some(match => match.isTerminal && match.path.length >= match.word.length && match.path[0].key === match.word[0]);
   }
 
   /**
