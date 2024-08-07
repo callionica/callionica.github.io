@@ -454,10 +454,10 @@ function compareValueMatch(a, b) {
   }
 
   // If the matched letter count is the same, we count how many matches were complete words
-  const terminalScore = score(match => match.isTerminal ? 1 : 0);
-  if (terminalScore !== 0) {
-    return terminalScore;
-  }
+  // const terminalScore = score(match => match.isTerminal ? 1 : 0);
+  // if (terminalScore !== 0) {
+  //   return terminalScore;
+  // }
 
   // If a match comes from the first list (word), that's better than a match from the 3rd list (word)
   const listRankScore = score(match => match.listRank);
