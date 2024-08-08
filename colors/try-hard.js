@@ -426,7 +426,7 @@ function compareValueMatch(a, b) {
 
   // The primary score is how many letters across all words were matched
   // with a boost for a terminal match
-  const lengthScore = score(match => match.path.length /*+ (match.isTerminal && (match.path.length >= match.word.length - 1) ? 1 : 0)*/);
+  const lengthScore = score(match => match.path.length);
   if (lengthScore !== 0) {
     return lengthScore;
   }
@@ -446,12 +446,13 @@ function compareValueMatch(a, b) {
     }
   }
 
+  // TODO
   // If an item has 1st place and 3rd, it comes after 1st place and 2nd
   // (This is where prefix matching of the word comes in because that controls the ranking within a list)
-  const rankScore = score(match => match.rank);
-  if (rankScore !== 0) {
-    return -rankScore; // lower rank number is better (note we've already determined same number of matches)
-  }
+  // const rankScore = score(match => match.rank);
+  // if (rankScore !== 0) {
+  //   return -rankScore; // lower rank number is better (note we've already determined same number of matches)
+  // }
 
   // If the matched letter count is the same, we count how many matches were complete words
   // const terminalScore = score(match => match.isTerminal ? 1 : 0);
