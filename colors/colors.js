@@ -17190,6 +17190,7 @@ export const colors = [
   },
   {
     "title": "Spearmint™",
+    "aliases": ["Spear Mint"],
     "number": "202",
     "lightness": 47,
     "connections": [
