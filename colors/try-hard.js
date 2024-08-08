@@ -466,7 +466,7 @@ function compareValueMatch(a, b) {
     return -listRankScore; // lower rank number is better (note we've already determined same number of matches)
   }
 
-  return a.value.id.localeCompare(b.value.id.title); // TODO
+  return a.value.id.localeCompare(b.value.id); // TODO
 }
 
 /**
