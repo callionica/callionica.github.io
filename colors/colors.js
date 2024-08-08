@@ -7351,6 +7351,7 @@ export const colors = [
   },
   {
     "title": "Light Peachblossom™",
+    "aliases": ["Light Peach Blossom"],
     "number": "3",
     "lightness": 43,
     "connections": [
