@@ -3912,6 +3912,7 @@ export const colors = [
   },
   {
     "title": "Aquamarine - Pale™",
+    "aliases" : [ "Aqua Marine Pale"],
     "number": "282",
     "lightness": 77,
     "connections": [
@@ -4428,6 +4429,7 @@ export const colors = [
   },
   {
     "title": "Aquamarine - Light™",
+    "aliases" : [ "Aqua Marine Light"],
     "number": "283",
     "lightness": 69,
     "connections": [
@@ -4629,6 +4631,7 @@ export const colors = [
   },
   {
     "title": "Aquamarine - Mid™",
+    "aliases" : [ "Aqua Marine Mid"],
     "number": "284",
     "lightness": 57,
     "connections": [
@@ -4982,6 +4985,7 @@ export const colors = [
   },
   {
     "title": "Aquamarine™",
+    "aliases" : [ "Aqua Marine"],
     "number": "138",
     "lightness": 43,
     "connections": [
@@ -5033,6 +5037,7 @@ export const colors = [
   },
   {
     "title": "Aquamarine - Deep™",
+    "aliases" : [ "Aqua Marine Deep"],
     "number": "198",
     "lightness": 38,
     "connections": [
