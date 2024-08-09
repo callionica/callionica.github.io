@@ -14728,6 +14728,7 @@ export const colors = [
   },
   {
     "title": "Gourdy™",
+    "aliases": ["Gaudy"],
     "lightness": 40,
     "connections": [
       {
