@@ -151,7 +151,7 @@ export function getPathsWithReplace(root, word, result) {
       }
     }
   }
-  return result; // result.sort((a, b) => b.length - a.length);
+  return result;
 }
 
 /**
@@ -172,7 +172,7 @@ export function getPathsWithDelete(root, word, result) {
       }
     }
   }
-  return result; // result.sort((a, b) => b.length - a.length);
+  return result;
 }
 
 /**
@@ -192,7 +192,7 @@ export function getPathsWithAdd(root, word, result) {
       }
     }
   }
-  return result; // result.sort((a, b) => b.length - a.length);
+  return result;
 }
 
 /**
@@ -420,8 +420,9 @@ function compareValueMatch(a, b) {
     return scoreB - scoreA; // higher score ordered first by default
   }
 
-  if (hasStrongTerminal(a) !== hasStrongTerminal(b)) {
-    return hasStrongTerminal(a) ? -1 : +1;
+  const hstA = hasStrongTerminal(a);
+  if (hstA !== hasStrongTerminal(b)) {
+    return hstA ? -1 : +1;
   }
 
   // The primary score is how many letters across all words were matched
