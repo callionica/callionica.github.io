@@ -218,7 +218,7 @@ export function getPathsWithSwap(root, word, result) {
       }
     }
   }
-  return result; // result.sort((a, b) => b.length - a.length);
+  return result;
 }
 /** @typedef { { word: string; paths: LetterPath[]; } } PathResult */
 
@@ -229,7 +229,7 @@ export function getPathsWithSwap(root, word, result) {
  * @returns { PathResult }
  */
 export function getPathsWithError(root, word) {
-  /** @type LetterPath[] | undefined */
+  /** @type LetterPath[] */
   const result = [];
 
   result.push(getPath(root, word));
@@ -391,7 +391,7 @@ function pathToValues(path, result) {
 
 /** @typedef { { path: LetterPath; value: T; isTerminal: boolean; } } Value **/
 /** @typedef { { word: string; results: Value[]; } } ValueList **/
-/** @typedef { { path: LetterPath; isTerminal: boolean; listRank: number; rank: number; word: string; } } Match **/
+/** @typedef { { word: string; path: LetterPath; isTerminal: boolean; listRank: number; rank: number; } } Match **/
 /** @typedef { { value: T; matches: Match[] } } ValueMatch **/
 
 /**
@@ -447,24 +447,18 @@ function compareValueMatch(a, b) {
     }
   }
 
-  // TODO
-  // If an item has 1st place and 3rd, it comes after 1st place and 2nd
-  // (This is where prefix matching of the word comes in because that controls the ranking within a list)
-  // const rankScore = score(match => match.rank);
-  // if (rankScore !== 0) {
-  //   return -rankScore; // lower rank number is better (note we've already determined same number of matches)
-  // }
-
-  // If the matched letter count is the same, we count how many matches were complete words
-  // const terminalScore = score(match => match.isTerminal ? 1 : 0);
-  // if (terminalScore !== 0) {
-  //   return terminalScore;
-  // }
-
   // If a match comes from the first list (word), that's better than a match from the 3rd list (word)
   const listRankScore = score(match => match.listRank);
   if (listRankScore !== 0) {
     return -listRankScore; // lower rank number is better (note we've already determined same number of matches)
+  }
+
+  // TODO
+  // If an item has 1st place and 3rd, it comes after 1st place and 2nd
+  // (This is where prefix matching of the word comes in because that controls the ranking within a list)
+  const rankScore = score(match => match.rank);
+  if (rankScore !== 0) {
+    return -rankScore; // lower rank number is better (note we've already determined same number of matches)
   }
 
   return a.value.id.localeCompare(b.value.id); // TODO
