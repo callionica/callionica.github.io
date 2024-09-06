@@ -87,6 +87,14 @@
                 }
             }
 
+            get selectedItem() {
+                return this.container.querySelector(":scope > .selected") ?? undefined;
+            }
+
+            get selectedIndex() {
+                return [...this.container.children].indexOf(this.selectedItem);
+            }
+
             select(item) {
                 for (const child of this.container.children) {
                     child.classList.remove("selected");
@@ -99,16 +107,7 @@
                 return this.container.firstElementChild?.getBoundingClientRect().width ?? 128;
             }
 
-            // clickerWidth() {
-            //     return this.clicker.getBoundingClientRect().width ?? 128;
-            // }
-
             toggle() {
-                // if (this.scroller.scrollLeft !== 0) {
-                //     this.scroller.scrollLeft = 0;
-                //     return;
-                // }
-
                 if (this.dataset.expanded) {
                     this.contract();
                 } else {
@@ -118,40 +117,45 @@
 
             expand() {
                 this.dataset.expanded = true;
+                
+                // Scroller changes size because of the attribute change
 
                 const count = this.container.childElementCount;
                 const width = this.itemWidth();
                 this.container.style.width = `${(width * count)}px`;
 
                 let index = 0;
-                let selected = undefined;
-                let selectedLeft = undefined;
+                
                 for (const child of [...this.container.children]) {
-                    if (child.matches(".selected")) {
-                        selected = child;
-                        selectedLeft = index * width;
-                    }
                     console.log(child);
                     child.style.left = `${index * width}px`;
                     ++index;
                 }
 
-                setTimeout(() => { this.scroller.scroll({ left: selectedLeft, behavior: "instant" }); }, 0);
-                // this.scroller.offsetLeft = selectedLeft;
+                // Enable scrolling
+                this.scroller.style.overflowX = '';
             }
 
             contract() {
                 delete this.dataset.expanded;
 
-                this.scroller.scroll({ left: 0, behavior: "smooth" });
+                // Scroller changes size because of the attribute change
 
-                // const width = this.itemWidth();
-                // this.container.style.width = `${width}px`;
-                this.container.style.width = ``;
+                // Container doesn't change size
+                // this.container.style.width = ``;
 
+                const selectedLeft = this.selectedIndex * this.itemWidth();
+
+                // All items should be positioned behind the selected item
                 for (const child of [...this.container.children]) {
-                    child.style.left = ``;
+                    child.style.left = `${selectedLeft}px`;;
                 }
+
+                // The scroller should show the selected item
+                this.scroller.scroll({ left: selectedLeft, behavior: "smooth" });
+
+                // Disable scrolling
+                this.scroller.style.overflowX = 'hidden';
             }
         }
         customElements.define("expand-children", ExpandChildren);
