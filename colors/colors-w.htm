@@ -117,9 +117,10 @@
 
             expand() {
                 this.dataset.expanded = true;
-                
+
                 // Scroller changes size because of the attribute change
 
+                // Container doesn't really change size
                 const count = this.container.childElementCount;
                 const width = this.itemWidth();
                 this.container.style.width = `${(width * count)}px`;
@@ -419,10 +420,14 @@
         }
 
         expand-children>.scroller {
-            max-width: calc(var(--width) * 4);
+            max-width: calc(var(--width) * 1);
             overflow-y: hidden;
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
+        }
+
+        expand-children[data-expanded]>.scroller {
+            max-width: calc(var(--width) * 4);
         }
 
         expand-children>.swatch {
