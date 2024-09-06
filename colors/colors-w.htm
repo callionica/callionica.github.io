@@ -156,7 +156,9 @@
                 this.scroller.scroll({ left: selectedLeft, behavior: "smooth" });
 
                 // Disable scrolling
-                this.scroller.style.overflowX = 'hidden';
+                setTimeout(()=>{
+                    this.scroller.style.overflowX = 'hidden';
+                }, 0);
             }
         }
         customElements.define("expand-children", ExpandChildren);
