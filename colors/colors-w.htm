@@ -136,8 +136,8 @@
                     ++index;
                 }
 
-                // this.scroller.scroll({ left: selectedLeft, behavior: "instant" });
-                this.scroller.offsetLeft = selectedLeft;
+                setTimeout(() => { this.scroller.scroll({ left: selectedLeft, behavior: "instant" }); }, 0);
+                // this.scroller.offsetLeft = selectedLeft;
             }
 
             contract() {
