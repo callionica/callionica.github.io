@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHORDS</title>
+</head>
+<body>
+<textarea id="chord" style="width:100%; height: 120px;">
+x x 0 2 3 2
+</textarea>
+<div id="result">
+</div>
+</body>
+<script type="module">
+    import * as C from "./chords.js";
+
+    document.getElementById("chord").oninput = function () {
+        const text = document.getElementById("chord").value;
+        const positions = C.parseStringPositions(text);
+        const fingers = C.stringsToFingers(positions, { interiorBars: true, hiddenBars: true });
+        document.getElementById("chord").innerText = JSON.stringify(positions, null, 2) + "\n\n" + JSON.stringify(fingers, null, 2);
+    };
+</script>
+</html>
