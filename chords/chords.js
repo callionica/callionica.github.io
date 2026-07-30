@@ -179,33 +179,3 @@ class Chord {
     /** @type string */
     fingers;
 }
-
-if (Deno) {
-Deno.test("HMS", async function () {
-    const sss = [
-        " 0 2 2 1 0 0",
-        "x X  0 2 3 2 ",
-        "x X  2 2 3 2 ",
-        "x 2 4 3 2 X",
-        "x X  3 4 2 3 ",
-    ];
-    for (let ss of sss) {
-        const a = parseStringPositions(ss);
-        console.log(a);
-
-        for (let sn of GUITAR_STRINGS) {
-            const c = findCover(a, sn)
-            // console.log("cover", sn, c);
-        }
-
-        const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
-        console.log(ss, fs);
-    }
-
-    // const ffs = ["1+4 2+23 X", " x 2+456 3+5 "];
-    // for (let ff of ffs) {
-    //     const a = parseFingerPositions(ff);
-    //     console.log(ff, a);
-    // }
-});
-}
