@@ -19,7 +19,7 @@ x x 0 2 3 2
         const text = document.getElementById("chord").value;
         const positions = C.parseStringPositions(text);
         const fingers = C.stringsToFingers(positions, { interiorBars: true, hiddenBars: true });
-        document.getElementById("chord").innerText = JSON.stringify(positions, null, 2) + "\n\n" + JSON.stringify(fingers, null, 2);
+        document.getElementById("result").innerText = JSON.stringify(positions, null, 2) + "\n\n" + JSON.stringify(fingers, null, 2);
     };
 </script>
 </html>
