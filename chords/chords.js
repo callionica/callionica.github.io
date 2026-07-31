@@ -37,26 +37,51 @@ function range(first, last) {
 /**
  * Given a string that is a number or 'x', return a number or 'x'
  * @param { string } x 
- * @returns { GStringCommand }
+ * @returns { GStringCommand | undefined }
  */
 function parseCommand(x) {
     if (x === UNUSED) {
         return x;
     }
 
-    return parseInt(x, 10);
+    return parseInt(x, 10) ?? undefined;
 }
 
 /**
- * Given a string like '0 x 2 3 0 0', return an array of objects
- * Strings that are not played or are muted are not returned as objects
+ * Is the value 'x' or an integer?
+ * @param {any} x 
+ * @returns { x is GStringCommand }
+ */
+function isCommand(x) {
+    return x === UNUSED || Number.isInteger(x);
+}
+
+/**
+ * Given text like '0 x 2 3 0 0' or '0x2300', return an array of { string, fret } objects.
+ * 
+ * Strings that are not played or are muted (indicated by 'x') are not returned as objects.
+ * Open strings (indicated by '0') are returned as objects.
+ * 
+ * If the text only contains single character frets, no spaces are necessary.
+ * If the text contains multi-character frets (frets 10 or above), spaces between each fret are necessary.
+ * 
+ * Unknown characters are IGNORED, so invalid text might return empty arrays or odd results rather than erroring 
+ * 
  * @param { string } text 
  * @returns { GStringPosition[] }
  */
 export function parseStringPositions(text) {
-    const positions = text.toLowerCase().split(" ").filter(fp => fp.length > 0).map(parseCommand).map((fret, n) => {
-        return { string: GUITAR_STRINGS[0] - n, fret };
-    }).filter(o => o.fret !== UNUSED);
+    text = text.toLowerCase();
+    const pieces = text.includes(" ") ? text.split(" ") : [...text];
+    const positions = pieces
+        .filter(piece => piece.length > 0)
+        .map(parseCommand)
+        .filter(isCommand)
+        .map((fret, n) => {
+            return { string: GUITAR_STRINGS[0] - n, fret };
+        })
+        .filter(fret => fret !== UNUSED)
+        ;
 
     return positions;
 }
@@ -182,31 +207,34 @@ class Chord {
 }
 
 if ("Deno" in globalThis) {
-Deno.test("HMS", async function () {
-    const sss = [
-        " 0 2 2 1 0 0",
-        "x X  0 2 3 2 ",
-        "x X  2 2 3 2 ",
-        "x 2 4 3 2 X",
-        "x X  3 4 2 3 ",
-    ];
-    for (let ss of sss) {
-        const a = parseStringPositions(ss);
-        console.log(a);
+    Deno.test("HMS", async function () {
+        const sss = [
+            "rr999",
+            "9c#99",
+            "022100",
+            " 0 2 2 1 0 0",
+            "x X  0 2 3 2 ",
+            "x X  2 2 3 2 ",
+            "x 2 4 3 2 X",
+            "x X  3 4 2 3 ",
+        ];
+        for (let ss of sss) {
+            const a = parseStringPositions(ss);
+            console.log(a);
 
-        for (let sn of GUITAR_STRINGS) {
-            const c = findCover(a, sn)
-            // console.log("cover", sn, c);
+            for (let sn of GUITAR_STRINGS) {
+                const c = findCover(a, sn)
+                // console.log("cover", sn, c);
+            }
+
+            const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
+            console.log(ss, fs);
         }
 
-        const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
-        console.log(ss, fs);
-    }
-
-    // const ffs = ["1+4 2+23 X", " x 2+456 3+5 "];
-    // for (let ff of ffs) {
-    //     const a = parseFingerPositions(ff);
-    //     console.log(ff, a);
-    // }
-});
+        // const ffs = ["1+4 2+23 X", " x 2+456 3+5 "];
+        // for (let ff of ffs) {
+        //     const a = parseFingerPositions(ff);
+        //     console.log(ff, a);
+        // }
+    });
 }
