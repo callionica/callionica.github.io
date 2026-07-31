@@ -97,7 +97,7 @@ export function parseFingerPositions(text) {
     const played = text.toLowerCase().split(" ").filter(fp => fp.length > 0).map((x, n) => {
         const p = x.split("+");
         const fret = parseCommand(p[0]);
-        const strings = (p[1] ? p[1].split("").map(x => parseInt(x, 10)) : []).toSorted((a, b) => b - a);
+        const strings = (p[1] ? p[1].split("").map(x => parseInt(x, 10)) : []).toSorted((a, b) => a - b);
         return { finger: n + 1, fret, strings };
     }).filter(o => o.fret !== UNUSED);
 
@@ -134,7 +134,7 @@ function findCover(positions, stringNumber) {
  * A finger positioning algorithm:
  * Each fretted string gets a finger starting with
  * the lowest fret number (closest to the neck) and
- * the highest string number (bottom of the guitar)
+ * the lowest string number (bottom of the guitar)
  * @param { GStringPosition[] } positions 
  * @returns { GFingerPosition[] }
  */
@@ -146,7 +146,7 @@ export function stringsToFingers(positions, options) {
         }
 
         const sd = l.string - r.string;
-        return -sd;
+        return sd;
     }).map(o => ({ fret: o.fret, strings: [o.string] }));
 
     const considerBars = options?.bars || options?.hiddenBars || options?.interiorBars;
@@ -154,14 +154,14 @@ export function stringsToFingers(positions, options) {
     let previous = undefined;
     for (let o of sortedPositions) {
         if (previous?.fret === o.fret && considerBars) {
-            const nextString = previous.strings.at(-1) - 1;
+            const nextString = previous.strings.at(-1) + 1;
             // contiguous bar candidate
             if (o.strings[0] === nextString) {
                 previous.strings.push(...o.strings);
                 o.disabled = true;
                 continue;
             } else if (options?.hiddenBars) {
-                const missing = range(o.strings[0] + 1, nextString).toReversed();
+                const missing = range(nextString, o.strings[0] - 1);
                 console.log("missing", missing);
                 const anyUncovered = missing.some(v => {
                     const cover = findCover(positions, v);
@@ -195,6 +195,36 @@ export function stringsToFingers(positions, options) {
     return sortedPositions.filter(o => !o.disabled).map((s, n) => ({ finger: n + 1, fret: s.fret, strings: s.strings }));
 }
 
+export function positionsToText(positions) {
+    // positions are assumed to be in correct order, but positions may be missing if unused
+    const result = [];
+    let previous = 0;
+    for (let p of positions) {
+        if (p.string !== previous - 1) {
+            result.push(...range(p.finger + 1, previous).map(n => 'x'));
+        }
+        previous = p.string;
+
+        result.push(`${p.fret}`)
+    }
+    return (result.some(x => x.length > 1) ? result.join(" ") : result.join(""));
+}
+
+export function fingersToText(fingers) {
+    // fingers are assumed to be in correct order, but fingers may be missing if unused
+    const result = [];
+    let previous = 0;
+    for (let f of fingers) {
+        if (f.finger !== previous + 1) {
+            result.push(...range(previous, f.finger - 1).map(n => 'X'));
+        }
+        previous = f.finger;
+
+        result.push(`${f.fret}+${f.strings.join("")}`)
+    }
+    return result.join(" ");
+}
+
 class Chord {
     /** @type string */
     name;
@@ -209,6 +239,8 @@ class Chord {
 if ("Deno" in globalThis) {
     Deno.test("HMS", async function () {
         const sss = [
+            "X 0 12 13 1",
+            "202",
             "rr999",
             "9c#99",
             "022100",
@@ -222,19 +254,21 @@ if ("Deno" in globalThis) {
             const a = parseStringPositions(ss);
             console.log(a);
 
+            console.log("POS", ss, positionsToText(a));
+
             for (let sn of GUITAR_STRINGS) {
                 const c = findCover(a, sn)
                 // console.log("cover", sn, c);
             }
 
             const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
-            console.log(ss, fs);
+            console.log(ss, fingersToText(fs), fs);
         }
 
-        // const ffs = ["1+4 2+23 X", " x 2+456 3+5 "];
-        // for (let ff of ffs) {
-        //     const a = parseFingerPositions(ff);
-        //     console.log(ff, a);
-        // }
+        const ffs = ["1+4 2+23 X", " x 2+456 3+5 "];
+        for (let ff of ffs) {
+            const a = parseFingerPositions(ff);
+            console.log(ff, a);
+        }
     });
 }

@@ -6,9 +6,7 @@
     <title>CHORDS</title>
 </head>
 <body>
-<textarea id="chord" style="width:100%; height: 120px;">
-x x 0 2 3 2
-</textarea>
+<textarea id="chord" style="width:100%; height: 120px;">x x 0 2 3 2</textarea>
 <div id="result">
 </div>
 </body>
@@ -19,7 +17,7 @@ x x 0 2 3 2
         const text = document.getElementById("chord").value;
         const positions = C.parseStringPositions(text);
         const fingers = C.stringsToFingers(positions, { interiorBars: true, hiddenBars: true });
-        document.getElementById("result").innerText = JSON.stringify(positions, null, 2) + "\n\n" + JSON.stringify(fingers, null, 2);
+        document.getElementById("result").innerText = C.positionsToText(positions) + "\n\n" + C.fingersToText(fingers);
     };
 </script>
 </html>
