@@ -2,8 +2,8 @@
 // Frets are numbered from 1 with low numbers near the head of the guitar (low numbers are low notes)
 // x is an unplayed or muted string
 // 0 is an open string
-// Strings are numbered from 1 with low numbers near the top of the guitar (low numbers are low notes)
-// TODO THIS IS THE OPPOSITE OF STANDARD STRING NUMBERING where thinnest string is 1
+// Strings are numbered from 1 with low numbers for thinner strings near the bottom of the guitar (low numbers are high notes)
+// This is the standard way of string numbering
 
 /**
  *
@@ -16,7 +16,8 @@
  * @typedef { { finger: GFinger, fret: GStringCommand, strings: GString[] } } GFingerPosition;
  * */
 
-const GUITAR_STRINGS = [1, 2, 3, 4, 5, 6];
+/** Ordered from thick to thin strings (6 to 1) */
+const GUITAR_STRINGS = [6, 5, 4, 3, 2, 1];
 
 /** @type GStringCommand */
 const UNUSED = 'x';
@@ -54,7 +55,7 @@ function parseCommand(x) {
  */
 export function parseStringPositions(text) {
     const positions = text.toLowerCase().split(" ").filter(fp => fp.length > 0).map(parseCommand).map((fret, n) => {
-        return { string: n + 1, fret };
+        return { string: GUITAR_STRINGS[0] - n, fret };
     }).filter(o => o.fret !== UNUSED);
 
     return positions;
@@ -178,4 +179,34 @@ class Chord {
 
     /** @type string */
     fingers;
+}
+
+if ("Deno" in globalThis) {
+Deno.test("HMS", async function () {
+    const sss = [
+        " 0 2 2 1 0 0",
+        "x X  0 2 3 2 ",
+        "x X  2 2 3 2 ",
+        "x 2 4 3 2 X",
+        "x X  3 4 2 3 ",
+    ];
+    for (let ss of sss) {
+        const a = parseStringPositions(ss);
+        console.log(a);
+
+        for (let sn of GUITAR_STRINGS) {
+            const c = findCover(a, sn)
+            // console.log("cover", sn, c);
+        }
+
+        const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
+        console.log(ss, fs);
+    }
+
+    // const ffs = ["1+4 2+23 X", " x 2+456 3+5 "];
+    // for (let ff of ffs) {
+    //     const a = parseFingerPositions(ff);
+    //     console.log(ff, a);
+    // }
+});
 }
