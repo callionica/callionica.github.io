@@ -60,97 +60,6 @@ function isCommand(x) {
 }
 
 /**
- * Given text like '0 x 2 3 0 0' or '0x2300', return an array of { string, fret } objects.
- * 
- * Strings that are not played or are muted (indicated by 'x') are not returned as objects.
- * Open strings (indicated by '0') are returned as objects.
- * 
- * If the text only contains single character frets, no spaces are necessary.
- * If the text contains multi-character frets (frets 10 or above), spaces between each fret are necessary.
- * 
- * Unknown characters are IGNORED, so invalid text might return empty arrays or odd results rather than erroring 
- * 
- * @param { string } text 
- * @returns { GStringPosition[] }
- */
-export function parseStringPositions(text) {
-    text = text.toLowerCase();
-    const pieces = text.includes(" ") ? text.split(" ") : [...text];
-    const positions = pieces
-        .filter(piece => piece.length > 0)
-        .map(parseCommand)
-        .filter(isCommand)
-        .map((fret, n) => {
-            return { string: GUITAR_STRINGS[0] - n, fret };
-        })
-        .filter(fret => fret !== UNUSED)
-        ;
-
-    return positions;
-}
-
-/**
- * Given a string like 'x 2+456 3+5', return an array of objects
- * x on its own means a finger that is not used
- * Fingers that are not used are not returned as objects
- * x+123 means strings 1, 2, and 3 are not played
- * Strings not mentioned are played open by default
- * @param { string } text 
- * @returns { { fingers: GFingerPosition[]; unplayedStrings: GString[]; } }
- */
-export function parseFingerPositions(text) {
-
-    /**
-     * strings are covered strings optionally followed by an 'x' and then muted strings
-     * @param {string} text 
-     */
-    function parseStrings(text) {
-        /** @type string[] */
-        let strings = [];
-
-        /** @type string[] | undefined */
-        let mutedStrings = undefined;
-
-        for (const c of text) {
-            if (mutedStrings !== undefined) {
-                const n = parseInt(c, 10);
-                if (Number.isInteger(n)) {
-                    mutedStrings.push(n);
-                }
-            } else if (c === 'x') {
-                mutedStrings = [];
-            } else {
-                const n = parseInt(c, 10);
-                if (Number.isInteger(n)) {
-                    strings.push(n);
-                }
-            }
-        }
-
-        strings = strings?.toSorted((a, b) => a - b);
-        mutedStrings = mutedStrings?.toSorted((a, b) => a - b);
-
-        return { strings, mutedStrings };
-    }
-
-    const pieces = text.toLowerCase().split(" ").filter(fp => fp.length > 0);
-
-    const unplayedStrings = pieces.filter(p => p.startsWith("x+"))
-        .flatMap(p => [...p.split("+")[1]].map(x => parseInt(x, 10)))
-        .toSorted((a, b) => a - b)
-        ;
-
-    const fingers = pieces.filter(p => !p.startsWith("x+")).map((x, n) => {
-        const p = x.split("+");
-        const fret = parseCommand(p[0]);
-        const o = parseStrings(p[1] ?? "");
-        return { finger: n + 1, fret, ...o };
-    }).filter(o => o.fret !== UNUSED);
-
-    return { fingers, unplayedStrings };
-}
-
-/**
  * True if the string is sounded
  * @param { GStringPosition } position 
  * @returns 
@@ -166,107 +75,6 @@ function isPlayed(position) {
  */
 function isCovered(position) {
     return (isPlayed(position) && position.fret !== OPEN);
-}
-
-/**
- * 
- * @param { GStringPosition[] } positions 
- * @param { GString } stringNumber
- */
-function findCover(positions, stringNumber) {
-    let best = undefined;
-    for (let position of positions) {
-        if (position.string === stringNumber && isCovered(position)) {
-            if (best === undefined || position.fret > best.fret) {
-                best = position;
-            }
-        }
-    }
-    return best;
-}
-
-/**
- * A finger positioning algorithm:
- * Each fretted string gets a finger starting with
- * the lowest fret number (closest to the neck) and
- * the lowest string number (bottom of the guitar)
- * @param { GStringPosition[] } positions 
- * @returns { GFingerPosition[] }
- */
-export function stringsToFingers(positions, options) {
-    const sortedPositions = positions.filter(s => s.fret !== OPEN && s.fret !== UNUSED).toSorted((l, r) => {
-        const fd = l.fret - r.fret;
-        if (fd !== 0) {
-            return fd;
-        }
-
-        const sd = l.string - r.string;
-        return sd;
-    }).map(o => ({ fret: o.fret, strings: [o.string] }));
-
-    const considerBars = options?.bars || options?.hiddenBars || options?.interiorBars;
-
-    let previous = undefined;
-    for (let o of sortedPositions) {
-        if (previous?.fret === o.fret && considerBars) {
-            const nextString = previous.strings.at(-1) + 1;
-            // contiguous bar candidate
-            if (o.strings[0] === nextString) {
-                previous.strings.push(...o.strings);
-                o.disabled = true;
-                continue;
-            } else if (options?.hiddenBars) {
-                const missing = range(nextString, o.strings[0] - 1);
-                console.log("missing", missing);
-                const anyUncovered = missing.some(v => {
-                    const cover = findCover(positions, v);
-                    if (cover === undefined || (cover.fret < o.fret)) {
-                        return true;
-                    }
-                });
-                if (!anyUncovered) {
-                    previous.strings.push(...missing);
-
-                    previous.strings.push(...o.strings);
-                    o.disabled = true;
-                    continue;
-                }
-            }
-        }
-
-        previous = o;
-
-        if (previous.strings[0] !== 6 && !options?.interiorBars) {
-            previous = undefined;
-        }
-    }
-
-    // hidden bars are ones where high number frets cover gaps in low number frets
-    // edge bars start at string 6
-    // edge bar limit constrains the max width of an edge bar
-    // interior bars start otherwise
-    // interior bar limit constrains the max width of an interior bar
-
-    return sortedPositions.filter(o => !o.disabled).map((s, n) => ({ finger: n + 1, fret: s.fret, strings: s.strings }));
-}
-
-/**
- * @param {GFingerPosition[]} fingers 
- */
-export function fingersToText(fingers) {
-    // fingers are assumed to be in correct order, but fingers may be missing if unused
-    const result = [];
-    let previous = 0;
-    for (let f of fingers) {
-        if (f.finger !== previous + 1) {
-            result.push(...range(previous + 1, f.finger - 1).map(n => 'X'));
-        }
-        previous = f.finger;
-
-        const muted = (f.mutedStrings ?? []);
-        result.push(`${f.fret}+${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
-    }
-    return result.join(" ");
 }
 
 export class GChord {
@@ -447,6 +255,25 @@ export class GFingerChord extends GChord {
     }
 
     toString() {
+        /**
+         * @param {GFingerPosition[]} fingers 
+         */
+        function fingersToText(fingers) {
+            // fingers are assumed to be in correct order, but fingers may be missing if unused
+            const result = [];
+            let previous = 0;
+            for (let f of fingers) {
+                if (f.finger !== previous + 1) {
+                    result.push(...range(previous + 1, f.finger - 1).map(n => 'X'));
+                }
+                previous = f.finger;
+
+                const muted = (f.mutedStrings ?? []);
+                result.push(`${f.fret}+${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
+            }
+            return result.join(" ");
+        }
+
         const unplayed = this.unplayedStrings.join("");
         return fingersToText(this.fingers) + (unplayed.length > 0 ? ` X+${unplayed}` : "");
     }
@@ -457,6 +284,68 @@ export class GFingerChord extends GChord {
      * @returns 
      */
     static parse(text) {
+
+        /**
+         * Given a string like 'x 2+456 3+5', return an array of objects
+         * x on its own means a finger that is not used
+         * Fingers that are not used are not returned as objects
+         * x+123 means strings 1, 2, and 3 are not played
+         * Strings not mentioned are played open by default
+         * @param { string } text 
+         * @returns { { fingers: GFingerPosition[]; unplayedStrings: GString[]; } }
+         */
+        function parseFingerPositions(text) {
+
+            /**
+             * strings are covered strings optionally followed by an 'x' and then muted strings
+             * @param {string} text 
+             */
+            function parseStrings(text) {
+                /** @type string[] */
+                let strings = [];
+
+                /** @type string[] | undefined */
+                let mutedStrings = undefined;
+
+                for (const c of text) {
+                    if (mutedStrings !== undefined) {
+                        const n = parseInt(c, 10);
+                        if (Number.isInteger(n)) {
+                            mutedStrings.push(n);
+                        }
+                    } else if (c === 'x') {
+                        mutedStrings = [];
+                    } else {
+                        const n = parseInt(c, 10);
+                        if (Number.isInteger(n)) {
+                            strings.push(n);
+                        }
+                    }
+                }
+
+                strings = strings?.toSorted((a, b) => a - b);
+                mutedStrings = mutedStrings?.toSorted((a, b) => a - b);
+
+                return { strings, mutedStrings };
+            }
+
+            const pieces = text.toLowerCase().split(" ").filter(fp => fp.length > 0);
+
+            const unplayedStrings = pieces.filter(p => p.startsWith("x+"))
+                .flatMap(p => [...p.split("+")[1]].map(x => parseInt(x, 10)))
+                .toSorted((a, b) => a - b)
+                ;
+
+            const fingers = pieces.filter(p => !p.startsWith("x+")).map((x, n) => {
+                const p = x.split("+");
+                const fret = parseCommand(p[0]);
+                const o = parseStrings(p[1] ?? "");
+                return { finger: n + 1, fret, ...o };
+            }).filter(o => o.fret !== UNUSED);
+
+            return { fingers, unplayedStrings };
+        }
+
         const { fingers, unplayedStrings } = parseFingerPositions(text);
         const result = new GFingerChord();
         result.fingers = fingers;
@@ -503,9 +392,34 @@ export class GStringChord extends GChord {
     }
 
     static parse(text) {
-        const strings = parseStringPositions(text);
+        /**
+         * Given text like '0 x 2 3 0 0' or '0x2300', return an array of { string, fret } objects.
+         * 
+         * Strings that are not played or are muted (indicated by 'x') are not returned as objects.
+         * Open strings (indicated by '0') are returned as objects.
+         * 
+         * If the text only contains single character frets, no spaces are necessary.
+         * If the text contains multi-character frets (frets 10 or above), spaces between each fret are necessary.
+         * 
+         * Unknown characters are IGNORED, so invalid text might return empty arrays or odd results rather than erroring 
+         */
+
+        text = text.toLowerCase();
+
+        const pieces = text.includes(" ") ? text.split(" ") : [...text];
+
+        const positions = pieces
+            .filter(piece => piece.length > 0)
+            .map(parseCommand)
+            .filter(isCommand)
+            .map((fret, n) => {
+                return { string: GUITAR_STRINGS[0] - n, fret };
+            })
+            .filter(fret => fret !== UNUSED)
+            ;
+
         const result = new GStringChord();
-        result.strings = strings;
+        result.strings = positions;
         return result;
     }
 
@@ -589,17 +503,6 @@ if ("Deno" in globalThis) {
             "x X  3 4 2 3 ",
         ];
         for (let ss of sss) {
-            // const a = parseStringPositions(ss);
-            // console.log(a);
-
-            // for (let sn of GUITAR_STRINGS) {
-            //     const c = findCover(a, sn)
-            //     // console.log("cover", sn, c);
-            // }
-
-            // const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
-            // console.log(ss, fingersToText(fs), fs);
-
             const o = GStringChord.parse(ss);
             console.log("CLASS STR1", o.toString());
 
@@ -617,9 +520,6 @@ if ("Deno" in globalThis) {
             " x 2+456 3+5 ",
         ];
         for (let ff of ffs) {
-            // const { fingers, unplayedStrings } = parseFingerPositions(ff);
-            // console.log(ff, fingers, unplayedStrings);
-
             const c = GFingerChord.parse(ff);
             console.log("CLASS FING", c.toString());
 
