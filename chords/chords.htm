@@ -20,7 +20,12 @@ x x 0 2 3 2
         const lines = text.split("\n").map(l => l.trim()).filter(l => l.length);
         const result = lines.map(line => {
             const chord = C.GChord.parse(line);
-            return chord.toString() + "\n" + chord.toStringChord().toString();
+            const sc = chord.toStringChord();
+            const fc = sc.toFingerChord();
+            return chord.toString() + "\n" +
+                sc.toString() + "\n" +
+                fc.toString()
+                ;
         }).join("\n\n");
         
         document.getElementById("result").innerText = result;
