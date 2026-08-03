@@ -38,16 +38,16 @@ function range(first, last) {
 }
 
 /**
- * Given a string that is a number or 'x', return a number or 'x'
- * @param { string } x 
+ * Given text that is a number or 'x', return a number or 'x'
+ * @param { string } text 
  * @returns { GStringCommand | undefined }
  */
-function parseCommand(x) {
-    if (x === UNUSED) {
-        return x;
+function parseCommand(text) {
+    if (text === UNUSED) {
+        return text;
     }
 
-    return parseInt(x, 10) ?? undefined;
+    return parseInt(text, 10) ?? undefined;
 }
 
 /**
@@ -248,24 +248,6 @@ export function stringsToFingers(positions, options) {
     // interior bar limit constrains the max width of an interior bar
 
     return sortedPositions.filter(o => !o.disabled).map((s, n) => ({ finger: n + 1, fret: s.fret, strings: s.strings }));
-}
-
-/**
- * @param {GStringPosition[]} positions 
- */
-export function positionsToText(positions) {
-    // positions are assumed to be in correct order, but positions may be missing if unused
-    const result = [];
-    let previous = 0;
-    for (let p of positions) {
-        if (p.string !== previous - 1) {
-            result.push(...range(p.finger + 1, previous).map(n => 'x'));
-        }
-        previous = p.string;
-
-        result.push(`${p.fret}`)
-    }
-    return (result.some(x => x.length > 1) ? result.join(" ") : result.join(""));
 }
 
 /**
@@ -505,7 +487,19 @@ export class GStringChord extends GChord {
     }
 
     toString() {
-        return positionsToText(this.strings);
+        // positions are assumed to be in correct order, but positions may be missing if unused
+        const positions = this.strings;
+        const result = [];
+        let previous = 0;
+        for (let p of positions) {
+            if (p.string !== previous - 1) {
+                result.push(...range(p.finger + 1, previous).map(n => 'x'));
+            }
+            previous = p.string;
+
+            result.push(`${p.fret}`)
+        }
+        return (result.some(x => x.length > 1) ? result.join(" ") : result.join(""));
     }
 
     static parse(text) {
@@ -597,8 +591,6 @@ if ("Deno" in globalThis) {
         for (let ss of sss) {
             // const a = parseStringPositions(ss);
             // console.log(a);
-
-            // console.log("POS", ss, positionsToText(a));
 
             // for (let sn of GUITAR_STRINGS) {
             //     const c = findCover(a, sn)
