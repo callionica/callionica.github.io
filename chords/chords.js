@@ -8,15 +8,18 @@
 /**
  *
  * @typedef { number } GString;
+ * @typedef { GString[] } GStrings;
  * @typedef { number } GFinger;
  * @typedef { number } GFret;
  * @typedef { 0 | GFret } GFretCommand;
  * @typedef { 'x' | GFretCommand } GStringCommand;
- * @typedef { { string: GString, fret: GStringCommand } } GStringPosition;
- * @typedef { { finger: GFinger, fret: GStringCommand, strings: GString[] } } GFingerPosition;
+ * @typedef { { string: GString; fret: GStringCommand; } } GStringPosition;
+ * @typedef { { finger: GFinger; fret: GStringCommand; strings: GString[]; mutedStrings: GString[] | undefined; } } GFingerPosition;
  * */
 
-/** Ordered from thick to thin strings (6 to 1) */
+// Ordered from thick to thin strings (6 to 1)
+
+/** @type GStrings */
 const GUITAR_STRINGS = [6, 5, 4, 3, 2, 1];
 
 /** @type GStringCommand */
@@ -26,7 +29,7 @@ const UNUSED = 'x';
 const OPEN = 0;
 
 function range(first, last) {
-    console.log("range", first, last);
+    // console.log("range", first, last);
     let list = [];
     for (let n = first; n <= last; n++) {
         list.push(n);
@@ -88,29 +91,81 @@ export function parseStringPositions(text) {
 
 /**
  * Given a string like 'x 2+456 3+5', return an array of objects
+ * x on its own means a finger that is not used
  * Fingers that are not used are not returned as objects
+ * x+123 means strings 1, 2, and 3 are not played
+ * Strings not mentioned are played open by default
  * @param { string } text 
- * @returns { GFingerPosition[] }
+ * @returns { { fingers: GFingerPosition[]; unplayedStrings: GString[]; } }
  */
 export function parseFingerPositions(text) {
 
-    const played = text.toLowerCase().split(" ").filter(fp => fp.length > 0).map((x, n) => {
+    /**
+     * strings are covered strings optionally followed by an 'x' and then muted strings
+     * @param {string} text 
+     */
+    function parseStrings(text) {
+        /** @type string[] */
+        let strings = [];
+
+        /** @type string[] | undefined */
+        let mutedStrings = undefined;
+
+        for (const c of text) {
+            if (mutedStrings !== undefined) {
+                const n = parseInt(c, 10);
+                if (Number.isInteger(n)) {
+                    mutedStrings.push(n);
+                }
+            } else if (c === 'x') {
+                mutedStrings = [];
+            } else {
+                const n = parseInt(c, 10);
+                if (Number.isInteger(n)) {
+                    strings.push(n);
+                }
+            }
+        }
+
+        strings = strings?.toSorted((a, b) => a - b);
+        mutedStrings = mutedStrings?.toSorted((a, b) => a - b);
+
+        return { strings, mutedStrings };
+    }
+
+    const pieces = text.toLowerCase().split(" ").filter(fp => fp.length > 0);
+
+    const unplayedStrings = pieces.filter(p => p.startsWith("x+"))
+        .flatMap(p => [...p.split("+")[1]].map(x => parseInt(x, 10)))
+        .toSorted((a, b) => a - b)
+        ;
+
+    const fingers = pieces.filter(p => !p.startsWith("x+")).map((x, n) => {
         const p = x.split("+");
         const fret = parseCommand(p[0]);
-        const strings = (p[1] ? p[1].split("").map(x => parseInt(x, 10)) : []).toSorted((a, b) => a - b);
-        return { finger: n + 1, fret, strings };
+        const o = parseStrings(p[1] ?? "");
+        return { finger: n + 1, fret, ...o };
     }).filter(o => o.fret !== UNUSED);
 
-    return played;
+    return { fingers, unplayedStrings };
 }
 
 /**
- * 
+ * True if the string is sounded
+ * @param { GStringPosition } position 
+ * @returns 
+ */
+function isPlayed(position) {
+    return (position.fret !== UNUSED);
+}
+
+/**
+ * True if the string is sounded and not open
  * @param { GStringPosition } position 
  * @returns 
  */
 function isCovered(position) {
-    return (position.fret !== UNUSED && position.fret !== OPEN);
+    return (isPlayed(position) && position.fret !== OPEN);
 }
 
 /**
@@ -195,6 +250,9 @@ export function stringsToFingers(positions, options) {
     return sortedPositions.filter(o => !o.disabled).map((s, n) => ({ finger: n + 1, fret: s.fret, strings: s.strings }));
 }
 
+/**
+ * @param {GStringPosition[]} positions 
+ */
 export function positionsToText(positions) {
     // positions are assumed to be in correct order, but positions may be missing if unused
     const result = [];
@@ -210,30 +268,316 @@ export function positionsToText(positions) {
     return (result.some(x => x.length > 1) ? result.join(" ") : result.join(""));
 }
 
+/**
+ * @param {GFingerPosition[]} fingers 
+ */
 export function fingersToText(fingers) {
     // fingers are assumed to be in correct order, but fingers may be missing if unused
     const result = [];
     let previous = 0;
     for (let f of fingers) {
         if (f.finger !== previous + 1) {
-            result.push(...range(previous, f.finger - 1).map(n => 'X'));
+            result.push(...range(previous + 1, f.finger - 1).map(n => 'X'));
         }
         previous = f.finger;
 
-        result.push(`${f.fret}+${f.strings.join("")}`)
+        const muted = (f.mutedStrings ?? []);
+        result.push(`${f.fret}+${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
     }
     return result.join(" ");
 }
 
-class Chord {
-    /** @type string */
-    name;
+export class GChord {
+    /**
+     * True if the specified string is played in this chord
+     * 
+     * @param {GString} s The string being tested
+     */
+    isPlayed(s) {
+        return false;
+    }
 
-    /** @type string */
-    strings;
+    /**
+     * True if the specified string is played with cover (fretted) in this chord.
+     * 
+     * Where the chord specifies finger positions, a string could be 'covered' but still end up muted or unplayed,
+     * in which case this method should return `false`. It represents the final effect of the chord.
+     * 
+     * @param {GString} s The string being tested
+     */
+    isCovered(s) {
+        return this.getCover(s) !== undefined;
+    }
 
-    /** @type string */
-    fingers;
+    /**
+     * True if the specified string is played without cover
+     * 
+     * @param {GString} s The string being tested
+     */
+    isOpen(s) {
+        return this.isPlayed(s) && !this.isCovered(s);
+    }
+
+    /**
+     * Returns the fret covered for this string or `undefined` if not covered or string is unplayed
+     * 
+     * Where the chord specifies finger positions, a string could be 'covered' but still end up muted or unplayed,
+     * in which case this method should return `undefined`. It represents the final effect of the chord.
+     * 
+     * @param {GString} s The string being tested
+     * @returns { GFret | undefined }
+     */
+    getCover(s) {
+        return undefined;
+    }
+
+    /**
+     * Returns the command for this string: 'x' (unplayed/muted), `0` (open), or fret number (covered)
+     * @param {GString} s 
+     * @returns { GStringCommand }
+     */
+    getCommand(s) {
+        if (!this.isPlayed(s)) {
+            return UNUSED;
+        }
+
+        if (this.isOpen(s)) {
+            return OPEN;
+        }
+
+        return this.getCover(s);
+    }
+
+    /** @type GStrings */
+    get availableStrings() {
+        return GUITAR_STRINGS;
+    }
+
+    /** @type GStrings */
+    get silentStrings() {
+        return this.availableStrings.filter(n => !this.isPlayed(n));
+    }
+
+    /** @type GStrings */
+    get openStrings() {
+        return this.availableStrings.filter(n => this.isOpen(n));
+    }
+
+    /** @type GStrings */
+    get coveredStrings() {
+        return this.availableStrings.filter(n => this.isCovered(n));
+    }
+
+    toStringChord() {
+        const result = new GStringChord();
+        result.strings = this.availableStrings.map(s => ({ string: s, fret: this.getCommand(s) }));
+        return result;
+    }
+
+    /**
+     * @param { string } text 
+     */
+    static parse(text) {
+        if (text.includes("+")) {
+            return GFingerChord.parse(text);
+        }
+        return GStringChord.parse(text);
+    }
+}
+
+// Values are chosen for easy sorting
+const MENTION_PLAY = 1;
+const MENTION_MUTE = 2;
+const MENTION_UNPLAYED = 3;
+
+export class GFingerChord extends GChord {
+    /** @type GFingerPosition[] */
+    fingers = [];
+
+    /** @type GString[] */
+    unplayedStrings = [];
+
+    /**
+     * 
+     * @param { GString } s 
+     * @returns { ({ type: 1 | 2, fret: GFret } | { type: 3 })[] }
+     */
+    getMentions(s) {
+        /** @type ({ type: 1 | 2, fret: GFret } | { type: 3 })[] */
+        const m = this.fingers.flatMap(f => {
+            const result = f.strings.filter(n => n === s).map(n => ({ fret: f.fret, type: MENTION_PLAY }));
+            if (f.mutedStrings !== undefined) {
+                result.push(...f.mutedStrings.filter(n => n === s).map(n => ({ fret: f.fret, type: MENTION_MUTE })));
+            }
+            return result;
+        });
+
+        const result = m.toSorted((a, b) => {
+            const d = a.fret - b.fret;
+            if (d !== 0) {
+                return d;
+            }
+
+            return a.type - b.type;
+        });
+
+        if (this.unplayedStrings.includes(s)) {
+            result.push(({ type: MENTION_UNPLAYED }));
+        }
+
+        // console.log("MENTIONS", s, result);
+        return result;
+    }
+
+    /**
+     * True if the specified string is played in this chord
+     * @param {GString} s The string being tested
+     */
+    isPlayed(s) {
+        return this.isOpen(s) || this.isCovered(s);
+    }
+
+    /**
+     * True if the specified string is played open
+     * @param {GString} s The string being tested
+     */
+    isOpen(s) {
+        const mentions = this.getMentions(s);
+
+        // Unmentioned strings are played open
+        return (mentions.length === 0);
+    }
+
+    /**
+     * Returns the fret covered for this string or undefined if not covered or string is unplayed
+     * @param {GString} s The string being tested
+     * @returns { GFret | undefined }
+     */
+    getCover(s) {
+        const mentions = this.getMentions(s);
+        const potentialCover = mentions.at(-1);
+        if (potentialCover !== undefined) {
+            if (potentialCover.type === MENTION_PLAY) {
+                return potentialCover.fret;
+            }
+        }
+        return undefined;
+    }
+
+    toString() {
+        const unplayed = this.unplayedStrings.join("");
+        return fingersToText(this.fingers) + (unplayed.length > 0 ? ` X+${unplayed}` : "");
+    }
+
+    /**
+     * 
+     * @param { string } text 
+     * @returns 
+     */
+    static parse(text) {
+        const { fingers, unplayedStrings } = parseFingerPositions(text);
+        const result = new GFingerChord();
+        result.fingers = fingers;
+        result.unplayedStrings = unplayedStrings;
+        return result;
+    }
+}
+
+export class GStringChord extends GChord {
+    /** @type GStringPosition[] */
+    strings = [];
+
+    /**
+     * True if the specified string is played in this chord
+     * @param {GString} s The string being tested
+     */
+    isPlayed(s) {
+        return this.strings.some(o => o.string === s && isPlayed(o));
+    }
+
+    /**
+     * Returns the fret covered for this string or undefined if not covered or string is unplayed
+     * @param {GString} s The string being tested
+     * @returns { GFret | undefined }
+     */
+    getCover(s) {
+        return this.strings.find(o => o.string === s && isCovered(o))?.fret;
+    }
+
+    toString() {
+        return positionsToText(this.strings);
+    }
+
+    static parse(text) {
+        const strings = parseStringPositions(text);
+        const result = new GStringChord();
+        result.strings = strings;
+        return result;
+    }
+
+    toFingerChord(options = { bars: true, interiorBars: true, hiddenBars: true }) {
+        const sortedPositions = this.strings.filter(s => s.fret !== OPEN && s.fret !== UNUSED).toSorted((l, r) => {
+            const fd = l.fret - r.fret;
+            if (fd !== 0) {
+                return fd;
+            }
+
+            const sd = l.string - r.string;
+            return sd;
+        }).map(o => ({ fret: o.fret, strings: [o.string] }));
+
+        const considerBars = options?.bars || options?.hiddenBars || options?.interiorBars;
+
+        let previous = undefined;
+        for (let o of sortedPositions) {
+            if (previous?.fret === o.fret && considerBars) {
+                const nextString = previous.strings.at(-1) + 1;
+                // contiguous bar candidate
+                if (o.strings[0] === nextString) {
+                    previous.strings.push(...o.strings);
+                    o.disabled = true;
+                    continue;
+                } else if (options?.hiddenBars) {
+                    const missing = range(nextString, o.strings[0] - 1);
+                    
+                    const anyUncovered = missing.some(v => {
+                        const cover = this.getCover(v);
+                        if (cover === undefined || (cover < o.fret)) {
+                            return true;
+                        }
+                    });
+
+                    if (!anyUncovered) {
+                        previous.strings.push(...missing);
+
+                        previous.strings.push(...o.strings);
+                        o.disabled = true;
+                        continue;
+                    }
+                }
+            }
+
+            previous = o;
+
+            if (previous.strings[0] !== 6 && !options?.interiorBars) {
+                previous = undefined;
+            }
+        }
+
+        // hidden bars are ones where high number frets cover gaps in low number frets
+        // edge bars start at string 6
+        // edge bar limit constrains the max width of an edge bar
+        // interior bars start otherwise
+        // interior bar limit constrains the max width of an interior bar
+
+        /** @type GFingerPosition[] */
+        const fingers = sortedPositions.filter(o => !o.disabled).map((s, n) => ({ finger: n + 1, fret: s.fret, strings: s.strings }));
+
+        const result = new GFingerChord();
+        result.fingers = fingers;
+        result.unplayedStrings = this.silentStrings;
+        return result;
+    }
 }
 
 if ("Deno" in globalThis) {
@@ -251,24 +595,50 @@ if ("Deno" in globalThis) {
             "x X  3 4 2 3 ",
         ];
         for (let ss of sss) {
-            const a = parseStringPositions(ss);
-            console.log(a);
+            // const a = parseStringPositions(ss);
+            // console.log(a);
 
-            console.log("POS", ss, positionsToText(a));
+            // console.log("POS", ss, positionsToText(a));
 
-            for (let sn of GUITAR_STRINGS) {
-                const c = findCover(a, sn)
-                // console.log("cover", sn, c);
-            }
+            // for (let sn of GUITAR_STRINGS) {
+            //     const c = findCover(a, sn)
+            //     // console.log("cover", sn, c);
+            // }
 
-            const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
-            console.log(ss, fingersToText(fs), fs);
+            // const fs = stringsToFingers(a, { interiorBars: true, hiddenBars: true });
+            // console.log(ss, fingersToText(fs), fs);
+
+            const o = GStringChord.parse(ss);
+            console.log("CLASS STR1", o.toString());
+
+            const c = o.toStringChord();
+            console.log("CLASS STR2", c.toString());
+
+            const fc = o.toFingerChord();
+            console.log("CLASS FING", fc.toString());
         }
 
-        const ffs = ["1+4 2+23 X", " x 2+456 3+5 "];
+        const ffs = [
+            "1+4 2+4",
+            "1+4x3",
+            "1+4 2+23 X X+56 X+1",
+            " x 2+456 3+5 ",
+        ];
         for (let ff of ffs) {
-            const a = parseFingerPositions(ff);
-            console.log(ff, a);
+            // const { fingers, unplayedStrings } = parseFingerPositions(ff);
+            // console.log(ff, fingers, unplayedStrings);
+
+            const c = GFingerChord.parse(ff);
+            console.log("CLASS FING", c.toString());
+
+            const o = c.toStringChord();
+            console.log("CLASS STR1", o.toString());
+
+            // console.log("isPlayed(3)", c.isPlayed(3));
+            // console.log("silentStrings", c.silentStrings);
+            // console.log("openStrings", c.openStrings);
+            // console.log("coveredStrings", c.coveredStrings);
+            // console.log("toStringChord", c.toStringChord().toString());
         }
     });
 }
