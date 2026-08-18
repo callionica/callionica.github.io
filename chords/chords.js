@@ -4,12 +4,13 @@
 // 0 is an open string
 // Strings are numbered from 1 with low numbers for thinner strings near the bottom of the guitar (low numbers are high notes)
 // This is the standard way of string numbering
+// Fingers are numbered from 1-4 with 5 being the thumb (marked as T)
 
 /**
  *
  * @typedef { number } GString;
  * @typedef { GString[] } GStrings;
- * @typedef { number } GFinger;
+ * @typedef { 1 | 2 | 3 | 4 | 5 } GFinger;
  * @typedef { number } GFret;
  * @typedef { 0 | GFret } GFretCommand;
  * @typedef { 'x' | GFretCommand } GStringCommand;
@@ -27,6 +28,64 @@ const UNUSED = 'x';
 
 /** @type GStringCommand */
 const OPEN = 0;
+
+/** @type GFinger */
+const THUMB = 5;
+
+class Finger {
+    /**
+     * The core value representing the finger in the range 1-5 where the thumb is 5
+     * @type GFinger
+    */
+    value;
+
+    /**
+     * Is this finger acting like another finger for the purposes of this chord?
+     * This is particularly useful for a thumb where it can be replacing a finger
+     * and we want the notation to reflect that by putting the thumb instruction
+     * at the position where the finger instruction would normally be.
+     * @type GFinger | undefined
+    */
+    replacing;
+
+    /**
+     * Text representing the finger (1-4 or T)
+     */
+    get id() {
+        if (this.value === 5) {
+            return 'T';
+        }
+        return '' + this.value;
+    }
+
+    static idToValue(text) {
+        if (text.toLowerCase() === 't') {
+            return 5;
+        }
+    
+        switch (text) {
+            case '1':
+                return 1;
+            case '2':
+                return 2;
+            case '3':
+                return 3;
+            case '4':
+                return 4;
+            case '5':
+                return 5;
+        }
+        return undefined;
+    }
+
+    /**
+     * The position of this finger instruction within the hand instruction
+     * @type number
+     */
+    get position() {
+        return this.replacing ?? this.value;
+    }
+}
 
 function range(first, last) {
     // console.log("range", first, last);
@@ -269,7 +328,8 @@ export class GFingerChord extends GChord {
                 previous = f.finger;
 
                 const muted = (f.mutedStrings ?? []);
-                result.push(`${f.fret}+${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
+                const thumb = (f.isThumb || (f.finger === THUMB)) ? "T" : "";
+                result.push(`${thumb}${f.fret}+${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
             }
             return result.join(" ");
         }
@@ -338,9 +398,15 @@ export class GFingerChord extends GChord {
 
             const fingers = pieces.filter(p => !p.startsWith("x+")).map((x, n) => {
                 const p = x.split("+");
-                const fret = parseCommand(p[0]);
+                let fretText = p[0];
+                let isThumb = false;
+                if (fretText.startsWith("t")) {
+                    fretText = fretText.substring(1);
+                    isThumb = true;
+                }
+                const fret = parseCommand(fretText);
                 const o = parseStrings(p[1] ?? "");
-                return { finger: n + 1, fret, ...o };
+                return { finger: n + 1, fret, isThumb, ...o };
             }).filter(o => o.fret !== UNUSED);
 
             return { fingers, unplayedStrings };
@@ -447,7 +513,7 @@ export class GStringChord extends GChord {
                     continue;
                 } else if (options?.hiddenBars) {
                     const missing = range(nextString, o.strings[0] - 1);
-                    
+
                     const anyUncovered = missing.some(v => {
                         const cover = this.getCover(v);
                         if (cover === undefined || (cover < o.fret)) {
@@ -518,6 +584,7 @@ if ("Deno" in globalThis) {
             "1+4x3",
             "1+4 2+23 X X+56 X+1",
             " x 2+456 3+5 ",
+            "1+2 T2+3 3+4"
         ];
         for (let ff of ffs) {
             const c = GFingerChord.parse(ff);
