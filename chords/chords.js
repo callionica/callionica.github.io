@@ -32,6 +32,9 @@ const OPEN = 0;
 /** @type GFinger */
 const THUMB = 5;
 
+/** Separators allowed in FretHand syntax */
+const SEPARATORS = /[+@]/ig;
+
 class Finger {
     /**
      * The core value representing the finger in the range 1-5 where the thumb is 5
@@ -227,7 +230,7 @@ export class GChord {
      * @param { string } text 
      */
     static parse(text) {
-        if (text.includes("+")) {
+        if (text.match(SEPARATORS)) {
             return GFingerChord.parse(text);
         }
         return GStringChord.parse(text);
@@ -314,11 +317,15 @@ export class GFingerChord extends GChord {
     }
 
     toString() {
+        // const separator = 'x';
+        const separator = '@';
+        
         /**
          * @param {GFingerPosition[]} fingers 
          */
         function fingersToText(fingers) {
             // fingers are assumed to be in correct order, but fingers may be missing if unused
+            
             const result = [];
             let previous = 0;
             for (let f of fingers) {
@@ -329,13 +336,13 @@ export class GFingerChord extends GChord {
 
                 const muted = (f.mutedStrings ?? []);
                 const thumb = (f.isThumb || (f.finger === THUMB)) ? "T" : "";
-                result.push(`${thumb}${f.fret}+${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
+                result.push(`${thumb}${f.fret}${separator}${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
             }
             return result.join(" ");
         }
 
         const unplayed = this.unplayedStrings.join("");
-        return fingersToText(this.fingers) + (unplayed.length > 0 ? ` X+${unplayed}` : "");
+        return fingersToText(this.fingers) + (unplayed.length > 0 ? ` X${separator}${unplayed}` : "");
     }
 
     /**
@@ -355,7 +362,8 @@ export class GFingerChord extends GChord {
          * @returns { { fingers: GFingerPosition[]; unplayedStrings: GString[]; } }
          */
         function parseFingerPositions(text) {
-
+            
+            const UNPLAYED = /^x[+@]/ig;
             /**
              * strings are covered strings optionally followed by an 'x' and then muted strings
              * @param {string} text 
@@ -391,13 +399,13 @@ export class GFingerChord extends GChord {
 
             const pieces = text.toLowerCase().split(" ").filter(fp => fp.length > 0);
 
-            const unplayedStrings = pieces.filter(p => p.startsWith("x+"))
-                .flatMap(p => [...p.split("+")[1]].map(x => parseInt(x, 10)))
+            const unplayedStrings = pieces.filter(p => p.match(UNPLAYED))
+                .flatMap(p => [...(p.split(SEPARATORS)[1])].map(x => parseInt(x, 10)))
                 .toSorted((a, b) => a - b)
                 ;
 
-            const fingers = pieces.filter(p => !p.startsWith("x+")).map((x, n) => {
-                const p = x.split("+");
+            const fingers = pieces.filter(p => !p.match(UNPLAYED)).map((x, n) => {
+                const p = x.split(SEPARATORS);
                 let fretText = p[0];
                 let isThumb = false;
                 if (fretText.startsWith("t")) {
