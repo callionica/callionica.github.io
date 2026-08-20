@@ -65,7 +65,7 @@ class Finger {
         if (text.toLowerCase() === 't') {
             return 5;
         }
-    
+
         switch (text) {
             case '1':
                 return 1;
@@ -319,13 +319,14 @@ export class GFingerChord extends GChord {
     toString() {
         // const separator = 'x';
         const separator = '@';
-        
+
+        const sorting = (a, b) => a - b;
+
         /**
          * @param {GFingerPosition[]} fingers 
          */
         function fingersToText(fingers) {
             // fingers are assumed to be in correct order, but fingers may be missing if unused
-            
             const result = [];
             let previous = 0;
             for (let f of fingers) {
@@ -334,14 +335,14 @@ export class GFingerChord extends GChord {
                 }
                 previous = f.finger;
 
-                const muted = (f.mutedStrings ?? []);
+                const muted = (f.mutedStrings ?? []).toSorted(sorting);
                 const thumb = (f.isThumb || (f.finger === THUMB)) ? "T" : "";
-                result.push(`${thumb}${f.fret}${separator}${f.strings.join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
+                result.push(`${thumb}${f.fret}${separator}${f.strings.toSorted(sorting).join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
             }
             return result.join(" ");
         }
 
-        const unplayed = this.unplayedStrings.join("");
+        const unplayed = this.unplayedStrings.toSorted(sorting).join("");
         return fingersToText(this.fingers) + (unplayed.length > 0 ? ` X${separator}${unplayed}` : "");
     }
 
@@ -362,7 +363,7 @@ export class GFingerChord extends GChord {
          * @returns { { fingers: GFingerPosition[]; unplayedStrings: GString[]; } }
          */
         function parseFingerPositions(text) {
-            
+
             const UNPLAYED = /^x[+@]/ig;
             /**
              * strings are covered strings optionally followed by an 'x' and then muted strings
