@@ -35,60 +35,60 @@ const THUMB = 5;
 /** Separators allowed in FretHand syntax */
 const SEPARATORS = /[+@]/ig;
 
-class Finger {
-    /**
-     * The core value representing the finger in the range 1-5 where the thumb is 5
-     * @type GFinger
-    */
-    value;
+// class Finger {
+//     /**
+//      * The core value representing the finger in the range 1-5 where the thumb is 5
+//      * @type GFinger
+//     */
+//     value;
 
-    /**
-     * Is this finger acting like another finger for the purposes of this chord?
-     * This is particularly useful for a thumb where it can be replacing a finger
-     * and we want the notation to reflect that by putting the thumb instruction
-     * at the position where the finger instruction would normally be.
-     * @type GFinger | undefined
-    */
-    replacing;
+//     /**
+//      * Is this finger acting like another finger for the purposes of this chord?
+//      * This is particularly useful for a thumb where it can be replacing a finger
+//      * and we want the notation to reflect that by putting the thumb instruction
+//      * at the position where the finger instruction would normally be.
+//      * @type GFinger | undefined
+//     */
+//     replacing;
 
-    /**
-     * Text representing the finger (1-4 or T)
-     */
-    get id() {
-        if (this.value === 5) {
-            return 'T';
-        }
-        return '' + this.value;
-    }
+//     /**
+//      * Text representing the finger (1-4 or T)
+//      */
+//     get id() {
+//         if (this.value === 5) {
+//             return 'T';
+//         }
+//         return '' + this.value;
+//     }
 
-    static idToValue(text) {
-        if (text.toLowerCase() === 't') {
-            return 5;
-        }
+//     static idToValue(text) {
+//         if (text.toLowerCase() === 't') {
+//             return 5;
+//         }
 
-        switch (text) {
-            case '1':
-                return 1;
-            case '2':
-                return 2;
-            case '3':
-                return 3;
-            case '4':
-                return 4;
-            case '5':
-                return 5;
-        }
-        return undefined;
-    }
+//         switch (text) {
+//             case '1':
+//                 return 1;
+//             case '2':
+//                 return 2;
+//             case '3':
+//                 return 3;
+//             case '4':
+//                 return 4;
+//             case '5':
+//                 return 5;
+//         }
+//         return undefined;
+//     }
 
-    /**
-     * The position of this finger instruction within the hand instruction
-     * @type number
-     */
-    get position() {
-        return this.replacing ?? this.value;
-    }
-}
+//     /**
+//      * The position of this finger instruction within the hand instruction
+//      * @type number
+//      */
+//     get position() {
+//         return this.replacing ?? this.value;
+//     }
+// }
 
 function range(first, last) {
     // console.log("range", first, last);
@@ -317,10 +317,12 @@ export class GFingerChord extends GChord {
     }
 
     toString() {
-        // const separator = 'x';
-        const separator = '@';
+        const UNUSED_FINGER = 'X';
+        const SILENT_STRINGS = 'X';
+        const MUTED_STRINGS = 'x';
+        const SEPARATOR = '+';
 
-        const sorting = (a, b) => a - b;
+        const sorting = (a, b) => b - a;
 
         /**
          * @param {GFingerPosition[]} fingers 
@@ -331,19 +333,54 @@ export class GFingerChord extends GChord {
             let previous = 0;
             for (let f of fingers) {
                 if (f.finger !== previous + 1) {
-                    result.push(...range(previous + 1, f.finger - 1).map(n => 'X'));
+                    result.push(...range(previous + 1, f.finger - 1).map(n => UNUSED_FINGER));
                 }
                 previous = f.finger;
 
                 const muted = (f.mutedStrings ?? []).toSorted(sorting);
                 const thumb = (f.isThumb || (f.finger === THUMB)) ? "T" : "";
-                result.push(`${thumb}${f.fret}${separator}${f.strings.toSorted(sorting).join("")}${(muted.length ? `x${muted.join("")}` : "")}`)
+                result.push(`${thumb}${f.fret}${SEPARATOR}${f.strings.toSorted(sorting).join("")}${(muted.length ? `${MUTED_STRINGS}${muted.join("")}` : "")}`)
             }
             return result.join(" ");
         }
 
         const unplayed = this.unplayedStrings.toSorted(sorting).join("");
-        return fingersToText(this.fingers) + (unplayed.length > 0 ? ` X${separator}${unplayed}` : "");
+        return fingersToText(this.fingers) + (unplayed.length > 0 ? ` ${SILENT_STRINGS}${SEPARATOR}${unplayed}` : "");
+    }
+
+    toHTML() {
+        const UNUSED_FINGER = 'X';
+        const UNPLAYED_STRINGS = 'X';
+        const MUTED_STRINGS = 'x';
+        const SEPARATOR = '+';
+
+        const sorting = (a, b) => b - a;
+
+        /**
+         * @param {GFingerPosition[]} fingers 
+         */
+        function fingersToText(fingers) {
+            // fingers are assumed to be in correct order, but fingers may be missing if unused
+            const result = [];
+            let previous = 0;
+            for (let f of fingers) {
+                if (f.finger !== previous + 1) {
+                    result.push(...range(previous + 1, f.finger - 1).map(n => `<span fh-finger='${n}' fh-unused>${UNUSED_FINGER}</span>`));
+                }
+                previous = f.finger;
+
+                const muted = (f.mutedStrings ?? []).toSorted(sorting);
+                const isThumb = (f.isThumb || (f.finger === THUMB));
+                const thumb =  isThumb ? "<span fh-indicator='thumb'>T</span>" : "";
+                const fingerNumber = isThumb ? THUMB : f.finger;
+                const covered = f.strings.toSorted(sorting);
+                result.push(`<span fh-finger='${fingerNumber}'>${thumb}<span fh-fret='${f.fret}'>${f.fret}</span><span fh-indicator='separator'>${SEPARATOR}</span><span fh-strings='covered'>${covered.map(s => `<span fh-string='${s}'>${s}</span>`).join("")}</span>${(muted.length ? `<span fh-strings='muted'><span fh-indicator='muted'>${MUTED_STRINGS}</span>${muted.join("")}</span>` : "")}</span>`)
+            }
+            return result.join(" ");
+        }
+
+        const unplayed = this.unplayedStrings.toSorted(sorting).map(s => `<span fh-string='${s}'>${s}</span>`).join("");
+        return fingersToText(this.fingers) + (unplayed.length > 0 ? ` <span fh-strings='unplayed'><span fh-indicator='unplayed'>${UNPLAYED_STRINGS}</span><span fh-indicator='separator'>${SEPARATOR}</span>${unplayed}</span>` : "");
     }
 
     /**
@@ -598,6 +635,8 @@ if ("Deno" in globalThis) {
         for (let ff of ffs) {
             const c = GFingerChord.parse(ff);
             console.log("CLASS FING", c.toString());
+
+            console.log("CLASS FHTM", c.toHTML());
 
             const o = c.toStringChord();
             console.log("CLASS STR1", o.toString());

@@ -24,14 +24,11 @@ x x 0 2 3 2
             const fc = sc.toFingerChord();
             return chord.toString() + "\n" +
                 sc.toString() + "\n" +
-                fc.toString()
+                `<div>${fc.toHTML()}</div>
                 ;
         }).join("\n\n");
         
-        document.getElementById("result").innerText = result;
-        // const positions = C.parseStringPositions(text);
-        // const fingers = C.stringsToFingers(positions, { interiorBars: true, hiddenBars: true });
-        // document.getElementById("result").innerText = C.positionsToText(positions) + "\n\n" + C.fingersToText(fingers);
+        document.getElementById("result").innerHTML = result;
     };
 </script>
 </html>
