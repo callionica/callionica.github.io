@@ -503,6 +503,10 @@ export class GStringChord extends GChord {
         return (result.some(x => x.length > 1) ? result.join(" ") : result.join(""));
     }
 
+    toHTML() {
+        return `<span>${this.toString()}</span>`; // TODO
+    }
+
     static parse(text) {
         /**
          * Given text like '0 x 2 3 0 0' or '0x2300', return an array of { string, fret } objects.

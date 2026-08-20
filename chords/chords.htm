@@ -1,16 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHORDS</title>
+    <style>
+        *[fh-strings] {
+            color: black;
+
+        }
+
+        *[fh-strings='unplayed'] {
+            color: gray;
+
+        }
+
+        *[fh-indicator] {
+            color: lightgray;
+
+        }
+
+        *[fh-string] {
+            padding: 0.05rem;
+
+        }
+
+        *[fh-fret] {
+            background-color: wheat;
+            padding: 0.25rem;
+
+        }
+    </style>
 </head>
+
 <body>
-<textarea id="chord" style="width:100%; height: 120px;">
+    <textarea id="chord" style="width:100%; height: 120px;">
 x x 0 2 3 2
 </textarea>
-<div id="result">
-</div>
+    <div id="result">
+    </div>
 </body>
 <script type="module">
     import * as C from "./chords.js";
@@ -22,13 +51,14 @@ x x 0 2 3 2
             const chord = C.GChord.parse(line);
             const sc = chord.toStringChord();
             const fc = sc.toFingerChord();
-            return chord.toString() + "\n" +
-                sc.toString() + "\n" +
+            return `<div>${chord.toHTML()}</div>` + "\n" +
+                `<div>${sc.toHTML()}</div>` + "\n" +
                 `<div>${fc.toHTML()}</div>`
                 ;
         }).join("\n\n");
-        
+
         document.getElementById("result").innerHTML = result;
     };
 </script>
+
 </html>
