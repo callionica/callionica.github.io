@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHORDS</title>
     <style>
+        .chord {
+            padding: 0.25rem;
+        }
+
         *[fh-strings] {
             color: black;
 
@@ -51,9 +55,9 @@ x x 0 2 3 2
             const chord = C.GChord.parse(line);
             const sc = chord.toStringChord();
             const fc = sc.toFingerChord();
-            return `<div>${chord.toHTML()}</div>` + "\n" +
-                `<div>${sc.toHTML()}</div>` + "\n" +
-                `<div>${fc.toHTML()}</div>`
+            return `<div class="chord">${chord.toHTML()}</div>` + "\n" +
+                `<div class="chord">${sc.toHTML()}</div>` + "\n" +
+                `<div class="chord">${fc.toHTML()}</div>`
                 ;
         }).join("\n\n");
 
